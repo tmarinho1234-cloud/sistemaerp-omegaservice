@@ -14,16 +14,289 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          ativo: boolean
+          cnpj: string | null
+          contato: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cnpj?: string | null
+          contato?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cnpj?: string | null
+          contato?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contrato_linhas_preco: {
+        Row: {
+          codigo: string
+          contrato_id: string
+          created_at: string
+          descricao: string
+          id: string
+          observacoes: string | null
+          preco_unitario: number
+          unidade: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          contrato_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          observacoes?: string | null
+          preco_unitario?: number
+          unidade?: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          contrato_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          observacoes?: string | null
+          preco_unitario?: number
+          unidade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contrato_linhas_preco_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contratos: {
+        Row: {
+          ativo: boolean
+          cliente_id: string
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          nome: string
+          numero: string | null
+          observacoes: string | null
+          prazo_pagamento_dias: number | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          cliente_id: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          nome: string
+          numero?: string | null
+          observacoes?: string | null
+          prazo_pagamento_dias?: number | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          cliente_id?: string
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          nome?: string
+          numero?: string | null
+          observacoes?: string | null
+          prazo_pagamento_dias?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contratos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipamentos: {
+        Row: {
+          codigo: string
+          created_at: string
+          id: string
+          nome: string
+          observacoes: string | null
+          setor: string | null
+          status: string
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          setor?: string | null
+          status?: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          setor?: string | null
+          status?: string
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      funcionarios: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_admissao: string | null
+          funcao: string | null
+          id: string
+          matricula: string
+          nome: string
+          observacoes: string | null
+          setor: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_admissao?: string | null
+          funcao?: string | null
+          id?: string
+          matricula: string
+          nome: string
+          observacoes?: string | null
+          setor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_admissao?: string | null
+          funcao?: string | null
+          id?: string
+          matricula?: string
+          nome?: string
+          observacoes?: string | null
+          setor?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          matricula: string | null
+          nome: string
+          setor: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          matricula?: string | null
+          nome: string
+          setor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          matricula?: string | null
+          nome?: string
+          setor?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role:
+        | "admin"
+        | "orcamentos"
+        | "pcp"
+        | "producao"
+        | "qualidade"
+        | "expedicao"
+        | "medicao"
+        | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +423,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: [
+        "admin",
+        "orcamentos",
+        "pcp",
+        "producao",
+        "qualidade",
+        "expedicao",
+        "medicao",
+        "viewer",
+      ],
+    },
   },
 } as const
