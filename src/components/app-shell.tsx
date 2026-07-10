@@ -20,6 +20,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import omegaLogo from "@/assets/omega-logo.jpg.asset.json";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 
