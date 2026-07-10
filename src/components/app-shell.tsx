@@ -20,6 +20,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import omegaLogo from "@/assets/omega-logo.jpg.asset.json";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 
@@ -136,14 +137,16 @@ function SidebarContent({
 }) {
   return (
     <>
-      <div className="h-14 flex items-center px-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center font-bold">
-            F
-          </div>
+      <div className="h-16 flex items-center px-5 border-b border-sidebar-border bg-white">
+        <div className="flex items-center gap-3">
+          <img
+            src={omegaLogo.url}
+            alt="Omega Service"
+            className="h-10 w-10 object-contain"
+          />
           <div>
-            <div className="text-sm font-semibold leading-tight">ERP Fábrica</div>
-            <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">
+            <div className="text-sm font-bold leading-tight text-primary tracking-wide">OMEGA SERVICE</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
               Gestão Industrial
             </div>
           </div>
