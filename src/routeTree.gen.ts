@@ -19,6 +19,7 @@ import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
 import { Route as AuthenticatedCadastrosClientesRouteImport } from './routes/_authenticated/cadastros/clientes'
 
 const AuthRoute = AuthRouteImport.update({
@@ -70,6 +71,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCadastrosContratosRoute =
+  AuthenticatedCadastrosContratosRouteImport.update({
+    id: '/cadastros/contratos',
+    path: '/cadastros/contratos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosClientesRoute =
   AuthenticatedCadastrosClientesRouteImport.update({
     id: '/cadastros/clientes',
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
+  '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -100,6 +108,7 @@ export interface FileRoutesByTo {
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
+  '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,6 +123,7 @@ export interface FileRoutesById {
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/_authenticated/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
+  '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/producao'
     | '/qualidade'
     | '/cadastros/clientes'
+    | '/cadastros/contratos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/producao'
     | '/qualidade'
     | '/cadastros/clientes'
+    | '/cadastros/contratos'
   id:
     | '__root__'
     | '/'
@@ -153,6 +165,7 @@ export interface FileRouteTypes {
     | '/_authenticated/producao'
     | '/_authenticated/qualidade'
     | '/_authenticated/cadastros/clientes'
+    | '/_authenticated/cadastros/contratos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cadastros/contratos': {
+      id: '/_authenticated/cadastros/contratos'
+      path: '/cadastros/contratos'
+      fullPath: '/cadastros/contratos'
+      preLoaderRoute: typeof AuthenticatedCadastrosContratosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros/clientes': {
       id: '/_authenticated/cadastros/clientes'
       path: '/cadastros/clientes'
@@ -252,6 +272,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedCadastrosClientesRoute: typeof AuthenticatedCadastrosClientesRoute
+  AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -263,6 +284,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedCadastrosClientesRoute: AuthenticatedCadastrosClientesRoute,
+  AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
