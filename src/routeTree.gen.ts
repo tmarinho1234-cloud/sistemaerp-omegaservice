@@ -19,6 +19,7 @@ import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
 import { Route as AuthenticatedCadastrosClientesRouteImport } from './routes/_authenticated/cadastros/clientes'
@@ -72,6 +73,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCadastrosFuncionariosRoute =
+  AuthenticatedCadastrosFuncionariosRouteImport.update({
+    id: '/cadastros/funcionarios',
+    path: '/cadastros/funcionarios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosEquipamentosRoute =
   AuthenticatedCadastrosEquipamentosRouteImport.update({
     id: '/cadastros/equipamentos',
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
+    | '/cadastros/funcionarios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
+    | '/cadastros/funcionarios'
   id:
     | '__root__'
     | '/'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/clientes'
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
+    | '/_authenticated/cadastros/funcionarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cadastros/funcionarios': {
+      id: '/_authenticated/cadastros/funcionarios'
+      path: '/cadastros/funcionarios'
+      fullPath: '/cadastros/funcionarios'
+      preLoaderRoute: typeof AuthenticatedCadastrosFuncionariosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros/equipamentos': {
       id: '/_authenticated/cadastros/equipamentos'
       path: '/cadastros/equipamentos'
@@ -294,6 +314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosClientesRoute: typeof AuthenticatedCadastrosClientesRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
+  AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -308,6 +329,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
   AuthenticatedCadastrosEquipamentosRoute:
     AuthenticatedCadastrosEquipamentosRoute,
+  AuthenticatedCadastrosFuncionariosRoute:
+    AuthenticatedCadastrosFuncionariosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

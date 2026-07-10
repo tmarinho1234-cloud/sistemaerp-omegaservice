@@ -77,14 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "ERP Fábrica — Gestão Industrial" },
+      { name: "description", content: "Sistema ERP para fabricação industrial: orçamentos, PCP, produção, qualidade, expedição e medição com rastreabilidade por Pedido, Conjunto e TAG." },
+      { property: "og:title", content: "ERP Fábrica — Gestão Industrial" },
+      { property: "og:description", content: "Do orçamento ao faturamento em um único sistema." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
