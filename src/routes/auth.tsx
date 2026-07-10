@@ -75,18 +75,22 @@ function AuthPage() {
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       <div className="hidden lg:flex flex-col justify-between p-10 bg-sidebar text-sidebar-foreground">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded bg-sidebar-primary text-sidebar-primary-foreground grid place-items-center font-bold text-lg">
-            F
+          <div className="h-12 w-12 rounded bg-white grid place-items-center p-1">
+            <img src={omegaLogo.url} alt="Omega Service" className="h-full w-full object-contain" />
           </div>
           <div>
-            <div className="text-lg font-semibold">ERP Fábrica</div>
+            <div className="text-lg font-bold tracking-wide">OMEGA SERVICE</div>
             <div className="text-xs uppercase tracking-widest text-sidebar-foreground/60">
               Gestão Industrial
             </div>
           </div>
         </div>
-        <div className="space-y-4 max-w-md">
-          <Factory className="h-16 w-16 text-sidebar-primary" />
+        <div className="space-y-6 max-w-md">
+          <img
+            src={omegaLogo.url}
+            alt=""
+            className="h-40 w-40 object-contain rounded-lg bg-white p-3 shadow-2xl"
+          />
           <h1 className="text-3xl font-bold leading-tight">
             Do orçamento ao faturamento, em um único sistema.
           </h1>
