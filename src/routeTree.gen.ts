@@ -16,6 +16,7 @@ import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pcp'
 import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
+import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 
@@ -53,6 +54,11 @@ const AuthenticatedOrcamentosRoute = AuthenticatedOrcamentosRouteImport.update({
   path: '/orcamentos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMedicaoRoute = AuthenticatedMedicaoRouteImport.update({
+  id: '/medicao',
+  path: '/medicao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedExpedicaoRoute = AuthenticatedExpedicaoRouteImport.update({
   id: '/expedicao',
   path: '/expedicao',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/_authenticated/medicao': typeof AuthenticatedMedicaoRoute
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/expedicao'
+    | '/medicao'
     | '/orcamentos'
     | '/pcp'
     | '/producao'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/expedicao'
+    | '/medicao'
     | '/orcamentos'
     | '/pcp'
     | '/producao'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/dashboard'
     | '/_authenticated/expedicao'
+    | '/_authenticated/medicao'
     | '/_authenticated/orcamentos'
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
@@ -187,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrcamentosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/medicao': {
+      id: '/_authenticated/medicao'
+      path: '/medicao'
+      fullPath: '/medicao'
+      preLoaderRoute: typeof AuthenticatedMedicaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/expedicao': {
       id: '/_authenticated/expedicao'
       path: '/expedicao'
@@ -207,6 +226,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRoute
+  AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRoute
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
@@ -216,6 +236,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRoute,
+  AuthenticatedMedicaoRoute: AuthenticatedMedicaoRoute,
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
