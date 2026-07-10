@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pcp'
 import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedQualidadeRoute = AuthenticatedQualidadeRouteImport.update({
+  id: '/qualidade',
+  path: '/qualidade',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProducaoRoute = AuthenticatedProducaoRouteImport.update({
   id: '/producao',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
+  '/qualidade': typeof AuthenticatedQualidadeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +85,27 @@ export interface FileRoutesById {
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
+  '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/orcamentos' | '/pcp' | '/producao'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/orcamentos'
+    | '/pcp'
+    | '/producao'
+    | '/qualidade'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/orcamentos' | '/pcp' | '/producao'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/orcamentos'
+    | '/pcp'
+    | '/producao'
+    | '/qualidade'
   id:
     | '__root__'
     | '/'
@@ -92,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orcamentos'
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
+    | '/_authenticated/qualidade'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -122,6 +146,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/qualidade': {
+      id: '/_authenticated/qualidade'
+      path: '/qualidade'
+      fullPath: '/qualidade'
+      preLoaderRoute: typeof AuthenticatedQualidadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/producao': {
       id: '/_authenticated/producao'
@@ -159,6 +190,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
+  AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -166,6 +198,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
+  AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
