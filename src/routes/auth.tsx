@@ -12,7 +12,7 @@ import omegaLogo from "@/assets/omega-logo.jpg.asset.json";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Entrar — ERP Fábrica" },
+      { title: "Entrar — Omega Service" },
       { name: "description", content: "Acesso ao sistema ERP de gestão industrial." },
     ],
   }),
