@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      analises_tecnicas: {
+        Row: {
+          created_at: string
+          data_analise: string
+          horas_estimadas: number | null
+          id: string
+          materiais: string | null
+          parecer: string
+          processos: string | null
+          responsavel_id: string | null
+          solicitacao_id: string
+          updated_at: string
+          viavel: boolean
+        }
+        Insert: {
+          created_at?: string
+          data_analise?: string
+          horas_estimadas?: number | null
+          id?: string
+          materiais?: string | null
+          parecer: string
+          processos?: string | null
+          responsavel_id?: string | null
+          solicitacao_id: string
+          updated_at?: string
+          viavel?: boolean
+        }
+        Update: {
+          created_at?: string
+          data_analise?: string
+          horas_estimadas?: number | null
+          id?: string
+          materiais?: string | null
+          parecer?: string
+          processos?: string | null
+          responsavel_id?: string | null
+          solicitacao_id?: string
+          updated_at?: string
+          viavel?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analises_tecnicas_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_orcamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           ativo: boolean
@@ -222,6 +272,185 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamento_itens: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          orcamento_id: string
+          ordem: number
+          peso_kg: number | null
+          preco_total: number | null
+          preco_unitario: number
+          quantidade: number
+          unidade: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          orcamento_id: string
+          ordem?: number
+          peso_kg?: number | null
+          preco_total?: number | null
+          preco_unitario?: number
+          quantidade?: number
+          unidade?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          ordem?: number
+          peso_kg?: number | null
+          preco_total?: number | null
+          preco_unitario?: number
+          quantidade?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_itens_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamentos: {
+        Row: {
+          arquivo_path: string | null
+          condicoes_comerciais: string | null
+          created_at: string
+          created_by: string | null
+          enviado_em: string | null
+          id: string
+          motivo_reprovacao: string | null
+          numero: string
+          prazo_execucao_dias: number | null
+          respondido_em: string | null
+          solicitacao_id: string
+          status: Database["public"]["Enums"]["orcamento_status"]
+          updated_at: string
+          validade: string | null
+          valor_total: number
+        }
+        Insert: {
+          arquivo_path?: string | null
+          condicoes_comerciais?: string | null
+          created_at?: string
+          created_by?: string | null
+          enviado_em?: string | null
+          id?: string
+          motivo_reprovacao?: string | null
+          numero: string
+          prazo_execucao_dias?: number | null
+          respondido_em?: string | null
+          solicitacao_id: string
+          status?: Database["public"]["Enums"]["orcamento_status"]
+          updated_at?: string
+          validade?: string | null
+          valor_total?: number
+        }
+        Update: {
+          arquivo_path?: string | null
+          condicoes_comerciais?: string | null
+          created_at?: string
+          created_by?: string | null
+          enviado_em?: string | null
+          id?: string
+          motivo_reprovacao?: string | null
+          numero?: string
+          prazo_execucao_dias?: number | null
+          respondido_em?: string | null
+          solicitacao_id?: string
+          status?: Database["public"]["Enums"]["orcamento_status"]
+          updated_at?: string
+          validade?: string | null
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamentos_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_orcamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedidos: {
+        Row: {
+          cliente_id: string
+          contrato_id: string | null
+          created_at: string
+          created_by: string | null
+          data_emissao: string
+          id: string
+          numero: string
+          observacoes: string | null
+          orcamento_id: string | null
+          prazo_entrega: string | null
+          status: Database["public"]["Enums"]["pedido_status"]
+          updated_at: string
+          valor_total: number
+        }
+        Insert: {
+          cliente_id: string
+          contrato_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_emissao?: string
+          id?: string
+          numero: string
+          observacoes?: string | null
+          orcamento_id?: string | null
+          prazo_entrega?: string | null
+          status?: Database["public"]["Enums"]["pedido_status"]
+          updated_at?: string
+          valor_total?: number
+        }
+        Update: {
+          cliente_id?: string
+          contrato_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_emissao?: string
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          orcamento_id?: string | null
+          prazo_entrega?: string | null
+          status?: Database["public"]["Enums"]["pedido_status"]
+          updated_at?: string
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedidos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -251,6 +480,110 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      solicitacao_anexos: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          solicitacao_id: string
+          storage_path: string
+          tamanho: number | null
+          tipo: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          solicitacao_id: string
+          storage_path: string
+          tamanho?: number | null
+          tipo?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          solicitacao_id?: string
+          storage_path?: string
+          tamanho?: number | null
+          tipo?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacao_anexos_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_orcamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitacoes_orcamento: {
+        Row: {
+          cliente_id: string
+          contrato_id: string | null
+          created_at: string
+          created_by: string | null
+          data_recebimento: string
+          escopo: string
+          id: string
+          numero: string
+          observacoes: string | null
+          prazo_cliente: string | null
+          responsavel_id: string | null
+          status: Database["public"]["Enums"]["solicitacao_status"]
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          contrato_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_recebimento?: string
+          escopo: string
+          id?: string
+          numero: string
+          observacoes?: string | null
+          prazo_cliente?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["solicitacao_status"]
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          contrato_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_recebimento?: string
+          escopo?: string
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          prazo_cliente?: string | null
+          responsavel_id?: string | null
+          status?: Database["public"]["Enums"]["solicitacao_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_orcamento_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_orcamento_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -297,6 +630,16 @@ export type Database = {
         | "expedicao"
         | "medicao"
         | "viewer"
+      orcamento_status: "rascunho" | "enviado" | "aprovado" | "reprovado"
+      pedido_status: "aberto" | "em_producao" | "concluido" | "cancelado"
+      solicitacao_status:
+        | "recebida"
+        | "em_analise"
+        | "orcamento_em_elaboracao"
+        | "enviada"
+        | "aprovada"
+        | "reprovada"
+        | "convertida_pedido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -433,6 +776,17 @@ export const Constants = {
         "expedicao",
         "medicao",
         "viewer",
+      ],
+      orcamento_status: ["rascunho", "enviado", "aprovado", "reprovado"],
+      pedido_status: ["aberto", "em_producao", "concluido", "cancelado"],
+      solicitacao_status: [
+        "recebida",
+        "em_analise",
+        "orcamento_em_elaboracao",
+        "enviada",
+        "aprovada",
+        "reprovada",
+        "convertida_pedido",
       ],
     },
   },
