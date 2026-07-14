@@ -64,45 +64,6 @@ export type Database = {
           },
         ]
       }
-      clientes: {
-        Row: {
-          ativo: boolean
-          cnpj: string | null
-          contato: string | null
-          created_at: string
-          email: string | null
-          endereco: string | null
-          id: string
-          nome: string
-          telefone: string | null
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          cnpj?: string | null
-          contato?: string | null
-          created_at?: string
-          email?: string | null
-          endereco?: string | null
-          id?: string
-          nome: string
-          telefone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          cnpj?: string | null
-          contato?: string | null
-          created_at?: string
-          email?: string | null
-          endereco?: string | null
-          id?: string
-          nome?: string
-          telefone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
       contrato_linhas_preco: {
         Row: {
           codigo: string
@@ -150,10 +111,10 @@ export type Database = {
       contratos: {
         Row: {
           ativo: boolean
-          cliente_id: string
           created_at: string
           data_fim: string | null
           data_inicio: string | null
+          empresa: string
           id: string
           nome: string
           numero: string | null
@@ -163,10 +124,10 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
-          cliente_id: string
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
+          empresa: string
           id?: string
           nome: string
           numero?: string | null
@@ -176,10 +137,10 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
-          cliente_id?: string
           created_at?: string
           data_fim?: string | null
           data_inicio?: string | null
+          empresa?: string
           id?: string
           nome?: string
           numero?: string | null
@@ -187,15 +148,7 @@ export type Database = {
           prazo_pagamento_dias?: number | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "contratos_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       equipamentos: {
         Row: {
@@ -383,7 +336,6 @@ export type Database = {
       }
       pedidos: {
         Row: {
-          cliente_id: string
           contrato_id: string | null
           created_at: string
           created_by: string | null
@@ -394,11 +346,11 @@ export type Database = {
           orcamento_id: string | null
           prazo_entrega: string | null
           status: Database["public"]["Enums"]["pedido_status"]
+          sub_area_id: string | null
           updated_at: string
           valor_total: number
         }
         Insert: {
-          cliente_id: string
           contrato_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -409,11 +361,11 @@ export type Database = {
           orcamento_id?: string | null
           prazo_entrega?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
+          sub_area_id?: string | null
           updated_at?: string
           valor_total?: number
         }
         Update: {
-          cliente_id?: string
           contrato_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -424,17 +376,11 @@ export type Database = {
           orcamento_id?: string | null
           prazo_entrega?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
+          sub_area_id?: string | null
           updated_at?: string
           valor_total?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "pedidos_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "pedidos_contrato_id_fkey"
             columns: ["contrato_id"]
@@ -447,6 +393,13 @@ export type Database = {
             columns: ["orcamento_id"]
             isOneToOne: false
             referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedidos_sub_area_id_fkey"
+            columns: ["sub_area_id"]
+            isOneToOne: false
+            referencedRelation: "sub_areas"
             referencedColumns: ["id"]
           },
         ]
@@ -524,8 +477,7 @@ export type Database = {
       }
       solicitacoes_orcamento: {
         Row: {
-          cliente_id: string
-          contrato_id: string | null
+          contrato_id: string
           created_at: string
           created_by: string | null
           data_recebimento: string
@@ -536,11 +488,11 @@ export type Database = {
           prazo_cliente: string | null
           responsavel_id: string | null
           status: Database["public"]["Enums"]["solicitacao_status"]
+          sub_area_id: string | null
           updated_at: string
         }
         Insert: {
-          cliente_id: string
-          contrato_id?: string | null
+          contrato_id: string
           created_at?: string
           created_by?: string | null
           data_recebimento?: string
@@ -551,11 +503,11 @@ export type Database = {
           prazo_cliente?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["solicitacao_status"]
+          sub_area_id?: string | null
           updated_at?: string
         }
         Update: {
-          cliente_id?: string
-          contrato_id?: string | null
+          contrato_id?: string
           created_at?: string
           created_by?: string | null
           data_recebimento?: string
@@ -566,18 +518,60 @@ export type Database = {
           prazo_cliente?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["solicitacao_status"]
+          sub_area_id?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "solicitacoes_orcamento_cliente_id_fkey"
-            columns: ["cliente_id"]
+            foreignKeyName: "solicitacoes_orcamento_contrato_id_fkey"
+            columns: ["contrato_id"]
             isOneToOne: false
-            referencedRelation: "clientes"
+            referencedRelation: "contratos"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "solicitacoes_orcamento_contrato_id_fkey"
+            foreignKeyName: "solicitacoes_orcamento_sub_area_id_fkey"
+            columns: ["sub_area_id"]
+            isOneToOne: false
+            referencedRelation: "sub_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_areas: {
+        Row: {
+          ativo: boolean
+          codigo: string | null
+          contrato_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo?: string | null
+          contrato_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string | null
+          contrato_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_areas_contrato_id_fkey"
             columns: ["contrato_id"]
             isOneToOne: false
             referencedRelation: "contratos"
