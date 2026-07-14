@@ -13,18 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 
 type Contrato = {
   id: string;
-  cliente_id: string;
+  empresa: string;
   nome: string;
   numero: string | null;
   data_inicio: string | null;
@@ -32,7 +25,6 @@ type Contrato = {
   prazo_pagamento_dias: number | null;
   observacoes: string | null;
   ativo: boolean;
-  clientes?: { nome: string } | null;
 };
 
 export const Route = createFileRoute("/_authenticated/cadastros/contratos")({
@@ -43,26 +35,13 @@ function ContratosPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Partial<Contrato> | null>(null);
 
-  const { data: clientes = [] } = useQuery({
-    queryKey: ["clientes-select"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clientes")
-        .select("id, nome")
-        .eq("ativo", true)
-        .order("nome");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["contratos"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contratos")
-        .select("*, clientes(nome)")
-        .order("nome");
+        .select("*")
+        .order("empresa");
       if (error) throw error;
       return data as Contrato[];
     },
@@ -71,7 +50,7 @@ function ContratosPage() {
   const saveMut = useMutation({
     mutationFn: async (v: Partial<Contrato>) => {
       const payload = {
-        cliente_id: v.cliente_id!,
+        empresa: v.empresa!,
         nome: v.nome!,
         numero: v.numero || null,
         data_inicio: v.data_inicio || null,
@@ -112,17 +91,13 @@ function ContratosPage() {
     <>
       <CrudPage<Contrato>
         title="Contratos"
-        description="Contratos vigentes (Alumar, Vale Ferrosos, Vale Base Metals e outros)."
+        description="Contratos vigentes (Alumar, Vale Ferrosos, Vale Base Metals e outros). Sub-áreas são cadastradas separadamente."
         rows={rows}
         loading={isLoading}
         columns={[
+          { key: "empresa", header: "Empresa" },
           { key: "nome", header: "Contrato" },
           { key: "numero", header: "Número" },
-          {
-            key: "cliente",
-            header: "Cliente",
-            render: (r) => r.clientes?.nome ?? "—",
-          },
           { key: "data_inicio", header: "Início" },
           { key: "data_fim", header: "Fim" },
           {
@@ -156,22 +131,13 @@ function ContratosPage() {
               className="space-y-4"
             >
               <div className="space-y-2">
-                <Label>Cliente *</Label>
-                <Select
-                  value={editing.cliente_id}
-                  onValueChange={(v) => setEditing({ ...editing, cliente_id: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientes.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Empresa *</Label>
+                <Input
+                  required
+                  placeholder="Ex.: Vale, Alumar"
+                  value={editing.empresa ?? ""}
+                  onChange={(e) => setEditing({ ...editing, empresa: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Nome do contrato *</Label>
@@ -179,7 +145,7 @@ function ContratosPage() {
                   required
                   value={editing.nome ?? ""}
                   onChange={(e) => setEditing({ ...editing, nome: e.target.value })}
-                  placeholder="Ex.: Alumar, Vale Ferrosos, Vale Base Metals"
+                  placeholder="Ex.: Vale Metálicos, Alumar Refinaria"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -188,6 +154,7 @@ function ContratosPage() {
                   <Input
                     value={editing.numero ?? ""}
                     onChange={(e) => setEditing({ ...editing, numero: e.target.value })}
+                    placeholder="Ex.: 278"
                   />
                 </div>
                 <div className="space-y-2">
