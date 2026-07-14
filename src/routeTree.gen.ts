@@ -22,7 +22,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
-import { Route as AuthenticatedCadastrosClientesRouteImport } from './routes/_authenticated/cadastros/clientes'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -91,12 +90,6 @@ const AuthenticatedCadastrosContratosRoute =
     path: '/cadastros/contratos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCadastrosClientesRoute =
-  AuthenticatedCadastrosClientesRouteImport.update({
-    id: '/cadastros/clientes',
-    path: '/cadastros/clientes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,7 +101,6 @@ export interface FileRoutesByFullPath {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -123,7 +115,6 @@ export interface FileRoutesByTo {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -140,7 +131,6 @@ export interface FileRoutesById {
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
-  '/_authenticated/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -157,7 +147,6 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
-    | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
@@ -172,7 +161,6 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
-    | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
@@ -188,7 +176,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
     | '/_authenticated/qualidade'
-    | '/_authenticated/cadastros/clientes'
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
     | '/_authenticated/cadastros/funcionarios'
@@ -293,13 +280,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCadastrosContratosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/cadastros/clientes': {
-      id: '/_authenticated/cadastros/clientes'
-      path: '/cadastros/clientes'
-      fullPath: '/cadastros/clientes'
-      preLoaderRoute: typeof AuthenticatedCadastrosClientesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -311,7 +291,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
-  AuthenticatedCadastrosClientesRoute: typeof AuthenticatedCadastrosClientesRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
@@ -325,7 +304,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPcpRoute: AuthenticatedPcpRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
-  AuthenticatedCadastrosClientesRoute: AuthenticatedCadastrosClientesRoute,
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
   AuthenticatedCadastrosEquipamentosRoute:
     AuthenticatedCadastrosEquipamentosRoute,
