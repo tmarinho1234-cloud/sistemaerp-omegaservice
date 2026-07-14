@@ -214,8 +214,9 @@ function OrcamentosPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Número</TableHead>
-                  <TableHead>Cliente</TableHead>
+                  <TableHead>Empresa</TableHead>
                   <TableHead>Contrato</TableHead>
+                  <TableHead>Sub-área</TableHead>
                   <TableHead>Recebida</TableHead>
                   <TableHead>Prazo</TableHead>
                   <TableHead>Status</TableHead>
@@ -225,13 +226,13 @@ function OrcamentosPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       Carregando...
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       Nenhuma solicitação encontrada.
                     </TableCell>
                   </TableRow>
@@ -239,8 +240,9 @@ function OrcamentosPage() {
                   filtered.map((r) => (
                     <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenedId(r.id)}>
                       <TableCell className="font-mono text-xs">{r.numero}</TableCell>
-                      <TableCell>{r.clientes?.nome ?? "—"}</TableCell>
+                      <TableCell>{r.contratos?.empresa ?? "—"}</TableCell>
                       <TableCell>{r.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell>{r.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell>{formatDate(r.data_recebimento)}</TableCell>
                       <TableCell>{formatDate(r.prazo_cliente)}</TableCell>
                       <TableCell>
