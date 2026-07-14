@@ -71,8 +71,8 @@ export const Route = createFileRoute("/_authenticated/orcamentos")({
 type Solicitacao = {
   id: string;
   numero: string;
-  cliente_id: string;
-  contrato_id: string | null;
+  contrato_id: string;
+  sub_area_id: string | null;
   data_recebimento: string;
   prazo_cliente: string | null;
   escopo: string;
@@ -85,8 +85,8 @@ type Solicitacao = {
     | "aprovada"
     | "reprovada"
     | "convertida_pedido";
-  clientes?: { nome: string } | null;
-  contratos?: { nome: string } | null;
+  contratos?: { nome: string; empresa: string } | null;
+  sub_areas?: { nome: string } | null;
 };
 
 const STATUS_LABEL: Record<Solicitacao["status"], string> = {
