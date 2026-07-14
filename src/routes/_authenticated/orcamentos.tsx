@@ -309,40 +309,40 @@ function NovaSolicitacaoDialog({
   onClose: () => void;
   onCreated: (id: string) => void;
 }) {
-  const [clienteId, setClienteId] = useState<string>("");
   const [contratoId, setContratoId] = useState<string>("");
+  const [subAreaId, setSubAreaId] = useState<string>("");
   const [prazoCliente, setPrazoCliente] = useState<string>("");
   const [escopo, setEscopo] = useState<string>("");
   const [observacoes, setObservacoes] = useState<string>("");
 
-  const { data: clientes = [] } = useQuery({
-    queryKey: ["clientes-select"],
+  const { data: contratos = [] } = useQuery({
+    queryKey: ["contratos-select"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("clientes")
-        .select("id, nome")
+        .from("contratos")
+        .select("id, nome, empresa")
         .eq("ativo", true)
-        .order("nome");
+        .order("empresa");
       if (error) throw error;
       return data;
     },
     enabled: open,
   });
 
-  const { data: contratos = [] } = useQuery({
-    queryKey: ["contratos-select", clienteId],
+  const { data: subAreas = [] } = useQuery({
+    queryKey: ["sub-areas-select", contratoId],
     queryFn: async () => {
-      if (!clienteId) return [];
+      if (!contratoId) return [];
       const { data, error } = await supabase
-        .from("contratos")
+        .from("sub_areas")
         .select("id, nome")
-        .eq("cliente_id", clienteId)
+        .eq("contrato_id", contratoId)
         .eq("ativo", true)
         .order("nome");
       if (error) throw error;
       return data;
     },
-    enabled: !!clienteId,
+    enabled: !!contratoId,
   });
 
   const createMut = useMutation({
@@ -352,8 +352,8 @@ function NovaSolicitacaoDialog({
         .from("solicitacoes_orcamento")
         .insert({
           numero,
-          cliente_id: clienteId,
-          contrato_id: contratoId || null,
+          contrato_id: contratoId,
+          sub_area_id: subAreaId || null,
           prazo_cliente: prazoCliente || null,
           escopo,
           observacoes: observacoes || null,
@@ -366,8 +366,8 @@ function NovaSolicitacaoDialog({
     },
     onSuccess: (id) => {
       toast.success("Solicitação cadastrada");
-      setClienteId("");
       setContratoId("");
+      setSubAreaId("");
       setPrazoCliente("");
       setEscopo("");
       setObservacoes("");
@@ -393,15 +393,22 @@ function NovaSolicitacaoDialog({
           }}
         >
           <div className="space-y-2">
-            <Label>Cliente *</Label>
-            <Select value={clienteId} onValueChange={setClienteId} required>
+            <Label>Contrato *</Label>
+            <Select
+              value={contratoId}
+              onValueChange={(v) => {
+                setContratoId(v);
+                setSubAreaId("");
+              }}
+              required
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
+                <SelectValue placeholder="Selecione o contrato" />
               </SelectTrigger>
               <SelectContent>
-                {clientes.map((c) => (
+                {contratos.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.nome}
+                    {c.empresa} — {c.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -409,15 +416,15 @@ function NovaSolicitacaoDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label>Contrato</Label>
-              <Select value={contratoId} onValueChange={setContratoId} disabled={!clienteId}>
+              <Label>Sub-área</Label>
+              <Select value={subAreaId} onValueChange={setSubAreaId} disabled={!contratoId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={clienteId ? "Opcional" : "Selecione o cliente"} />
+                  <SelectValue placeholder={contratoId ? "Opcional" : "Selecione o contrato"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {contratos.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.nome}
+                  {subAreas.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -454,7 +461,7 @@ function NovaSolicitacaoDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={createMut.isPending || !clienteId}>
+            <Button type="submit" disabled={createMut.isPending || !contratoId}>
               {createMut.isPending ? "Salvando..." : "Cadastrar"}
             </Button>
           </DialogFooter>
