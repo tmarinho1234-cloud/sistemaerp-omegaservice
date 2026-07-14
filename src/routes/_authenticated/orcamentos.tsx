@@ -124,7 +124,7 @@ function OrcamentosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("solicitacoes_orcamento")
-        .select("*, clientes(nome), contratos(nome)")
+        .select("*, contratos(nome, empresa), sub_areas(nome)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as Solicitacao[];
@@ -139,7 +139,8 @@ function OrcamentosPage() {
           !s ||
           r.numero.toLowerCase().includes(s) ||
           r.escopo.toLowerCase().includes(s) ||
-          r.clientes?.nome.toLowerCase().includes(s);
+          r.contratos?.empresa.toLowerCase().includes(s) ||
+          r.contratos?.nome.toLowerCase().includes(s);
         const matchesStatus =
           statusFilter === "todos" || r.status === statusFilter;
         return matchesSearch && matchesStatus;
