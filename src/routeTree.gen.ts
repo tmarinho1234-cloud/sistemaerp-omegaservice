@@ -19,10 +19,10 @@ import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
-import { Route as AuthenticatedCadastrosClientesRouteImport } from './routes/_authenticated/cadastros/clientes'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -73,6 +73,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCadastrosSubAreasRoute =
+  AuthenticatedCadastrosSubAreasRouteImport.update({
+    id: '/cadastros/sub-areas',
+    path: '/cadastros/sub-areas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosFuncionariosRoute =
   AuthenticatedCadastrosFuncionariosRouteImport.update({
     id: '/cadastros/funcionarios',
@@ -91,12 +97,6 @@ const AuthenticatedCadastrosContratosRoute =
     path: '/cadastros/contratos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCadastrosClientesRoute =
-  AuthenticatedCadastrosClientesRouteImport.update({
-    id: '/cadastros/clientes',
-    path: '/cadastros/clientes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,10 +108,10 @@ export interface FileRoutesByFullPath {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,10 +123,10 @@ export interface FileRoutesByTo {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
-  '/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,10 +140,10 @@ export interface FileRoutesById {
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
-  '/_authenticated/cadastros/clientes': typeof AuthenticatedCadastrosClientesRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,10 +157,10 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
-    | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
+    | '/cadastros/sub-areas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,10 +172,10 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
-    | '/cadastros/clientes'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
+    | '/cadastros/sub-areas'
   id:
     | '__root__'
     | '/'
@@ -188,10 +188,10 @@ export interface FileRouteTypes {
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
     | '/_authenticated/qualidade'
-    | '/_authenticated/cadastros/clientes'
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
     | '/_authenticated/cadastros/funcionarios'
+    | '/_authenticated/cadastros/sub-areas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -272,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cadastros/sub-areas': {
+      id: '/_authenticated/cadastros/sub-areas'
+      path: '/cadastros/sub-areas'
+      fullPath: '/cadastros/sub-areas'
+      preLoaderRoute: typeof AuthenticatedCadastrosSubAreasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros/funcionarios': {
       id: '/_authenticated/cadastros/funcionarios'
       path: '/cadastros/funcionarios'
@@ -293,13 +300,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCadastrosContratosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/cadastros/clientes': {
-      id: '/_authenticated/cadastros/clientes'
-      path: '/cadastros/clientes'
-      fullPath: '/cadastros/clientes'
-      preLoaderRoute: typeof AuthenticatedCadastrosClientesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -311,10 +311,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
-  AuthenticatedCadastrosClientesRoute: typeof AuthenticatedCadastrosClientesRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
+  AuthenticatedCadastrosSubAreasRoute: typeof AuthenticatedCadastrosSubAreasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -325,12 +325,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPcpRoute: AuthenticatedPcpRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
-  AuthenticatedCadastrosClientesRoute: AuthenticatedCadastrosClientesRoute,
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
   AuthenticatedCadastrosEquipamentosRoute:
     AuthenticatedCadastrosEquipamentosRoute,
   AuthenticatedCadastrosFuncionariosRoute:
     AuthenticatedCadastrosFuncionariosRoute,
+  AuthenticatedCadastrosSubAreasRoute: AuthenticatedCadastrosSubAreasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -344,13 +344,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

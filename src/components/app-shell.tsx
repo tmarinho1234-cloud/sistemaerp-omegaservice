@@ -43,7 +43,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Cadastros",
     items: [
-      { to: "/cadastros/clientes", label: "Clientes", icon: Users },
+      { to: "/cadastros/sub-areas", label: "Sub-áreas", icon: Users },
       { to: "/cadastros/contratos", label: "Contratos", icon: Building2 },
       { to: "/cadastros/equipamentos", label: "Equipamentos", icon: Wrench },
       { to: "/cadastros/funcionarios", label: "Funcionários", icon: UserCog },

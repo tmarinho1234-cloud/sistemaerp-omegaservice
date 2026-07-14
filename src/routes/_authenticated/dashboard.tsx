@@ -19,15 +19,15 @@ function DashboardPage() {
   const { data: counts } = useQuery({
     queryKey: ["dashboard-counts"],
     queryFn: async () => {
-      const [clientes, contratos, equip, func] = await Promise.all([
-        supabase.from("clientes").select("*", { count: "exact", head: true }),
+      const [contratos, subAreas, equip, func] = await Promise.all([
         supabase.from("contratos").select("*", { count: "exact", head: true }),
+        supabase.from("sub_areas").select("*", { count: "exact", head: true }),
         supabase.from("equipamentos").select("*", { count: "exact", head: true }),
         supabase.from("funcionarios").select("*", { count: "exact", head: true }),
       ]);
       return {
-        clientes: clientes.count ?? 0,
         contratos: contratos.count ?? 0,
+        subAreas: subAreas.count ?? 0,
         equipamentos: equip.count ?? 0,
         funcionarios: func.count ?? 0,
       };
@@ -53,8 +53,8 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Clientes" value={counts?.clientes ?? 0} />
         <StatCard label="Contratos" value={counts?.contratos ?? 0} />
+        <StatCard label="Sub-áreas" value={counts?.subAreas ?? 0} />
         <StatCard label="Equipamentos" value={counts?.equipamentos ?? 0} />
         <StatCard label="Funcionários" value={counts?.funcionarios ?? 0} />
       </div>
