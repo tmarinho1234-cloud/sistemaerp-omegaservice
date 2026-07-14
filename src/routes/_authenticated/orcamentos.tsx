@@ -1262,8 +1262,8 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
       const { error } = await supabase.from("pedidos").insert({
         numero,
         orcamento_id: orc.id,
-        cliente_id: sol.cliente_id,
         contrato_id: sol.contrato_id,
+        sub_area_id: sol.sub_area_id,
         prazo_entrega: prazoEntrega || null,
         valor_total: Number(orc.valor_total),
         status: "aberto",
