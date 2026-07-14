@@ -479,7 +479,7 @@ function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("solicitacoes_orcamento")
-        .select("*, clientes(nome), contratos(nome)")
+        .select("*, contratos(nome, empresa), sub_areas(nome)")
         .eq("id", id!)
         .single();
       if (error) throw error;
@@ -499,7 +499,7 @@ function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => 
                 <Badge variant={STATUS_VARIANT[sol.status]}>{STATUS_LABEL[sol.status]}</Badge>
               </SheetTitle>
               <SheetDescription>
-                {sol.clientes?.nome} · {sol.contratos?.nome ?? "Sem contrato"} · Recebida em {formatDate(sol.data_recebimento)}
+                {sol.contratos?.empresa} · {sol.contratos?.nome} {sol.sub_areas?.nome ? `· ${sol.sub_areas.nome}` : ""} · Recebida em {formatDate(sol.data_recebimento)}
               </SheetDescription>
             </SheetHeader>
 
