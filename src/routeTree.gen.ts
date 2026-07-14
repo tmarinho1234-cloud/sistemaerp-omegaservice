@@ -19,6 +19,7 @@ import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
@@ -72,6 +73,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCadastrosSubAreasRoute =
+  AuthenticatedCadastrosSubAreasRouteImport.update({
+    id: '/cadastros/sub-areas',
+    path: '/cadastros/sub-areas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosFuncionariosRoute =
   AuthenticatedCadastrosFuncionariosRouteImport.update({
     id: '/cadastros/funcionarios',
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
+  '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
+    | '/cadastros/sub-areas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
+    | '/cadastros/sub-areas'
   id:
     | '__root__'
     | '/'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
     | '/_authenticated/cadastros/funcionarios'
+    | '/_authenticated/cadastros/sub-areas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -259,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cadastros/sub-areas': {
+      id: '/_authenticated/cadastros/sub-areas'
+      path: '/cadastros/sub-areas'
+      fullPath: '/cadastros/sub-areas'
+      preLoaderRoute: typeof AuthenticatedCadastrosSubAreasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros/funcionarios': {
       id: '/_authenticated/cadastros/funcionarios'
       path: '/cadastros/funcionarios'
@@ -294,6 +314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
+  AuthenticatedCadastrosSubAreasRoute: typeof AuthenticatedCadastrosSubAreasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -309,6 +330,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedCadastrosEquipamentosRoute,
   AuthenticatedCadastrosFuncionariosRoute:
     AuthenticatedCadastrosFuncionariosRoute,
+  AuthenticatedCadastrosSubAreasRoute: AuthenticatedCadastrosSubAreasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
