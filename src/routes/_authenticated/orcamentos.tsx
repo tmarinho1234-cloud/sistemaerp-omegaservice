@@ -1056,8 +1056,9 @@ function ItensEditor({
   const qc = useQueryClient();
   const [novo, setNovo] = useState<Partial<Item>>({
     descricao: "",
+    categoria: "kg",
     quantidade: 1,
-    unidade: "un",
+    unidade: "kg",
     preco_unitario: 0,
   });
 
@@ -1066,6 +1067,7 @@ function ItensEditor({
       const { error } = await supabase.from("orcamento_itens").insert({
         orcamento_id: orcamentoId,
         descricao: novo.descricao ?? "",
+        categoria: (novo.categoria ?? "outros") as QqpCategoria,
         quantidade: novo.quantidade ?? 1,
         unidade: novo.unidade ?? "un",
         peso_kg: novo.peso_kg ?? null,
@@ -1076,7 +1078,7 @@ function ItensEditor({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["itens", orcamentoId] });
-      setNovo({ descricao: "", quantidade: 1, unidade: "un", preco_unitario: 0 });
+      setNovo({ descricao: "", categoria: "kg", quantidade: 1, unidade: "kg", preco_unitario: 0 });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1090,15 +1092,30 @@ function ItensEditor({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const totalPorCategoria = itens.reduce<Record<string, number>>((acc, i) => {
+    acc[i.categoria] = (acc[i.categoria] ?? 0) + Number(i.preco_total ?? 0);
+    return acc;
+  }, {});
+
   return (
     <Card>
       <CardContent className="pt-6 space-y-3">
-        <h3 className="text-sm font-semibold">Itens da proposta</h3>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-sm font-semibold">Itens da proposta (QQP)</h3>
+          <div className="flex flex-wrap gap-2 text-xs">
+            {Object.entries(totalPorCategoria).map(([cat, tot]) => (
+              <span key={cat} className="px-2 py-1 rounded bg-muted">
+                {categoriaLabel(cat as QqpCategoria)}: <strong>R$ {tot.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>
+              </span>
+            ))}
+          </div>
+        </div>
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Descrição</TableHead>
+                <TableHead className="w-40">Categoria QQP</TableHead>
                 <TableHead className="w-20">Qtd</TableHead>
                 <TableHead className="w-16">Un.</TableHead>
                 <TableHead className="w-24">Peso (kg)</TableHead>
@@ -1110,7 +1127,7 @@ function ItensEditor({
             <TableBody>
               {itens.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={editable ? 7 : 6} className="text-center text-muted-foreground py-4">
+                  <TableCell colSpan={editable ? 8 : 7} className="text-center text-muted-foreground py-4">
                     Nenhum item.
                   </TableCell>
                 </TableRow>
@@ -1118,6 +1135,7 @@ function ItensEditor({
                 itens.map((i) => (
                   <TableRow key={i.id}>
                     <TableCell className="text-sm">{i.descricao}</TableCell>
+                    <TableCell className="text-xs">{categoriaLabel(i.categoria)}</TableCell>
                     <TableCell>{Number(i.quantidade)}</TableCell>
                     <TableCell>{i.unidade}</TableCell>
                     <TableCell>{i.peso_kg ?? "—"}</TableCell>
@@ -1139,12 +1157,29 @@ function ItensEditor({
 
         {editable && (
           <div className="grid grid-cols-12 gap-2 items-end pt-2">
-            <div className="col-span-5 space-y-1">
+            <div className="col-span-4 space-y-1">
               <Label className="text-xs">Descrição</Label>
               <Input
                 value={novo.descricao ?? ""}
                 onChange={(e) => setNovo({ ...novo, descricao: e.target.value })}
               />
+            </div>
+            <div className="col-span-3 space-y-1">
+              <Label className="text-xs">Categoria QQP</Label>
+              <Select
+                value={novo.categoria ?? "kg"}
+                onValueChange={(v) => {
+                  const preset = QQP_CATEGORIAS.find((k) => k.value === v);
+                  setNovo({ ...novo, categoria: v as QqpCategoria, unidade: preset?.unidade ?? novo.unidade });
+                }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {QQP_CATEGORIAS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-1 space-y-1">
               <Label className="text-xs">Qtd</Label>
@@ -1162,8 +1197,8 @@ function ItensEditor({
                 onChange={(e) => setNovo({ ...novo, unidade: e.target.value })}
               />
             </div>
-            <div className="col-span-2 space-y-1">
-              <Label className="text-xs">Peso (kg)</Label>
+            <div className="col-span-1 space-y-1">
+              <Label className="text-xs">Peso</Label>
               <Input
                 type="number"
                 step="0.001"
@@ -1171,8 +1206,8 @@ function ItensEditor({
                 onChange={(e) => setNovo({ ...novo, peso_kg: e.target.value ? Number(e.target.value) : null })}
               />
             </div>
-            <div className="col-span-2 space-y-1">
-              <Label className="text-xs">Unitário</Label>
+            <div className="col-span-1 space-y-1">
+              <Label className="text-xs">R$ Unit.</Label>
               <Input
                 type="number"
                 step="0.01"
