@@ -1040,6 +1040,8 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
       </Card>
 
       <ItensEditor orcamentoId={orc.id} itens={itens} editable={orc.status === "rascunho"} />
+
+      <PropostaAnexos orcamentoId={orc.id} editable={orc.status === "rascunho"} />
     </div>
   );
 }
@@ -1226,6 +1228,171 @@ function ItensEditor({
             </div>
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------------- Anexos da proposta (memoriais, desenhos, etc.) ---------------- */
+
+type OrcAnexo = {
+  id: string;
+  orcamento_id: string;
+  nome: string;
+  storage_path: string;
+  categoria: string;
+  tamanho: number | null;
+  tipo: string | null;
+};
+
+const ANEXO_CATEGORIAS = [
+  { value: "memorial", label: "Memorial" },
+  { value: "desenho", label: "Desenho" },
+  { value: "especificacao", label: "Especificação" },
+  { value: "planilha", label: "Planilha" },
+  { value: "outros", label: "Outros" },
+];
+
+function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editable: boolean }) {
+  const qc = useQueryClient();
+  const [uploading, setUploading] = useState(false);
+  const [categoria, setCategoria] = useState<string>("memorial");
+
+  const { data: anexos = [] } = useQuery({
+    queryKey: ["orc-anexos", orcamentoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_anexos" as never)
+        .select("*")
+        .eq("orcamento_id", orcamentoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as OrcAnexo[];
+    },
+  });
+
+  const uploadFile = async (file: File) => {
+    setUploading(true);
+    try {
+      const path = `propostas/${orcamentoId}/${Date.now()}-${file.name}`;
+      const { error: upErr } = await supabase.storage.from("orcamentos").upload(path, file);
+      if (upErr) throw upErr;
+      const { error: dbErr } = await supabase.from("orcamento_anexos" as never).insert({
+        orcamento_id: orcamentoId,
+        storage_path: path,
+        nome: file.name,
+        categoria,
+        tamanho: file.size,
+        tipo: file.type,
+      } as never);
+      if (dbErr) throw dbErr;
+      toast.success("Anexo enviado");
+      qc.invalidateQueries({ queryKey: ["orc-anexos", orcamentoId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const download = async (a: OrcAnexo) => {
+    const { data, error } = await supabase.storage
+      .from("orcamentos")
+      .createSignedUrl(a.storage_path, 60);
+    if (error) return toast.error(error.message);
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const removeMut = useMutation({
+    mutationFn: async (a: OrcAnexo) => {
+      await supabase.storage.from("orcamentos").remove([a.storage_path]);
+      const { error } = await supabase.from("orcamento_anexos" as never).delete().eq("id", a.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Anexo removido");
+      qc.invalidateQueries({ queryKey: ["orc-anexos", orcamentoId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const catLabel = (v: string) =>
+    ANEXO_CATEGORIAS.find((c) => c.value === v)?.label ?? v;
+
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-sm font-semibold">Anexos da proposta ({anexos.length})</h3>
+          {editable && (
+            <div className="flex items-center gap-2">
+              <Select value={categoria} onValueChange={setCategoria}>
+                <SelectTrigger className="w-40 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ANEXO_CATEGORIAS.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <label className="inline-flex">
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadFile(f);
+                    e.target.value = "";
+                  }}
+                />
+                <Button asChild size="sm" variant="outline" disabled={uploading}>
+                  <span>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {uploading ? "Enviando..." : "Enviar"}
+                  </span>
+                </Button>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-md border">
+          {anexos.length === 0 ? (
+            <div className="text-sm text-muted-foreground p-4 text-center">
+              Nenhum anexo. Envie memoriais, desenhos e demais documentos da proposta.
+            </div>
+          ) : (
+            <div className="divide-y">
+              {anexos.map((a) => (
+                <div key={a.id} className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm truncate">{a.nome}</span>
+                    <span className="text-xs px-2 py-0.5 rounded bg-muted shrink-0">
+                      {catLabel(a.categoria)}
+                    </span>
+                    {a.tamanho && (
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {(a.tamanho / 1024).toFixed(0)} KB
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" onClick={() => download(a)}>
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    {editable && (
+                      <Button size="icon" variant="ghost" onClick={() => removeMut.mutate(a)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

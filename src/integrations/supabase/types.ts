@@ -225,6 +225,50 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamento_anexos: {
+        Row: {
+          categoria: string
+          created_at: string
+          id: string
+          nome: string
+          orcamento_id: string
+          storage_path: string
+          tamanho: number | null
+          tipo: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          nome: string
+          orcamento_id: string
+          storage_path: string
+          tamanho?: number | null
+          tipo?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          orcamento_id?: string
+          storage_path?: string
+          tamanho?: number | null
+          tipo?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_anexos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_itens: {
         Row: {
           categoria: Database["public"]["Enums"]["qqp_categoria"]
