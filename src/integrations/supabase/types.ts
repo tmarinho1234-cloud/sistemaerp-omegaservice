@@ -227,6 +227,7 @@ export type Database = {
       }
       orcamento_itens: {
         Row: {
+          categoria: Database["public"]["Enums"]["qqp_categoria"]
           created_at: string
           descricao: string
           id: string
@@ -239,6 +240,7 @@ export type Database = {
           unidade: string
         }
         Insert: {
+          categoria?: Database["public"]["Enums"]["qqp_categoria"]
           created_at?: string
           descricao: string
           id?: string
@@ -251,6 +253,7 @@ export type Database = {
           unidade?: string
         }
         Update: {
+          categoria?: Database["public"]["Enums"]["qqp_categoria"]
           created_at?: string
           descricao?: string
           id?: string
@@ -626,6 +629,7 @@ export type Database = {
         | "viewer"
       orcamento_status: "rascunho" | "enviado" | "aprovado" | "reprovado"
       pedido_status: "aberto" | "em_producao" | "concluido" | "cancelado"
+      qqp_categoria: "kg" | "hora" | "m2" | "formato_a1" | "diaria" | "outros"
       solicitacao_status:
         | "recebida"
         | "em_analise"
@@ -773,6 +777,7 @@ export const Constants = {
       ],
       orcamento_status: ["rascunho", "enviado", "aprovado", "reprovado"],
       pedido_status: ["aberto", "em_producao", "concluido", "cancelado"],
+      qqp_categoria: ["kg", "hora", "m2", "formato_a1", "diaria", "outros"],
       solicitacao_status: [
         "recebida",
         "em_analise",
