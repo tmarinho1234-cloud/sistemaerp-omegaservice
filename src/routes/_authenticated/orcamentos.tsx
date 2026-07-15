@@ -829,10 +829,13 @@ type Orcamento = {
   motivo_reprovacao: string | null;
 };
 
+type QqpCategoria = "kg" | "hora" | "m2" | "formato_a1" | "diaria" | "outros";
+
 type Item = {
   id: string;
   orcamento_id: string;
   descricao: string;
+  categoria: QqpCategoria;
   quantidade: number;
   unidade: string;
   peso_kg: number | null;
@@ -840,6 +843,18 @@ type Item = {
   preco_total: number;
   ordem: number;
 };
+
+const QQP_CATEGORIAS: { value: QqpCategoria; label: string; unidade: string }[] = [
+  { value: "kg", label: "Peso (KG)", unidade: "kg" },
+  { value: "hora", label: "Hora", unidade: "h" },
+  { value: "m2", label: "Área (m²)", unidade: "m²" },
+  { value: "formato_a1", label: "Formato A1 (Projetos)", unidade: "A1" },
+  { value: "diaria", label: "Diária (Ensaios)", unidade: "diária" },
+  { value: "outros", label: "Outros", unidade: "un" },
+];
+
+const categoriaLabel = (c: QqpCategoria) =>
+  QQP_CATEGORIAS.find((k) => k.value === c)?.label ?? c;
 
 function PropostaTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
