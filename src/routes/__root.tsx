@@ -79,12 +79,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Omega Service — ERP de Gestão Industrial" },
+      { title: "ERP de Gestão Industrial" },
       { name: "description", content: "ERP da Omega Service: orçamentos, PCP, produção, qualidade, expedição e medição com rastreabilidade por Pedido, Conjunto e TAG." },
-      { property: "og:title", content: "Omega Service — ERP de Gestão Industrial" },
-      { property: "og:description", content: "Do orçamento ao faturamento em um único sistema." },
+      { property: "og:title", content: "ERP de Gestão Industrial" },
+      { property: "og:description", content: "ERP da Omega Service: orçamentos, PCP, produção, qualidade, expedição e medição com rastreabilidade por Pedido, Conjunto e TAG." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ERP de Gestão Industrial" },
+      { name: "twitter:description", content: "ERP da Omega Service: orçamentos, PCP, produção, qualidade, expedição e medição com rastreabilidade por Pedido, Conjunto e TAG." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c2035662-6d80-480a-83f6-97ffa7a8fbf9/id-preview-3b661264--2f07f9f7-b70c-49c8-804b-2afec908383a.lovable.app-1784133432505.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c2035662-6d80-480a-83f6-97ffa7a8fbf9/id-preview-3b661264--2f07f9f7-b70c-49c8-804b-2afec908383a.lovable.app-1784133432505.png" },
     ],
     links: [
       {
