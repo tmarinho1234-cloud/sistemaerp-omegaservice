@@ -1040,6 +1040,8 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
       </Card>
 
       <ItensEditor orcamentoId={orc.id} itens={itens} editable={orc.status === "rascunho"} />
+
+      <PropostaAnexos orcamentoId={orc.id} editable={orc.status === "rascunho"} />
     </div>
   );
 }
