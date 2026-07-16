@@ -62,6 +62,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  Eye,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orcamentos")({
