@@ -1259,6 +1259,29 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [categoria, setCategoria] = useState<string>("memorial");
+  const [preview, setPreview] = useState<{ anexo: OrcAnexo; url: string; kind: "image" | "pdf" | "other" } | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
+
+  const isImage = (a: OrcAnexo) =>
+    (a.tipo?.startsWith("image/") ?? false) || /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(a.nome);
+  const isPdf = (a: OrcAnexo) =>
+    a.tipo === "application/pdf" || /\.pdf$/i.test(a.nome);
+  const canPreview = (a: OrcAnexo) => isImage(a) || isPdf(a);
+
+  const openPreview = async (a: OrcAnexo) => {
+    setLoadingPreview(a.id);
+    const { data, error } = await supabase.storage
+      .from("orcamentos")
+      .createSignedUrl(a.storage_path, 300);
+    setLoadingPreview(null);
+    if (error || !data) return toast.error(error?.message ?? "Erro ao gerar prévia");
+    setPreview({
+      anexo: a,
+      url: data.signedUrl,
+      kind: isImage(a) ? "image" : isPdf(a) ? "pdf" : "other",
+    });
+  };
+
 
   const { data: anexos = [] } = useQuery({
     queryKey: ["orc-anexos", orcamentoId],
