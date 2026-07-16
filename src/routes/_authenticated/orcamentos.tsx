@@ -1392,7 +1392,11 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
               {anexos.map((a) => (
                 <div key={a.id} className="flex items-center justify-between p-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    {isImage(a) ? (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
                     <span className="text-sm truncate">{a.nome}</span>
                     <span className="text-xs px-2 py-0.5 rounded bg-muted shrink-0">
                       {catLabel(a.categoria)}
@@ -1404,7 +1408,18 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
                     )}
                   </div>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => download(a)}>
+                    {canPreview(a) && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title="Pré-visualizar"
+                        disabled={loadingPreview === a.id}
+                        onClick={() => openPreview(a)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button size="icon" variant="ghost" title="Baixar" onClick={() => download(a)}>
                       <Download className="h-4 w-4" />
                     </Button>
                     {editable && (
@@ -1418,6 +1433,41 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
             </div>
           )}
         </div>
+
+        <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+          <DialogContent className="max-w-5xl">
+            <DialogHeader>
+              <DialogTitle className="truncate">{preview?.anexo.nome}</DialogTitle>
+              <DialogDescription>
+                {preview ? catLabel(preview.anexo.categoria) : ""} · pré-visualização
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-muted rounded-md overflow-hidden" style={{ height: "70vh" }}>
+              {preview?.kind === "image" && (
+                <img
+                  src={preview.url}
+                  alt={preview.anexo.nome}
+                  className="w-full h-full object-contain bg-background"
+                />
+              )}
+              {preview?.kind === "pdf" && (
+                <iframe
+                  src={preview.url}
+                  title={preview.anexo.nome}
+                  className="w-full h-full"
+                />
+              )}
+            </div>
+            <DialogFooter>
+              {preview && (
+                <Button variant="outline" onClick={() => window.open(preview.url, "_blank")}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Abrir / baixar
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
