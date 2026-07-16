@@ -62,6 +62,8 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  Eye,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orcamentos")({
@@ -1257,6 +1259,29 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [categoria, setCategoria] = useState<string>("memorial");
+  const [preview, setPreview] = useState<{ anexo: OrcAnexo; url: string; kind: "image" | "pdf" | "other" } | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState<string | null>(null);
+
+  const isImage = (a: OrcAnexo) =>
+    (a.tipo?.startsWith("image/") ?? false) || /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(a.nome);
+  const isPdf = (a: OrcAnexo) =>
+    a.tipo === "application/pdf" || /\.pdf$/i.test(a.nome);
+  const canPreview = (a: OrcAnexo) => isImage(a) || isPdf(a);
+
+  const openPreview = async (a: OrcAnexo) => {
+    setLoadingPreview(a.id);
+    const { data, error } = await supabase.storage
+      .from("orcamentos")
+      .createSignedUrl(a.storage_path, 300);
+    setLoadingPreview(null);
+    if (error || !data) return toast.error(error?.message ?? "Erro ao gerar prévia");
+    setPreview({
+      anexo: a,
+      url: data.signedUrl,
+      kind: isImage(a) ? "image" : isPdf(a) ? "pdf" : "other",
+    });
+  };
+
 
   const { data: anexos = [] } = useQuery({
     queryKey: ["orc-anexos", orcamentoId],
@@ -1367,7 +1392,11 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
               {anexos.map((a) => (
                 <div key={a.id} className="flex items-center justify-between p-3">
                   <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    {isImage(a) ? (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    )}
                     <span className="text-sm truncate">{a.nome}</span>
                     <span className="text-xs px-2 py-0.5 rounded bg-muted shrink-0">
                       {catLabel(a.categoria)}
@@ -1379,7 +1408,18 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
                     )}
                   </div>
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" onClick={() => download(a)}>
+                    {canPreview(a) && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title="Pré-visualizar"
+                        disabled={loadingPreview === a.id}
+                        onClick={() => openPreview(a)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button size="icon" variant="ghost" title="Baixar" onClick={() => download(a)}>
                       <Download className="h-4 w-4" />
                     </Button>
                     {editable && (
@@ -1393,6 +1433,41 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
             </div>
           )}
         </div>
+
+        <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+          <DialogContent className="max-w-5xl">
+            <DialogHeader>
+              <DialogTitle className="truncate">{preview?.anexo.nome}</DialogTitle>
+              <DialogDescription>
+                {preview ? catLabel(preview.anexo.categoria) : ""} · pré-visualização
+              </DialogDescription>
+            </DialogHeader>
+            <div className="bg-muted rounded-md overflow-hidden" style={{ height: "70vh" }}>
+              {preview?.kind === "image" && (
+                <img
+                  src={preview.url}
+                  alt={preview.anexo.nome}
+                  className="w-full h-full object-contain bg-background"
+                />
+              )}
+              {preview?.kind === "pdf" && (
+                <iframe
+                  src={preview.url}
+                  title={preview.anexo.nome}
+                  className="w-full h-full"
+                />
+              )}
+            </div>
+            <DialogFooter>
+              {preview && (
+                <Button variant="outline" onClick={() => window.open(preview.url, "_blank")}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Abrir / baixar
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
