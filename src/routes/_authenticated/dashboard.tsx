@@ -92,6 +92,65 @@ function DashboardPage() {
       </div>
 
       <div>
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-lg font-semibold">Painel Central de Orçamentos</h2>
+          <span className="text-xs text-muted-foreground">
+            Total: {orc?.totalQtd ?? 0} propostas · {brl(orc?.valorTotal ?? 0)}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Aguardando Aprovação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{orc?.enviadosQtd ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor entregue: <span className="font-medium text-foreground">{brl(orc?.valorEnviado ?? 0)}</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Aprovadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{orc?.aprovadosQtd ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor aprovado: <span className="font-medium text-foreground">{brl(orc?.valorAprovado ?? 0)}</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-sky-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Entregues (Enviadas + Aprovadas)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {(orc?.enviadosQtd ?? 0) + (orc?.aprovadosQtd ?? 0)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor entregue: <span className="font-medium text-foreground">{brl((orc?.valorEnviado ?? 0) + (orc?.valorAprovado ?? 0))}</span>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <StatCard label="Rascunhos" value={orc?.rascunhosQtd ?? 0} />
+          <StatCard label="Aguardando" value={orc?.enviadosQtd ?? 0} />
+          <StatCard label="Aprovadas" value={orc?.aprovadosQtd ?? 0} />
+          <StatCard label="Reprovadas" value={orc?.reprovadosQtd ?? 0} />
+        </div>
+      </div>
+
+
+      <div>
         <h2 className="text-lg font-semibold mb-3">Módulos</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {modules.map((m) => {
