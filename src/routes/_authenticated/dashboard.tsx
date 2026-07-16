@@ -34,6 +34,38 @@ function DashboardPage() {
     },
   });
 
+  const { data: orc } = useQuery({
+    queryKey: ["dashboard-orcamentos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("status, valor_total");
+      if (error) throw error;
+      const rows = data ?? [];
+      const by = (s: string) => rows.filter((r) => r.status === s);
+      const sum = (arr: typeof rows) =>
+        arr.reduce((acc, r) => acc + Number(r.valor_total ?? 0), 0);
+      const aprovados = by("aprovado");
+      const enviados = by("enviado");
+      const reprovados = by("reprovado");
+      const rascunhos = by("rascunho");
+      return {
+        aprovadosQtd: aprovados.length,
+        enviadosQtd: enviados.length,
+        reprovadosQtd: reprovados.length,
+        rascunhosQtd: rascunhos.length,
+        totalQtd: rows.length,
+        valorAprovado: sum(aprovados),
+        valorEnviado: sum(enviados),
+        valorTotal: sum(rows),
+      };
+    },
+  });
+
+  const brl = (n: number) =>
+    n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+
   const modules = [
     { title: "Orçamentos", icon: FileText, desc: "Solicitações, propostas e aprovações" },
     { title: "PCP", icon: ClipboardList, desc: "Materiais, planejamento e cronograma" },
