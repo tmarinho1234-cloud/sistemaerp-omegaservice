@@ -34,6 +34,38 @@ function DashboardPage() {
     },
   });
 
+  const { data: orc } = useQuery({
+    queryKey: ["dashboard-orcamentos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("status, valor_total");
+      if (error) throw error;
+      const rows = data ?? [];
+      const by = (s: string) => rows.filter((r) => r.status === s);
+      const sum = (arr: typeof rows) =>
+        arr.reduce((acc, r) => acc + Number(r.valor_total ?? 0), 0);
+      const aprovados = by("aprovado");
+      const enviados = by("enviado");
+      const reprovados = by("reprovado");
+      const rascunhos = by("rascunho");
+      return {
+        aprovadosQtd: aprovados.length,
+        enviadosQtd: enviados.length,
+        reprovadosQtd: reprovados.length,
+        rascunhosQtd: rascunhos.length,
+        totalQtd: rows.length,
+        valorAprovado: sum(aprovados),
+        valorEnviado: sum(enviados),
+        valorTotal: sum(rows),
+      };
+    },
+  });
+
+  const brl = (n: number) =>
+    n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+
   const modules = [
     { title: "Orçamentos", icon: FileText, desc: "Solicitações, propostas e aprovações" },
     { title: "PCP", icon: ClipboardList, desc: "Materiais, planejamento e cronograma" },
@@ -58,6 +90,65 @@ function DashboardPage() {
         <StatCard label="Equipamentos" value={counts?.equipamentos ?? 0} />
         <StatCard label="Funcionários" value={counts?.funcionarios ?? 0} />
       </div>
+
+      <div>
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="text-lg font-semibold">Painel Central de Orçamentos</h2>
+          <span className="text-xs text-muted-foreground">
+            Total: {orc?.totalQtd ?? 0} propostas · {brl(orc?.valorTotal ?? 0)}
+          </span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Aguardando Aprovação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{orc?.enviadosQtd ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor entregue: <span className="font-medium text-foreground">{brl(orc?.valorEnviado ?? 0)}</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-emerald-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Aprovadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{orc?.aprovadosQtd ?? 0}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor aprovado: <span className="font-medium text-foreground">{brl(orc?.valorAprovado ?? 0)}</span>
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-sky-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-muted-foreground font-medium">
+                Entregues (Enviadas + Aprovadas)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {(orc?.enviadosQtd ?? 0) + (orc?.aprovadosQtd ?? 0)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Valor entregue: <span className="font-medium text-foreground">{brl((orc?.valorEnviado ?? 0) + (orc?.valorAprovado ?? 0))}</span>
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <StatCard label="Rascunhos" value={orc?.rascunhosQtd ?? 0} />
+          <StatCard label="Aguardando" value={orc?.enviadosQtd ?? 0} />
+          <StatCard label="Aprovadas" value={orc?.aprovadosQtd ?? 0} />
+          <StatCard label="Reprovadas" value={orc?.reprovadosQtd ?? 0} />
+        </div>
+      </div>
+
 
       <div>
         <h2 className="text-lg font-semibold mb-3">Módulos</h2>
