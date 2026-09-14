@@ -1,64 +1,109 @@
+# Módulos operacionais ligados ao Pedido
 
-# ERP de Fabricação Industrial — Plano de Construção
+## Objetivo
 
-Sistema completo cobrindo Orçamentos → PCP → Produção → Qualidade → Expedição → Medição, com KPIs e Plano de Perdas. Dado o escopo (11+ módulos, dezenas de tabelas, autenticação por setor, muitos dashboards), proponho **construir em fases incrementais**, entregando valor a cada etapa.
+Transformar os módulos hoje vazios de **PCP, Produção, Qualidade, Expedição e Medição** em um fluxo operacional integrado ao Pedido, com rastreabilidade por **Contrato → Pedido → Conjunto → TAG** e um painel gerencial de KPIs.
 
-## Stack e Fundação
+## Fluxo que será entregue
 
-- **TanStack Start** (já configurado) + **Lovable Cloud** (Postgres + Auth + Storage) — habilitar no início.
-- **Autenticação com perfis por setor**: Orçamentos, PCP, Produção, Qualidade, Expedição, Medição, Admin — via tabela `user_roles` + enum `app_role` + função `has_role`.
-- **Design system**: tema industrial (tons neutros, azul aço, acentos de status), tipografia clara para densidade de dados (tabelas, KPIs).
-- **Layout**: sidebar com navegação por módulo, top bar com contexto do usuário e busca global.
+```text
+Pedido aberto
+  → PCP estrutura conjuntos/TAGs e publica o cronograma
+  → Produção executa processos e registra paralisações
+  → Qualidade inspeciona, bloqueia ou libera conjuntos
+  → Expedição monta romaneios parciais com conjuntos liberados
+  → Medição registra valores, notas, vencimentos e pagamentos
+  → Pedido concluído
+```
 
-## Fases de Entrega
+## 1. Estrutura de dados e permissões
 
-### Fase 1 — Fundação (esta primeira entrega)
-1. Habilitar Lovable Cloud.
-2. Autenticação (login/signup) + roles por setor.
-3. Design system + layout base (sidebar, header, dashboard vazio).
-4. Cadastros essenciais: **Clientes**, **Contratos** (Alumar, Vale Ferrosos, Vale Base Metals) com linhas de preço, **Equipamentos**, **Funcionários**.
-5. Estrutura de banco base (tabelas de solicitações, pedidos, conjuntos, peças, TAGs) com RLS.
+- Criar tabelas para:
+  - planos de PCP e suas datas-base;
+  - conjuntos/TAGs do pedido, quantidade, peso e prioridade;
+  - etapas do cronograma por conjunto;
+  - histórico de reprogramações, com datas anteriores, novas datas, motivo e dias de impacto;
+  - apontamentos de produção por processo;
+  - paralisações, causa, equipamento, início, fim e duração;
+  - inspeções, não conformidades, retrabalho e liberação da qualidade;
+  - romaneios e seus conjuntos/quantidades expedidas;
+  - medições, notas fiscais, vencimentos e pagamentos.
+- Adicionar índices, atualização automática de datas e validações para impedir quantidades expedidas acima do disponível.
+- Manter leitura para perfis operacionais e escrita por setor: PCP, Produção, Qualidade, Expedição, Medição e Admin.
+- Aplicar permissões explícitas e segurança por linha em todas as novas tabelas.
+- Manter os dados atuais de pedidos e orçamentos sem remoções ou mudanças destrutivas.
 
-### Fase 2 — Orçamentos (etapas 1–4 do script)
-- Recebimento de solicitação, análise técnica, elaboração de orçamento, envio e aprovação.
-- Upload de documentos anexos.
-- Geração de proposta comercial (PDF).
-- Fluxo de status: Recebido → Em análise → Aguardando aprovação → Aprovado/Reprovado → Pedido Liberado.
+## 2. PCP
 
-### Fase 3 — PCP e Materiais (etapas 5–7)
-- Levantamento de matéria-prima, consulta a estoque, reservas, solicitação de compras.
-- Planejamento com cronograma, capacidade, reprogramações com histórico.
-- Cadastro da estrutura: Pedido → Conjuntos → Peças, TAGs, pesos e percentuais.
+- Exibir os pedidos recebidos de Orçamentos com empresa, contrato, sub-área, prazo e situação.
+- Permitir criar e editar o planejamento do pedido.
+- Cadastrar conjuntos com código, TAG, descrição, quantidade, peso, prioridade e datas previstas.
+- Montar o cronograma por etapas: corte, dobra, usinagem, montagem, soldagem, pintura, qualidade e expedição.
+- Registrar cada reprogramação sem apagar o planejamento anterior.
+- Mostrar avanço físico real, avanço planejado na data e desvio em pontos percentuais/dias.
+- Reprogramações alteram a curva planejada e o atraso previsto, sem falsificar o avanço físico já executado.
 
-### Fase 4 — Produção e Plano de Perdas (etapa 8 + 8.1)
-- Acompanhamento por Pedido, Conjunto, Processo (corte, dobra, usinagem, montagem, soldagem, pintura).
-- Apontamentos de início/término, responsáveis, peso executado.
-- **Plano de perdas**: paralisações com motivos padronizados, controle de equipamentos, absenteísmo, cálculo automático de impacto.
+## 3. Produção
 
-### Fase 5 — Qualidade (etapa 9)
-- Inspeções dimensional, soldagem, pintura.
-- Registro de não conformidades e retrabalho.
-- Bloqueio de avanço sem aprovação.
+- Exibir uma visão por Pedido e por Conjunto/TAG.
+- Permitir iniciar, pausar, retomar e concluir cada processo produtivo.
+- Registrar responsável, equipamento, data/hora, quantidade ou peso executado e observações.
+- Registrar paralisações com motivo padronizado, detalhe, início/fim, equipamento e impacto em horas.
+- Calcular o avanço do conjunto pelas etapas concluídas e o avanço do pedido ponderado pelo peso ou, quando não informado, pela quantidade.
+- Destacar conjuntos atrasados, paralisados e aguardando próxima etapa.
 
-### Fase 6 — Expedição e Medição (etapas 10–11)
-- Romaneios, notas fiscais, expedições parciais.
-- Controle de status de NF (Emitida → Paga), previsão de pagamento por contrato.
+## 4. Qualidade
 
-### Fase 7 — Encerramento + KPIs (etapa 12 + dashboards)
-- Dashboards por setor com todos os KPIs listados (Orçamentos, PCP, Produção, Qualidade, Expedição, Medição, Plano de Perdas).
-- Relatórios exportáveis.
-- Encerramento automático de pedidos.
+- Criar fila de inspeções por Pedido, Conjunto/TAG e etapa produtiva.
+- Registrar inspeções dimensionais, soldagem, pintura e inspeção final, com resultado e observações.
+- Abrir não conformidade, indicar retrabalho e reinspecionar mantendo o histórico.
+- Liberar o conjunto somente após aprovação final.
+- Bloquear a inclusão em romaneio enquanto o conjunto não estiver liberado.
 
-## Detalhes Técnicos (para referência)
+## 5. Expedição
 
-- **Banco**: ~25 tabelas principais com FKs, RLS por role, funções `has_role` e triggers para cálculos (peso acumulado, % executado, tempo de paralisação).
-- **Server functions** para todas as operações protegidas (`requireSupabaseAuth`).
-- **Storage**: bucket privado para documentos de solicitações, desenhos, certificados, NFs.
-- **Cálculos automáticos** via triggers Postgres: tempo de paralisação, peso expedido, % concluído, previsão de atraso.
-- **Rotas autenticadas** em `src/routes/_authenticated/` por módulo.
+- Exibir somente conjuntos liberados pela Qualidade e seus saldos disponíveis.
+- Criar romaneios parciais por Pedido, com número, data, destino, transporte e observações.
+- Adicionar conjuntos e quantidades/pesos ao romaneio, controlando saldo já expedido.
+- Acompanhar romaneios em preparação, expedidos, entregues ou cancelados.
+- Atualizar automaticamente os indicadores de expedição parcial e completa do Pedido.
 
-## O que entrego agora (Fase 1)
+## 6. Medição
 
-Fundação completa e funcional: auth com roles, layout do ERP, dashboard inicial, cadastros de clientes/contratos/equipamentos/funcionários, e schema de banco pronto para as fases seguintes. Ao aprovar, seguimos para Fase 2 (Orçamentos) no próximo turno, e assim por diante.
+- Registrar medições vinculadas ao Pedido e, quando aplicável, aos romaneios entregues.
+- Controlar número da medição, período, valor medido, aprovação e observações.
+- Registrar nota fiscal, emissão, vencimento, valor faturado, recebimento e data de pagamento.
+- Exibir saldos a medir, faturados, vencidos e recebidos por Pedido e Contrato.
+- Permitir encerramento do Pedido quando produção, qualidade, expedição e medição estiverem completas.
 
-**Confirma esse faseamento?** Se preferir outra ordem (ex.: priorizar Produção antes de Orçamentos) ou juntar fases, me diga antes de eu começar.
+## 7. Painel de KPIs
+
+- Adicionar filtros por Contrato, Pedido e período.
+- Exibir:
+  - avanço físico planejado versus realizado por pedido;
+  - pedidos no prazo, em risco e atrasados;
+  - horas de paralisação e principais causas;
+  - eficiência produtiva: horas produtivas ÷ horas apontadas;
+  - conjuntos produzidos, liberados e expedidos;
+  - reprovações e retrabalhos da Qualidade;
+  - valores medidos, faturados, vencidos e recebidos;
+  - consolidação dos indicadores por Contrato.
+- Manter o painel atual de Orçamentos e retirar os avisos de “em construção”.
+- Usar gráficos e tabelas compactas, mantendo a identidade visual da Omega Service.
+
+## 8. Integração e experiência
+
+- Usar os módulos existentes na navegação, substituindo as telas provisórias.
+- Padronizar busca, filtros, indicadores, tabelas, formulários e detalhes laterais.
+- Atualizar dados entre módulos após cada operação, sem exigir recarregar a página.
+- Incluir mensagens claras para bloqueios, estados vazios e erros de permissão.
+- Adicionar metadados próprios em cada página do módulo.
+
+## Critérios de conclusão
+
+- Um Pedido aprovado pode ser planejado, dividido em conjuntos/TAGs, produzido, inspecionado, expedido parcialmente e medido até o encerramento.
+- Toda reprogramação e paralisação permanece auditável.
+- Um conjunto reprovado não pode ser expedido.
+- O saldo expedido nunca supera o saldo liberado.
+- Os KPIs refletem os registros reais e podem ser filtrados por Contrato e Pedido.
+- Validar as permissões de cada setor e testar o fluxo completo em desktop e celular.
