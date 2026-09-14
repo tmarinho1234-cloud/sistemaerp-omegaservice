@@ -1,192 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  FileText,
-  ClipboardList,
-  Factory,
-  ShieldCheck,
-  Truck,
-  Receipt,
-} from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Activity, AlertTriangle, Factory, Gauge, Receipt, ShieldCheck, Truck } from "lucide-react";
+import { MetricCard, ProgressBar, hoursBetween, moneyBr } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  component: DashboardPage,
+  head: () => ({ meta: [{ title: "Painel de KPIs | Omega Service ERP" }, { name: "description", content: "Indicadores de avanço, produção, qualidade, expedição e medição." }, { property: "og:title", content: "Painel de KPIs | Omega Service ERP" }, { property: "og:description", content: "Indicadores de avanço, produção, qualidade, expedição e medição." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: DashboardPage,
 });
 
+type Pedido = { id: string; numero: string; contrato_id: string | null; prazo_entrega: string | null; valor_total: number; status: string; contratos?: { nome: string; empresa: string } | null };
+type Conjunto = { id: string; pedido_id: string; progresso: number; liberado_qualidade: boolean; status: string; peso_kg: number | null; quantidade: number };
+
 function DashboardPage() {
-  const { data: counts } = useQuery({
-    queryKey: ["dashboard-counts"],
-    queryFn: async () => {
-      const [contratos, subAreas, equip, func] = await Promise.all([
-        supabase.from("contratos").select("*", { count: "exact", head: true }),
-        supabase.from("sub_areas").select("*", { count: "exact", head: true }),
-        supabase.from("equipamentos").select("*", { count: "exact", head: true }),
-        supabase.from("funcionarios").select("*", { count: "exact", head: true }),
-      ]);
-      return {
-        contratos: contratos.count ?? 0,
-        subAreas: subAreas.count ?? 0,
-        equipamentos: equip.count ?? 0,
-        funcionarios: func.count ?? 0,
-      };
-    },
-  });
-
-  const { data: orc } = useQuery({
-    queryKey: ["dashboard-orcamentos"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orcamentos")
-        .select("status, valor_total");
-      if (error) throw error;
-      const rows = data ?? [];
-      const by = (s: string) => rows.filter((r) => r.status === s);
-      const sum = (arr: typeof rows) =>
-        arr.reduce((acc, r) => acc + Number(r.valor_total ?? 0), 0);
-      const aprovados = by("aprovado");
-      const enviados = by("enviado");
-      const reprovados = by("reprovado");
-      const rascunhos = by("rascunho");
-      return {
-        aprovadosQtd: aprovados.length,
-        enviadosQtd: enviados.length,
-        reprovadosQtd: reprovados.length,
-        rascunhosQtd: rascunhos.length,
-        totalQtd: rows.length,
-        valorAprovado: sum(aprovados),
-        valorEnviado: sum(enviados),
-        valorTotal: sum(rows),
-      };
-    },
-  });
-
-  const brl = (n: number) =>
-    n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-
-  const modules = [
-    { title: "Orçamentos", icon: FileText, desc: "Solicitações, propostas e aprovações" },
-    { title: "PCP", icon: ClipboardList, desc: "Materiais, planejamento e cronograma" },
-    { title: "Produção", icon: Factory, desc: "Corte, dobra, usinagem, soldagem, pintura" },
-    { title: "Qualidade", icon: ShieldCheck, desc: "Inspeções e não conformidades" },
-    { title: "Expedição", icon: Truck, desc: "Romaneios, notas fiscais e entregas" },
-    { title: "Medição", icon: Receipt, desc: "Faturamento e recebimentos" },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Visão geral do sistema. Os indicadores serão preenchidos conforme os módulos entram em operação.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Contratos" value={counts?.contratos ?? 0} />
-        <StatCard label="Sub-áreas" value={counts?.subAreas ?? 0} />
-        <StatCard label="Equipamentos" value={counts?.equipamentos ?? 0} />
-        <StatCard label="Funcionários" value={counts?.funcionarios ?? 0} />
-      </div>
-
-      <div>
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-lg font-semibold">Painel Central de Orçamentos</h2>
-          <span className="text-xs text-muted-foreground">
-            Total: {orc?.totalQtd ?? 0} propostas · {brl(orc?.valorTotal ?? 0)}
-          </span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-l-4 border-l-amber-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground font-medium">
-                Aguardando Aprovação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{orc?.enviadosQtd ?? 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Valor entregue: <span className="font-medium text-foreground">{brl(orc?.valorEnviado ?? 0)}</span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-emerald-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground font-medium">
-                Aprovadas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{orc?.aprovadosQtd ?? 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Valor aprovado: <span className="font-medium text-foreground">{brl(orc?.valorAprovado ?? 0)}</span>
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-sky-500">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground font-medium">
-                Entregues (Enviadas + Aprovadas)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {(orc?.enviadosQtd ?? 0) + (orc?.aprovadosQtd ?? 0)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Valor entregue: <span className="font-medium text-foreground">{brl((orc?.valorEnviado ?? 0) + (orc?.valorAprovado ?? 0))}</span>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <StatCard label="Rascunhos" value={orc?.rascunhosQtd ?? 0} />
-          <StatCard label="Aguardando" value={orc?.enviadosQtd ?? 0} />
-          <StatCard label="Aprovadas" value={orc?.aprovadosQtd ?? 0} />
-          <StatCard label="Reprovadas" value={orc?.reprovadosQtd ?? 0} />
-        </div>
-      </div>
-
-
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Módulos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modules.map((m) => {
-            const Icon = m.icon;
-            return (
-              <Card key={m.title}>
-                <CardHeader className="flex flex-row items-center gap-3 space-y-0">
-                  <div className="h-10 w-10 rounded-md bg-primary/10 text-primary grid place-items-center">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{m.title}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{m.desc}</p>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    Em construção — disponível em fases seguintes.
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
+  const [contratoId, setContratoId] = useState("todos"); const [pedidoId, setPedidoId] = useState("todos");
+  const { data } = useQuery({ queryKey: ["kpi-central"], queryFn: async () => {
+    const [ped, con, apo, par, ins, ncs, rom, med, nf, orc] = await Promise.all([
+      supabase.from("pedidos").select("*, contratos(nome, empresa)"), supabase.from("pedido_conjuntos").select("*"), supabase.from("apontamentos_producao").select("*"), supabase.from("paralisacoes").select("*"), supabase.from("inspecoes_qualidade").select("*"), supabase.from("nao_conformidades").select("*"), supabase.from("romaneios").select("*"), supabase.from("medicoes").select("*"), supabase.from("notas_fiscais").select("*"), supabase.from("orcamentos").select("status, valor_total"),
+    ]);
+    const error = [ped, con, apo, par, ins, ncs, rom, med, nf, orc].find((r) => r.error)?.error; if (error) throw error;
+    return { pedidos: ped.data as unknown as Pedido[], conjuntos: con.data as unknown as Conjunto[], apontamentos: apo.data ?? [], paralisacoes: par.data ?? [], inspecoes: ins.data ?? [], ncs: ncs.data ?? [], romaneios: rom.data ?? [], medicoes: med.data ?? [], notas: nf.data ?? [], orcamentos: orc.data ?? [] };
+  } });
+  const pedidos = data?.pedidos ?? []; const contratos = useMemo(() => Array.from(new Map(pedidos.filter((p) => p.contrato_id).map((p) => [p.contrato_id, { id: p.contrato_id as string, nome: `${p.contratos?.empresa ?? "Empresa"} · ${p.contratos?.nome ?? "Contrato"}` }])).values()), [pedidos]);
+  const pedidosContrato = contratoId === "todos" ? pedidos : pedidos.filter((p) => p.contrato_id === contratoId); const ids = new Set((pedidoId !== "todos" ? pedidos.filter((p) => p.id === pedidoId) : pedidosContrato).map((p) => p.id));
+  const fp = <T extends { pedido_id: string }>(rows: T[]) => rows.filter((r) => ids.has(r.pedido_id)); const conjuntos = fp(data?.conjuntos ?? []); const apontamentos = fp(data?.apontamentos ?? []); const paralisacoes = fp(data?.paralisacoes ?? []); const inspecoes = fp(data?.inspecoes ?? []); const ncs = fp(data?.ncs ?? []); const romaneios = fp(data?.romaneios ?? []); const medicoes = fp(data?.medicoes ?? []); const notas = fp(data?.notas ?? []);
+  const hoje = Date.now(); const avance = conjuntos.length ? conjuntos.reduce((s, c) => s + Number(c.progresso), 0) / conjuntos.length : 0; const atrasados = pedidosContrato.filter((p) => ids.has(p.id) && p.status !== "concluido" && p.prazo_entrega && new Date(p.prazo_entrega).getTime() < hoje).length; const paradas = paralisacoes.reduce((s, p) => s + Number(p.duracao_horas ?? hoursBetween(p.inicio, p.fim)), 0); const produtivas = apontamentos.reduce((s, a) => s + hoursBetween(a.inicio, a.fim), 0); const eficiencia = produtivas + paradas ? produtivas / (produtivas + paradas) * 100 : 0;
+  const aprovOrc = (data?.orcamentos ?? []).filter((o) => o.status === "aprovado"); const enviadosOrc = (data?.orcamentos ?? []).filter((o) => o.status === "enviado"); const faturado = notas.filter((n) => n.status !== "cancelada").reduce((s, n) => s + Number(n.valor), 0); const recebido = notas.reduce((s, n) => s + Number(n.valor_recebido), 0);
+  const chart = (pedidoId === "todos" ? pedidosContrato : pedidos.filter((p) => p.id === pedidoId)).map((p) => { const cs = (data?.conjuntos ?? []).filter((c) => c.pedido_id === p.id); return { pedido: p.numero, avanço: cs.length ? Math.round(cs.reduce((s, c) => s + Number(c.progresso), 0) / cs.length) : 0, liberado: cs.filter((c) => c.liberado_qualidade).length, expedido: cs.filter((c) => c.status === "expedido" || c.status === "concluido").length }; });
+  const causas = Object.entries(paralisacoes.reduce<Record<string, number>>((a, p) => { a[p.motivo] = (a[p.motivo] ?? 0) + Number(p.duracao_horas ?? hoursBetween(p.inicio, p.fim)); return a; }, {})).sort((a,b) => b[1]-a[1]);
+  return <div className="space-y-6"><div><h1 className="text-2xl font-bold">Painel de KPIs</h1><p className="text-sm text-muted-foreground">Visão consolidada do desempenho industrial por contrato e pedido.</p></div>
+  <div className="grid gap-3 sm:grid-cols-2"><Filter label="Contrato" value={contratoId} onChange={(v) => { setContratoId(v); setPedidoId("todos"); }} options={[{ value: "todos", label: "Todos os contratos" }, ...contratos.map((c) => ({ value: c.id, label: c.nome }))]} /><Filter label="Pedido" value={pedidoId} onChange={setPedidoId} options={[{ value: "todos", label: "Todos os pedidos" }, ...pedidosContrato.map((p) => ({ value: p.id, label: p.numero }))]} /></div>
+  <div className="grid grid-cols-2 gap-4 lg:grid-cols-4"><MetricCard label="Avanço médio" value={`${avance.toFixed(0)}%`} /><MetricCard label="Pedidos atrasados" value={atrasados} tone={atrasados ? "danger" : "success"} /><MetricCard label="Horas paradas" value={paradas.toFixed(1)} tone={paradas ? "warning" : "default"} /><MetricCard label="Eficiência produtiva" value={`${eficiencia.toFixed(0)}%`} tone="success" /></div>
+  <div className="grid gap-4 lg:grid-cols-2"><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Gauge className="h-4 w-4" />Avanço por pedido</CardTitle></CardHeader><CardContent className="h-72">{chart.length ? <ResponsiveContainer width="100%" height="100%"><BarChart data={chart}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="pedido" /><YAxis domain={[0,100]} /><Tooltip /><Bar dataKey="avanço" fill="var(--color-primary)" radius={[3,3,0,0]} /></BarChart></ResponsiveContainer> : <Empty />}</CardContent></Card><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><AlertTriangle className="h-4 w-4" />Principais causas de paralisação</CardTitle></CardHeader><CardContent className="space-y-3">{causas.length ? causas.slice(0,6).map(([causa, horas]) => <div key={causa}><div className="mb-1 flex justify-between text-sm"><span>{causa.replaceAll("_", " ")}</span><strong>{horas.toFixed(1)}h</strong></div><ProgressBar value={paradas ? horas / paradas * 100 : 0} /></div>) : <Empty />}</CardContent></Card></div>
+  <div className="grid grid-cols-2 gap-4 lg:grid-cols-4"><MetricCard label="Conjuntos produzidos" value={conjuntos.filter((c) => c.progresso >= 75).length} detail={`${conjuntos.length} no total`} /><MetricCard label="Liberados" value={conjuntos.filter((c) => c.liberado_qualidade).length} tone="success" /><MetricCard label="Expedidos" value={conjuntos.filter((c) => c.status === "expedido" || c.status === "concluido").length} /><MetricCard label="Retrabalhos / NCs" value={ncs.filter((n) => n.status !== "encerrada").length} tone="warning" /></div>
+  <div className="grid gap-4 md:grid-cols-3"><Summary icon={ShieldCheck} title="Qualidade" lines={[`${inspecoes.filter((i) => i.resultado === "aprovado").length} inspeções aprovadas`, `${inspecoes.filter((i) => i.resultado === "reprovado").length} reprovações`]} /><Summary icon={Truck} title="Expedição" lines={[`${romaneios.filter((r) => r.status === "entregue").length} romaneios entregues`, `${romaneios.filter((r) => r.status === "expedido").length} em trânsito`]} /><Summary icon={Receipt} title="Medição" lines={[`${moneyBr(medicoes.filter((m) => m.status === "aprovada").reduce((s,m) => s + Number(m.valor_medido), 0))} medidos`, `${moneyBr(recebido)} recebidos`]} /></div>
+  <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Activity className="h-4 w-4" />Situação por pedido</CardTitle></CardHeader><CardContent><div className="overflow-x-auto rounded-md border"><Table><TableHeader><TableRow><TableHead>Pedido</TableHead><TableHead>Contrato</TableHead><TableHead>Prazo</TableHead><TableHead>Avanço</TableHead><TableHead>Qualidade</TableHead><TableHead>Expedição</TableHead></TableRow></TableHeader><TableBody>{chart.map((r) => { const p = pedidos.find((x) => x.numero === r.pedido); return <TableRow key={r.pedido}><TableCell className="font-mono font-medium">{r.pedido}</TableCell><TableCell>{p?.contratos?.empresa} · {p?.contratos?.nome}</TableCell><TableCell>{p?.prazo_entrega ? new Date(`${p.prazo_entrega}T12:00:00`).toLocaleDateString("pt-BR") : "—"}</TableCell><TableCell><ProgressBar value={r.avanço} /></TableCell><TableCell>{r.liberado} liberados</TableCell><TableCell>{r.expedido} expedidos</TableCell></TableRow>; })}</TableBody></Table></div></CardContent></Card>
+  <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Factory className="h-4 w-4" />Painel Central de Orçamentos</CardTitle></CardHeader><CardContent className="grid gap-4 sm:grid-cols-3"><MetricCard label="Aguardando aprovação" value={enviadosOrc.length} detail={moneyBr(enviadosOrc.reduce((s,o) => s + Number(o.valor_total), 0))} /><MetricCard label="Aprovadas" value={aprovOrc.length} detail={moneyBr(aprovOrc.reduce((s,o) => s + Number(o.valor_total), 0))} tone="success" /><MetricCard label="Faturado / recebido" value={moneyBr(faturado)} detail={`${moneyBr(recebido)} recebidos`} /></CardContent></Card></div>;
 }
-
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-        <div className="text-3xl font-bold mt-1">{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
+function Filter({ label, value, onChange, options }: { label: string; value: string; onChange: (v:string) => void; options: {value:string;label:string}[] }) { return <div className="space-y-1.5"><Label>{label}</Label><Select value={value} onValueChange={onChange}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent></Select></div>; }
+function Summary({ icon: Icon, title, lines }: { icon: typeof ShieldCheck; title: string; lines: string[] }) { return <Card><CardHeader className="flex-row items-center gap-2 space-y-0"><Icon className="h-5 w-5 text-primary" /><CardTitle className="text-base">{title}</CardTitle></CardHeader><CardContent>{lines.map((l) => <p key={l} className="text-sm text-muted-foreground">{l}</p>)}</CardContent></Card>; }
+function Empty() { return <div className="grid h-full place-items-center text-sm text-muted-foreground">Sem dados para os filtros selecionados.</div>; }

@@ -64,6 +64,99 @@ export type Database = {
           },
         ]
       }
+      apontamentos_producao: {
+        Row: {
+          conjunto_id: string
+          created_at: string
+          created_by: string | null
+          equipamento_id: string | null
+          etapa_id: string | null
+          fim: string | null
+          funcionario_id: string | null
+          id: string
+          inicio: string
+          observacoes: string | null
+          pedido_id: string
+          peso_executado_kg: number | null
+          processo: string
+          quantidade_executada: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          conjunto_id: string
+          created_at?: string
+          created_by?: string | null
+          equipamento_id?: string | null
+          etapa_id?: string | null
+          fim?: string | null
+          funcionario_id?: string | null
+          id?: string
+          inicio?: string
+          observacoes?: string | null
+          pedido_id: string
+          peso_executado_kg?: number | null
+          processo: string
+          quantidade_executada?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          conjunto_id?: string
+          created_at?: string
+          created_by?: string | null
+          equipamento_id?: string | null
+          etapa_id?: string | null
+          fim?: string | null
+          funcionario_id?: string | null
+          id?: string
+          inicio?: string
+          observacoes?: string | null
+          pedido_id?: string
+          peso_executado_kg?: number | null
+          processo?: string
+          quantidade_executada?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apontamentos_producao_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apontamentos_producao_equipamento_id_fkey"
+            columns: ["equipamento_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apontamentos_producao_etapa_id_fkey"
+            columns: ["etapa_id"]
+            isOneToOne: false
+            referencedRelation: "cronograma_etapas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apontamentos_producao_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apontamentos_producao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contrato_linhas_preco: {
         Row: {
           codigo: string
@@ -150,6 +243,56 @@ export type Database = {
         }
         Relationships: []
       }
+      cronograma_etapas: {
+        Row: {
+          conjunto_id: string
+          created_at: string
+          fim_previsto: string | null
+          id: string
+          inicio_previsto: string | null
+          ordem: number
+          peso_percentual: number
+          processo: string
+          progresso: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          conjunto_id: string
+          created_at?: string
+          fim_previsto?: string | null
+          id?: string
+          inicio_previsto?: string | null
+          ordem?: number
+          peso_percentual?: number
+          processo: string
+          progresso?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          conjunto_id?: string
+          created_at?: string
+          fim_previsto?: string | null
+          id?: string
+          inicio_previsto?: string | null
+          ordem?: number
+          peso_percentual?: number
+          processo?: string
+          progresso?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_etapas_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipamentos: {
         Row: {
           codigo: string
@@ -224,6 +367,254 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      inspecoes_qualidade: {
+        Row: {
+          conjunto_id: string
+          created_at: string
+          data_inspecao: string
+          id: string
+          inspetor_id: string | null
+          observacoes: string | null
+          pedido_id: string
+          reinspecao_de: string | null
+          resultado: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          conjunto_id: string
+          created_at?: string
+          data_inspecao?: string
+          id?: string
+          inspetor_id?: string | null
+          observacoes?: string | null
+          pedido_id: string
+          reinspecao_de?: string | null
+          resultado?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          conjunto_id?: string
+          created_at?: string
+          data_inspecao?: string
+          id?: string
+          inspetor_id?: string | null
+          observacoes?: string | null
+          pedido_id?: string
+          reinspecao_de?: string | null
+          resultado?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspecoes_qualidade_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspecoes_qualidade_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspecoes_qualidade_reinspecao_de_fkey"
+            columns: ["reinspecao_de"]
+            isOneToOne: false
+            referencedRelation: "inspecoes_qualidade"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicoes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          numero: string
+          observacoes: string | null
+          pedido_id: string
+          periodo_fim: string | null
+          periodo_inicio: string | null
+          romaneio_id: string | null
+          status: string
+          updated_at: string
+          valor_medido: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          numero: string
+          observacoes?: string | null
+          pedido_id: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          romaneio_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_medido?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          pedido_id?: string
+          periodo_fim?: string | null
+          periodo_inicio?: string | null
+          romaneio_id?: string | null
+          status?: string
+          updated_at?: string
+          valor_medido?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicoes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicoes_romaneio_id_fkey"
+            columns: ["romaneio_id"]
+            isOneToOne: false
+            referencedRelation: "romaneios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nao_conformidades: {
+        Row: {
+          acao_corretiva: string | null
+          conjunto_id: string
+          created_at: string
+          descricao: string
+          exige_retrabalho: boolean
+          id: string
+          inspecao_id: string
+          pedido_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          acao_corretiva?: string | null
+          conjunto_id: string
+          created_at?: string
+          descricao: string
+          exige_retrabalho?: boolean
+          id?: string
+          inspecao_id: string
+          pedido_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          acao_corretiva?: string | null
+          conjunto_id?: string
+          created_at?: string
+          descricao?: string
+          exige_retrabalho?: boolean
+          id?: string
+          inspecao_id?: string
+          pedido_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nao_conformidades_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nao_conformidades_inspecao_id_fkey"
+            columns: ["inspecao_id"]
+            isOneToOne: false
+            referencedRelation: "inspecoes_qualidade"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nao_conformidades_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notas_fiscais: {
+        Row: {
+          created_at: string
+          data_emissao: string
+          data_pagamento: string | null
+          data_vencimento: string | null
+          id: string
+          medicao_id: string | null
+          numero: string
+          observacoes: string | null
+          pedido_id: string
+          status: string
+          updated_at: string
+          valor: number
+          valor_recebido: number
+        }
+        Insert: {
+          created_at?: string
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          id?: string
+          medicao_id?: string | null
+          numero: string
+          observacoes?: string | null
+          pedido_id: string
+          status?: string
+          updated_at?: string
+          valor?: number
+          valor_recebido?: number
+        }
+        Update: {
+          created_at?: string
+          data_emissao?: string
+          data_pagamento?: string | null
+          data_vencimento?: string | null
+          id?: string
+          medicao_id?: string | null
+          numero?: string
+          observacoes?: string | null
+          pedido_id?: string
+          status?: string
+          updated_at?: string
+          valor?: number
+          valor_recebido?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_fiscais_medicao_id_fkey"
+            columns: ["medicao_id"]
+            isOneToOne: false
+            referencedRelation: "medicoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notas_fiscais_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orcamento_anexos: {
         Row: {
@@ -381,6 +772,237 @@ export type Database = {
           },
         ]
       }
+      paralisacoes: {
+        Row: {
+          apontamento_id: string | null
+          conjunto_id: string | null
+          created_at: string
+          created_by: string | null
+          detalhe: string | null
+          duracao_horas: number | null
+          equipamento_id: string | null
+          fim: string | null
+          id: string
+          inicio: string
+          motivo: string
+          pedido_id: string
+        }
+        Insert: {
+          apontamento_id?: string | null
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          detalhe?: string | null
+          duracao_horas?: number | null
+          equipamento_id?: string | null
+          fim?: string | null
+          id?: string
+          inicio?: string
+          motivo: string
+          pedido_id: string
+        }
+        Update: {
+          apontamento_id?: string | null
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          detalhe?: string | null
+          duracao_horas?: number | null
+          equipamento_id?: string | null
+          fim?: string | null
+          id?: string
+          inicio?: string
+          motivo?: string
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paralisacoes_apontamento_id_fkey"
+            columns: ["apontamento_id"]
+            isOneToOne: false
+            referencedRelation: "apontamentos_producao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paralisacoes_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paralisacoes_equipamento_id_fkey"
+            columns: ["equipamento_id"]
+            isOneToOne: false
+            referencedRelation: "equipamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paralisacoes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pcp_planos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_fim_prevista: string | null
+          data_inicio: string | null
+          id: string
+          observacoes: string | null
+          pedido_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_fim_prevista?: string | null
+          data_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          pedido_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_fim_prevista?: string | null
+          data_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          pedido_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pcp_planos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: true
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pcp_reprogramacoes: {
+        Row: {
+          conjunto_id: string | null
+          created_at: string
+          created_by: string | null
+          data_anterior: string | null
+          id: string
+          impacto_dias: number
+          motivo: string
+          nova_data: string
+          pedido_id: string
+        }
+        Insert: {
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_anterior?: string | null
+          id?: string
+          impacto_dias?: number
+          motivo: string
+          nova_data: string
+          pedido_id: string
+        }
+        Update: {
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_anterior?: string | null
+          id?: string
+          impacto_dias?: number
+          motivo?: string
+          nova_data?: string
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pcp_reprogramacoes_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pcp_reprogramacoes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pedido_conjuntos: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          fim_previsto: string | null
+          id: string
+          inicio_previsto: string | null
+          liberado_qualidade: boolean
+          pedido_id: string
+          peso_kg: number | null
+          prioridade: number
+          progresso: number
+          quantidade: number
+          status: string
+          tag: string
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao: string
+          fim_previsto?: string | null
+          id?: string
+          inicio_previsto?: string | null
+          liberado_qualidade?: boolean
+          pedido_id: string
+          peso_kg?: number | null
+          prioridade?: number
+          progresso?: number
+          quantidade?: number
+          status?: string
+          tag: string
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          fim_previsto?: string | null
+          id?: string
+          inicio_previsto?: string | null
+          liberado_qualidade?: boolean
+          pedido_id?: string
+          peso_kg?: number | null
+          prioridade?: number
+          progresso?: number
+          quantidade?: number
+          status?: string
+          tag?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_conjuntos_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedidos: {
         Row: {
           contrato_id: string | null
@@ -480,6 +1102,98 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      romaneio_itens: {
+        Row: {
+          conjunto_id: string
+          created_at: string
+          id: string
+          peso_kg: number | null
+          quantidade: number
+          romaneio_id: string
+        }
+        Insert: {
+          conjunto_id: string
+          created_at?: string
+          id?: string
+          peso_kg?: number | null
+          quantidade: number
+          romaneio_id: string
+        }
+        Update: {
+          conjunto_id?: string
+          created_at?: string
+          id?: string
+          peso_kg?: number | null
+          quantidade?: number
+          romaneio_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "romaneio_itens_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "romaneio_itens_romaneio_id_fkey"
+            columns: ["romaneio_id"]
+            isOneToOne: false
+            referencedRelation: "romaneios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      romaneios: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_romaneio: string
+          destino: string | null
+          id: string
+          numero: string
+          observacoes: string | null
+          pedido_id: string
+          status: string
+          transporte: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_romaneio?: string
+          destino?: string | null
+          id?: string
+          numero: string
+          observacoes?: string | null
+          pedido_id: string
+          status?: string
+          transporte?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_romaneio?: string
+          destino?: string | null
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          pedido_id?: string
+          status?: string
+          transporte?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "romaneios_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solicitacao_anexos: {
         Row: {
