@@ -132,6 +132,70 @@ function OrcamentosPage() {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [creating, setCreating] = useState(false);
   const [openedId, setOpenedId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Solicitacao | null>(null);
+
+  const excluir = useMutation({
+    mutationFn: async (sol: Solicitacao) => {
+      if (sol.status === "aprovada" || sol.status === "convertida_pedido") {
+        throw new Error("Solicitações aprovadas não podem ser excluídas.");
+      }
+
+      const { data: orcs } = await supabase
+        .from("orcamentos")
+        .select("id")
+        .eq("solicitacao_id", sol.id);
+      const orcIds = (orcs ?? []).map((o) => o.id);
+
+      if (orcIds.length) {
+        const { data: anexos } = await supabase
+          .from("orcamento_anexos")
+          .select("storage_path")
+          .in("orcamento_id", orcIds);
+        const paths = (anexos ?? []).map((a) => a.storage_path);
+        if (paths.length) await supabase.storage.from("orcamentos").remove(paths);
+
+        const { data: conjuntos } = await supabase
+          .from("orcamento_conjuntos")
+          .select("id")
+          .in("orcamento_id", orcIds);
+        const conjIds = (conjuntos ?? []).map((c) => c.id);
+        if (conjIds.length) {
+          await supabase.from("orcamento_conjunto_atividades").delete().in("conjunto_id", conjIds);
+          await supabase.from("orcamento_conjuntos").delete().in("id", conjIds);
+        }
+        await supabase.from("orcamento_anexos").delete().in("orcamento_id", orcIds);
+        await supabase.from("orcamento_itens").delete().in("orcamento_id", orcIds);
+        await supabase.from("orcamento_historico").delete().in("orcamento_id", orcIds);
+      }
+
+      const { data: solAnexos } = await supabase
+        .from("solicitacao_anexos")
+        .select("storage_path")
+        .eq("solicitacao_id", sol.id);
+      const solPaths = (solAnexos ?? []).map((a) => a.storage_path);
+      if (solPaths.length) await supabase.storage.from("orcamentos").remove(solPaths);
+
+      await supabase.from("solicitacao_anexos").delete().eq("solicitacao_id", sol.id);
+      await supabase.from("demanda_requisitos").delete().eq("solicitacao_id", sol.id);
+      await supabase.from("analises_tecnicas").delete().eq("solicitacao_id", sol.id);
+      await supabase.from("orcamento_historico").delete().eq("solicitacao_id", sol.id);
+      if (orcIds.length) {
+        const { error: errOrc } = await supabase.from("orcamentos").delete().in("id", orcIds);
+        if (errOrc) throw errOrc;
+      }
+      const { error } = await supabase
+        .from("solicitacoes_orcamento")
+        .delete()
+        .eq("id", sol.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Solicitação excluída");
+      setDeleteTarget(null);
+      qc.invalidateQueries({ queryKey: ["solicitacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["solicitacoes"],
