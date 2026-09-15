@@ -1611,12 +1611,14 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
   );
 }
 
-/* ---------------- Tab: Aprovação (aprovar/reprovar + converter em pedido) ---------------- */
+/* ---------------- Tab: Aprovação (aprovar / reprovar / reabrir para alteração) ---------------- */
 
 function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [motivoOpen, setMotivoOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
+  const [alterarOpen, setAlterarOpen] = useState(false);
+  const [motivoAlteracao, setMotivoAlteracao] = useState("");
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [prazoDias, setPrazoDias] = useState("");
   const [dataSla, setDataSla] = useState("");
