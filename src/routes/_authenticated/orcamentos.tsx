@@ -426,20 +426,15 @@ function OrcamentosPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir solicitação?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTarget?.status === "aprovada" || deleteTarget?.status === "convertida_pedido"
-                ? "Esta solicitação já foi aprovada e não pode ser excluída."
-                : `A solicitação ${deleteTarget?.pomg_codigo ?? deleteTarget?.numero ?? ""} será removida junto com anexos, análise técnica, conjuntos e propostas em elaboração. Essa ação não pode ser desfeita.`}
+              {`A demanda ${deleteTarget?.pomg_codigo ?? deleteTarget?.numero ?? ""} será removida de todos os módulos: solicitação, anexos, análise técnica, conjuntos, propostas, histórico, PCP, produção, qualidade, expedição (romaneios e notas), medição e databook. Essa ação não pode ser desfeita.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={
-                excluir.isPending ||
-                deleteTarget?.status === "aprovada" ||
-                deleteTarget?.status === "convertida_pedido"
-              }
+              disabled={excluir.isPending}
+
               onClick={(e) => {
                 e.preventDefault();
                 if (deleteTarget) excluir.mutate(deleteTarget);
