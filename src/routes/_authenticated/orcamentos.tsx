@@ -1844,6 +1844,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
                 <Label>Data SLA</Label>
                 <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
               </div>
+              <div className="space-y-2">
+                <Label>Prazo de entrega (opcional)</Label>
+                <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
+              </div>
             </div>
           )}
 
