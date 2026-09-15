@@ -2171,3 +2171,88 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
     </div>
   );
 }
+
+/* ---------------- Histórico de alterações do orçamento ---------------- */
+
+type HistoricoItem = {
+  id: string;
+  acao: string;
+  descricao: string | null;
+  valor_anterior: number | null;
+  valor_novo: number | null;
+  created_at: string;
+};
+
+const ACAO_LABEL: Record<string, string> = {
+  enviada: "Enviada para aprovação",
+  aprovado: "Aprovado",
+  reaprovado: "Reaprovado após alteração",
+  reaberto: "Reaberto para alteração",
+  cancelado: "Cancelado / reprovado",
+};
+
+async function registrarHistorico(params: {
+  orcamentoId: string;
+  solicitacaoId: string;
+  acao: string;
+  descricao?: string | null;
+  valorAnterior?: number | null;
+  valorNovo?: number | null;
+}) {
+  const { data: auth } = await supabase.auth.getUser();
+  await supabase.from("orcamento_historico").insert({
+    orcamento_id: params.orcamentoId,
+    solicitacao_id: params.solicitacaoId,
+    acao: params.acao,
+    descricao: params.descricao ?? null,
+    valor_anterior: params.valorAnterior ?? null,
+    valor_novo: params.valorNovo ?? null,
+    created_by: auth.user?.id ?? null,
+  });
+}
+
+function HistoricoCard({ orcamentoId }: { orcamentoId: string }) {
+  const { data: itens = [] } = useQuery({
+    queryKey: ["orcamento-historico", orcamentoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_historico")
+        .select("id, acao, descricao, valor_anterior, valor_novo, created_at")
+        .eq("orcamento_id", orcamentoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as HistoricoItem[];
+    },
+  });
+
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-3">
+        <h3 className="text-sm font-semibold">Histórico de alterações</h3>
+        {itens.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum movimento registrado ainda.</p>
+        ) : (
+          <ul className="space-y-3">
+            {itens.map((h) => (
+              <li key={h.id} className="border-l-2 border-border pl-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{ACAO_LABEL[h.acao] ?? h.acao}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(h.created_at).toLocaleString("pt-BR")}
+                  </span>
+                </div>
+                {h.descricao && <p className="text-sm text-muted-foreground">{h.descricao}</p>}
+                {h.valor_anterior !== null && h.valor_novo !== null && Number(h.valor_anterior) !== Number(h.valor_novo) && (
+                  <p className="text-xs text-muted-foreground">
+                    Valor: R$ {Number(h.valor_anterior).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} → R${" "}
+                    {Number(h.valor_novo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
