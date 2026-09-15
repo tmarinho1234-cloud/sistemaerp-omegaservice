@@ -136,16 +136,66 @@ function OrcamentosPage() {
 
   const excluir = useMutation({
     mutationFn: async (sol: Solicitacao) => {
-      if (sol.status === "aprovada" || sol.status === "convertida_pedido") {
-        throw new Error("Solicitações aprovadas não podem ser excluídas.");
-      }
-
       const { data: orcs } = await supabase
         .from("orcamentos")
         .select("id")
         .eq("solicitacao_id", sol.id);
       const orcIds = (orcs ?? []).map((o) => o.id);
 
+      // ---- Pedidos gerados a partir dessas propostas (PCP, Produção, Qualidade, Expedição, Medição, Databook)
+      let pedidoIds: string[] = [];
+      if (orcIds.length) {
+        const { data: peds } = await supabase
+          .from("pedidos")
+          .select("id")
+          .in("orcamento_id", orcIds);
+        pedidoIds = (peds ?? []).map((p) => p.id);
+      }
+
+      if (pedidoIds.length) {
+        const { data: romaneios } = await supabase
+          .from("romaneios")
+          .select("id")
+          .in("pedido_id", pedidoIds);
+        const romIds = (romaneios ?? []).map((r) => r.id);
+
+        await supabase.from("notas_fiscais").delete().in("pedido_id", pedidoIds);
+        await supabase.from("medicoes").delete().in("pedido_id", pedidoIds);
+        if (romIds.length) {
+          await supabase.from("romaneio_notas").delete().in("romaneio_id", romIds);
+          await supabase.from("romaneio_itens").delete().in("romaneio_id", romIds);
+          await supabase.from("romaneios").delete().in("id", romIds);
+        }
+        await supabase.from("nao_conformidades").delete().in("pedido_id", pedidoIds);
+        await supabase
+          .from("inspecoes_qualidade")
+          .delete()
+          .in("pedido_id", pedidoIds)
+          .not("reinspecao_de", "is", null);
+        await supabase.from("inspecoes_qualidade").delete().in("pedido_id", pedidoIds);
+        await supabase.from("paralisacoes").delete().in("pedido_id", pedidoIds);
+        await supabase.from("apontamentos_producao").delete().in("pedido_id", pedidoIds);
+        await supabase.from("atividades_nao_previstas").delete().in("pedido_id", pedidoIds);
+        await supabase.from("pcp_reprogramacoes").delete().in("pedido_id", pedidoIds);
+        await supabase.from("pcp_planos").delete().in("pedido_id", pedidoIds);
+        await supabase.from("databook_relatorios").delete().in("pedido_id", pedidoIds);
+        await supabase.from("pedido_conjunto_atividades").delete().in("pedido_id", pedidoIds);
+
+        const { data: pedConj } = await supabase
+          .from("pedido_conjuntos")
+          .select("id")
+          .in("pedido_id", pedidoIds);
+        const pedConjIds = (pedConj ?? []).map((c) => c.id);
+        if (pedConjIds.length) {
+          await supabase.from("cronograma_etapas").delete().in("conjunto_id", pedConjIds);
+          await supabase.from("pedido_conjuntos").delete().in("id", pedConjIds);
+        }
+
+        const { error: errPed } = await supabase.from("pedidos").delete().in("id", pedidoIds);
+        if (errPed) throw errPed;
+      }
+
+      // ---- Propostas / orçamentos
       if (orcIds.length) {
         const { data: anexos } = await supabase
           .from("orcamento_anexos")
@@ -189,6 +239,7 @@ function OrcamentosPage() {
         .eq("id", sol.id);
       if (error) throw error;
     },
+
     onSuccess: () => {
       toast.success("Solicitação excluída");
       setDeleteTarget(null);
