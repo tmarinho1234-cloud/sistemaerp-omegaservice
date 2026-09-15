@@ -1879,28 +1879,43 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         </CardContent>
       </Card>
 
-      {orc.status === "aprovado" && !pedido && (
+      {orc.status === "aprovado" && (
         <Card>
           <CardContent className="pt-6 space-y-3">
-            <h3 className="text-sm font-semibold">Converter em Pedido</h3>
+            <h3 className="text-sm font-semibold">Alterar orçamento aprovado</h3>
             <p className="text-sm text-muted-foreground">
-              Gera o pedido e envia para o PCP iniciar o levantamento de materiais e o planejamento.
+              Reabre a proposta para alteração. Depois de alterar, ela volta para aprovação e o histórico registra o motivo.
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Prazo de entrega</Label>
-                <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
-              </div>
-            </div>
             <div className="flex justify-end">
-              <Button onClick={() => converterMut.mutate()} disabled={converterMut.isPending}>
+              <Button variant="outline" onClick={() => setAlterarOpen(true)}>
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Gerar Pedido
+                Reabrir para alteração
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      <HistoricoCard orcamentoId={orc.id} />
+
+      <AlertDialog open={alterarOpen} onOpenChange={setAlterarOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir para alteração</AlertDialogTitle>
+            <AlertDialogDescription>
+              Descreva o que será alterado. A proposta volta para elaboração e, ao ser enviada de novo, retorna à aprovação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea rows={3} value={motivoAlteracao} onChange={(e) => setMotivoAlteracao(e.target.value)} />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => reabrirMut.mutate()} disabled={!motivoAlteracao.trim() || reabrirMut.isPending}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {pedido && (
         <Card>
