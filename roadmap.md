@@ -7,4 +7,4 @@
 - [x] Implementar Expedição e romaneios
 - [x] Implementar Medição e pagamentos
 - [x] Atualizar painel de KPIs
-- [ ] Validar fluxo e visual em desktop e celular
+- [x] Validar fluxo e visual em desktop e celular

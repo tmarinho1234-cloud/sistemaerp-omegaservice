@@ -186,7 +186,7 @@ function SidebarContent({
         ))}
       </nav>
       <div className="p-4 border-t border-sidebar-border text-[11px] text-sidebar-foreground/50">
-        Fase 1 — Fundação
+        ERP Industrial Integrado
       </div>
     </>
   );

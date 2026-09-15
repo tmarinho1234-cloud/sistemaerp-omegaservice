@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CalendarRange, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { ModuleHeader, PedidoSelect, MetricCard, ProgressBar, TODAS_ETAPAS, dateBr, processoLabel, useConjuntos, usePedidos, type ConjuntoResumo } from "@/components/operations";
+import { ModuleHeader, PedidoSelect, MetricCard, ProgressBar, TODAS_ETAPAS, dateBr, useConjuntos, usePedidos, type ConjuntoResumo } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/pcp")({
   head: () => ({ meta: [{ title: "PCP | Omega Service ERP" }, { name: "description", content: "Planejamento de pedidos, conjuntos, TAGs e cronogramas industriais." }, { property: "og:title", content: "PCP | Omega Service ERP" }, { property: "og:description", content: "Planejamento de pedidos, conjuntos, TAGs e cronogramas industriais." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
