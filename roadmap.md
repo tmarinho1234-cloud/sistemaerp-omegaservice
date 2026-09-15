@@ -8,3 +8,6 @@
 - [x] Implementar Medição e pagamentos
 - [x] Atualizar painel de KPIs
 - [x] Validar fluxo e visual em desktop e celular
+- [ ] Criar solicitação e proposta de teste até virar Pedido
+- [ ] Validar PCP, Produção, Qualidade, Expedição e Medição com o Pedido de teste
+- [ ] Confirmar os registros e bloqueios de cada etapa
