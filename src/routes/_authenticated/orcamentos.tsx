@@ -1930,12 +1930,22 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
     },
   });
 
+  const editavel = orc ? orc.status === "rascunho" || orc.status === "enviado" : true;
+
   const criar = useMutation({
     mutationFn: async () => {
-      if (!orc) throw new Error("Crie a proposta antes de cadastrar conjuntos");
+      if (!form.codigo.trim()) throw new Error("Informe o código do conjunto");
+      let orcamentoId = orc?.id;
+      if (!orcamentoId) {
+        const numero = `ORC-${Date.now().toString().slice(-8)}`;
+        const criado = await supabase.from("orcamentos").insert({ numero, solicitacao_id: sol.id, status: "rascunho" }).select("id").single();
+        if (criado.error) throw criado.error;
+        orcamentoId = criado.data.id;
+        await supabase.from("solicitacoes_orcamento").update({ status: "orcamento_em_elaboracao" }).eq("id", sol.id);
+      }
       const { data, error } = await supabase
         .from("orcamento_conjuntos")
-        .insert({ orcamento_id: orc.id, codigo: form.codigo, descricao: form.descricao || form.codigo, quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
+        .insert({ orcamento_id: orcamentoId, codigo: form.codigo.trim(), descricao: form.descricao || form.codigo.trim(), quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
         .select("id")
         .single();
       if (error) throw error;
@@ -1951,30 +1961,25 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
       setForm({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
       setSelecionadas([...ATIVIDADES]);
       setExtra("");
-      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos", orc?.id] });
-      qc.invalidateQueries({ queryKey: ["orcamento-conjunto-atividades", orc?.id] });
+      qc.invalidateQueries({ queryKey: ["orcamento", sol.id] });
+      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos"] });
+      qc.invalidateQueries({ queryKey: ["orcamento-conjunto-atividades"] });
+      qc.invalidateQueries({ queryKey: ["solicitacoes"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const remover = useMutation({
     mutationFn: async (id: string) => {
+      await supabase.from("orcamento_conjunto_atividades").delete().eq("conjunto_id", id);
       const { error } = await supabase.from("orcamento_conjuntos").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos", orc?.id] });
+      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-  if (!orc) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">Crie a proposta na aba Proposta para cadastrar os conjuntos.</CardContent>
-      </Card>
-    );
-  }
 
   const pesoTotal = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
 
@@ -1984,7 +1989,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
         <div className="text-sm text-muted-foreground">
           {conjuntos.length} conjunto(s) · {pesoTotal.toFixed(0)} kg no total
         </div>
-        <Button size="sm" onClick={() => setNovo(true)} disabled={orc.status !== "rascunho"}>
+        <Button size="sm" onClick={() => setNovo(true)} disabled={!editavel}>
           <Plus className="h-4 w-4 mr-2" />
           Conjunto
         </Button>
@@ -2022,7 +2027,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {orc.status === "rascunho" && (
+                    {editavel && (
                       <Button size="sm" variant="ghost" onClick={() => remover.mutate(c.id)}>
                         Remover
                       </Button>
