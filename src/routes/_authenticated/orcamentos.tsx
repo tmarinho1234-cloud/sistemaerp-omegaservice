@@ -1089,6 +1089,7 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
 
   const enviarMut = useMutation({
     mutationFn: async () => {
+      const valorAnterior = Number(orc.valor_total ?? 0);
       await saveMut.mutateAsync();
       const { error } = await supabase
         .from("orcamentos")
@@ -1099,12 +1100,18 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
         .from("solicitacoes_orcamento")
         .update({ status: "enviada" })
         .eq("id", sol.id);
+      await registrarHistorico({
+        orcamentoId: orc.id,
+        solicitacaoId: sol.id,
+        acao: "enviada",
+        descricao: "Proposta enviada ao cliente — aguardando aprovação",
+        valorAnterior,
+        valorNovo: total,
+      });
     },
     onSuccess: () => {
       toast.success("Proposta enviada ao cliente");
-      qc.invalidateQueries({ queryKey: ["orcamento", sol.id] });
-      qc.invalidateQueries({ queryKey: ["solicitacoes"] });
-      qc.invalidateQueries({ queryKey: ["solicitacao", sol.id] });
+      qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
   });
