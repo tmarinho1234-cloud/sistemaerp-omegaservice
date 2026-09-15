@@ -1925,7 +1925,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
       if (!orc) throw new Error("Crie a proposta antes de cadastrar conjuntos");
       const { data, error } = await supabase
         .from("orcamento_conjuntos")
-        .insert({ orcamento_id: orc.id, codigo: form.codigo, descricao: form.descricao || null, quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
+        .insert({ orcamento_id: orc.id, codigo: form.codigo, descricao: form.descricao || form.codigo, quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
         .select("id")
         .single();
       if (error) throw error;
