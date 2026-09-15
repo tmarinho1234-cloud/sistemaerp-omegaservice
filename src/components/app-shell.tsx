@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Truck,
   Receipt,
+  BookOpenCheck,
   Users,
   Building2,
   Wrench,
@@ -38,6 +39,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
       { to: "/qualidade", label: "Qualidade", icon: ShieldCheck },
       { to: "/expedicao", label: "Expedição", icon: Truck },
       { to: "/medicao", label: "Medição", icon: Receipt },
+      { to: "/databook", label: "Databook", icon: BookOpenCheck },
     ],
   },
   {
