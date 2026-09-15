@@ -18,6 +18,7 @@ import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pc
 import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
+import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticated/databook'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
@@ -68,6 +69,11 @@ const AuthenticatedExpedicaoRoute = AuthenticatedExpedicaoRouteImport.update({
   path: '/expedicao',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDatabookRoute = AuthenticatedDatabookRouteImport.update({
+  id: '/databook',
+  path: '/databook',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/databook': typeof AuthenticatedDatabookRoute
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRoute
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRoute
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/databook'
     | '/expedicao'
     | '/medicao'
     | '/orcamentos'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/dashboard'
+    | '/databook'
     | '/expedicao'
     | '/medicao'
     | '/orcamentos'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/databook'
     | '/_authenticated/expedicao'
     | '/_authenticated/medicao'
     | '/_authenticated/orcamentos'
@@ -265,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExpedicaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/databook': {
+      id: '/_authenticated/databook'
+      path: '/databook'
+      fullPath: '/databook'
+      preLoaderRoute: typeof AuthenticatedDatabookRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -305,6 +324,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDatabookRoute: typeof AuthenticatedDatabookRoute
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRoute
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRoute
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
@@ -319,6 +339,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDatabookRoute: AuthenticatedDatabookRoute,
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRoute,
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRoute,
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,

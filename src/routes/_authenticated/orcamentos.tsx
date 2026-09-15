@@ -73,6 +73,7 @@ export const Route = createFileRoute("/_authenticated/orcamentos")({
 type Solicitacao = {
   id: string;
   numero: string;
+  pomg_codigo: string | null;
   contrato_id: string;
   sub_area_id: string | null;
   data_recebimento: string;
@@ -140,6 +141,7 @@ function OrcamentosPage() {
         const matchesSearch =
           !s ||
           r.numero.toLowerCase().includes(s) ||
+          (r.pomg_codigo ?? "").toLowerCase().includes(s) ||
           r.escopo.toLowerCase().includes(s) ||
           r.contratos?.empresa.toLowerCase().includes(s) ||
           r.contratos?.nome.toLowerCase().includes(s);
@@ -215,6 +217,7 @@ function OrcamentosPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>POMG</TableHead>
                   <TableHead>Número</TableHead>
                   <TableHead>Empresa</TableHead>
                   <TableHead>Contrato</TableHead>
@@ -228,19 +231,20 @@ function OrcamentosPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                       Carregando...
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                       Nenhuma solicitação encontrada.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filtered.map((r) => (
                     <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenedId(r.id)}>
+                      <TableCell className="font-mono text-xs font-semibold">{r.pomg_codigo ?? "—"}</TableCell>
                       <TableCell className="font-mono text-xs">{r.numero}</TableCell>
                       <TableCell>{r.contratos?.empresa ?? "—"}</TableCell>
                       <TableCell>{r.contratos?.nome ?? "—"}</TableCell>
@@ -497,7 +501,8 @@ function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => 
           <>
             <SheetHeader>
               <SheetTitle className="flex items-center gap-3">
-                <span className="font-mono text-sm">{sol.numero}</span>
+                <span className="font-mono text-base font-bold">{sol.pomg_codigo ?? sol.numero}</span>
+                <span className="font-mono text-xs text-muted-foreground">{sol.numero}</span>
                 <Badge variant={STATUS_VARIANT[sol.status]}>{STATUS_LABEL[sol.status]}</Badge>
               </SheetTitle>
               <SheetDescription>
@@ -507,8 +512,9 @@ function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => 
 
             <div className="mt-6">
               <Tabs defaultValue="solicitacao">
-                <TabsList className="w-full grid grid-cols-4">
+                <TabsList className="w-full grid grid-cols-5">
                   <TabsTrigger value="solicitacao">Solicitação</TabsTrigger>
+                  <TabsTrigger value="conjuntos">Conjuntos</TabsTrigger>
                   <TabsTrigger value="analise">Análise</TabsTrigger>
                   <TabsTrigger value="proposta">Proposta</TabsTrigger>
                   <TabsTrigger value="aprovacao">Aprovação</TabsTrigger>
@@ -516,6 +522,9 @@ function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => 
 
                 <TabsContent value="solicitacao" className="space-y-4 mt-4">
                   <SolicitacaoTab sol={sol} />
+                </TabsContent>
+                <TabsContent value="conjuntos" className="mt-4">
+                  <ConjuntosTab sol={sol} />
                 </TabsContent>
                 <TabsContent value="analise" className="mt-4">
                   <AnaliseTab solicitacaoId={sol.id} />

@@ -16,12 +16,14 @@ export type Database = {
     Tables: {
       analises_tecnicas: {
         Row: {
+          aquisicao_materiais: boolean
           created_at: string
           data_analise: string
           horas_estimadas: number | null
           id: string
           materiais: string | null
           parecer: string
+          prazo_aquisicao_dias: number | null
           processos: string | null
           responsavel_id: string | null
           solicitacao_id: string
@@ -29,12 +31,14 @@ export type Database = {
           viavel: boolean
         }
         Insert: {
+          aquisicao_materiais?: boolean
           created_at?: string
           data_analise?: string
           horas_estimadas?: number | null
           id?: string
           materiais?: string | null
           parecer: string
+          prazo_aquisicao_dias?: number | null
           processos?: string | null
           responsavel_id?: string | null
           solicitacao_id: string
@@ -42,12 +46,14 @@ export type Database = {
           viavel?: boolean
         }
         Update: {
+          aquisicao_materiais?: boolean
           created_at?: string
           data_analise?: string
           horas_estimadas?: number | null
           id?: string
           materiais?: string | null
           parecer?: string
+          prazo_aquisicao_dias?: number | null
           processos?: string | null
           responsavel_id?: string | null
           solicitacao_id?: string
@@ -150,6 +156,60 @@ export type Database = {
           },
           {
             foreignKeyName: "apontamentos_producao_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      atividades_nao_previstas: {
+        Row: {
+          conjunto_id: string | null
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          observacao: string | null
+          pedido_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          observacao?: string | null
+          pedido_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          conjunto_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          observacao?: string | null
+          pedido_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_nao_previstas_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_nao_previstas_pedido_id_fkey"
             columns: ["pedido_id"]
             isOneToOne: false
             referencedRelation: "pedidos"
@@ -289,6 +349,85 @@ export type Database = {
             columns: ["conjunto_id"]
             isOneToOne: false
             referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      databook_relatorios: {
+        Row: {
+          created_at: string
+          id: string
+          nome_arquivo: string | null
+          nome_ensaio: string | null
+          observacoes: string | null
+          pedido_id: string
+          status: string
+          storage_path: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome_arquivo?: string | null
+          nome_ensaio?: string | null
+          observacoes?: string | null
+          pedido_id: string
+          status?: string
+          storage_path?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome_arquivo?: string | null
+          nome_ensaio?: string | null
+          observacoes?: string | null
+          pedido_id?: string
+          status?: string
+          storage_path?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "databook_relatorios_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demanda_requisitos: {
+        Row: {
+          created_at: string
+          id: string
+          nome_ensaio: string | null
+          solicitacao_id: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome_ensaio?: string | null
+          solicitacao_id: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome_ensaio?: string | null
+          solicitacao_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demanda_requisitos_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_orcamento"
             referencedColumns: ["id"]
           },
         ]
@@ -660,6 +799,85 @@ export type Database = {
           },
         ]
       }
+      orcamento_conjunto_atividades: {
+        Row: {
+          atividade: string
+          conjunto_id: string
+          created_at: string
+          id: string
+          nome_extra: string | null
+          ordem: number
+        }
+        Insert: {
+          atividade: string
+          conjunto_id: string
+          created_at?: string
+          id?: string
+          nome_extra?: string | null
+          ordem?: number
+        }
+        Update: {
+          atividade?: string
+          conjunto_id?: string
+          created_at?: string
+          id?: string
+          nome_extra?: string | null
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_conjunto_atividades_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "orcamento_conjuntos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orcamento_conjuntos: {
+        Row: {
+          codigo: string
+          created_at: string
+          descricao: string
+          id: string
+          orcamento_id: string
+          ordem: number
+          peso_kg: number | null
+          quantidade: number
+          updated_at: string
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id: string
+          ordem?: number
+          peso_kg?: number | null
+          quantidade?: number
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          orcamento_id?: string
+          ordem?: number
+          peso_kg?: number | null
+          quantidade?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_conjuntos_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_itens: {
         Row: {
           categoria: Database["public"]["Enums"]["qqp_categoria"]
@@ -716,12 +934,16 @@ export type Database = {
           condicoes_comerciais: string | null
           created_at: string
           created_by: string | null
+          data_sla: string | null
           enviado_em: string | null
           id: string
           motivo_reprovacao: string | null
           numero: string
+          pomg_codigo: string | null
+          prazo_dias: number | null
           prazo_execucao_dias: number | null
           respondido_em: string | null
+          situacao: string
           solicitacao_id: string
           status: Database["public"]["Enums"]["orcamento_status"]
           updated_at: string
@@ -733,12 +955,16 @@ export type Database = {
           condicoes_comerciais?: string | null
           created_at?: string
           created_by?: string | null
+          data_sla?: string | null
           enviado_em?: string | null
           id?: string
           motivo_reprovacao?: string | null
           numero: string
+          pomg_codigo?: string | null
+          prazo_dias?: number | null
           prazo_execucao_dias?: number | null
           respondido_em?: string | null
+          situacao?: string
           solicitacao_id: string
           status?: Database["public"]["Enums"]["orcamento_status"]
           updated_at?: string
@@ -750,12 +976,16 @@ export type Database = {
           condicoes_comerciais?: string | null
           created_at?: string
           created_by?: string | null
+          data_sla?: string | null
           enviado_em?: string | null
           id?: string
           motivo_reprovacao?: string | null
           numero?: string
+          pomg_codigo?: string | null
+          prazo_dias?: number | null
           prazo_execucao_dias?: number | null
           respondido_em?: string | null
+          situacao?: string
           solicitacao_id?: string
           status?: Database["public"]["Enums"]["orcamento_status"]
           updated_at?: string
@@ -941,6 +1171,66 @@ export type Database = {
           },
         ]
       }
+      pedido_conjunto_atividades: {
+        Row: {
+          atividade: string
+          conjunto_id: string
+          created_at: string
+          id: string
+          nome_extra: string | null
+          observacoes: string | null
+          ordem: number
+          pedido_id: string
+          peso_executado_kg: number
+          quantidade_executada: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          atividade: string
+          conjunto_id: string
+          created_at?: string
+          id?: string
+          nome_extra?: string | null
+          observacoes?: string | null
+          ordem?: number
+          pedido_id: string
+          peso_executado_kg?: number
+          quantidade_executada?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          atividade?: string
+          conjunto_id?: string
+          created_at?: string
+          id?: string
+          nome_extra?: string | null
+          observacoes?: string | null
+          ordem?: number
+          pedido_id?: string
+          peso_executado_kg?: number
+          quantidade_executada?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_conjunto_atividades_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pedido_conjunto_atividades_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedido_conjuntos: {
         Row: {
           codigo: string
@@ -950,11 +1240,14 @@ export type Database = {
           id: string
           inicio_previsto: string | null
           liberado_qualidade: boolean
+          orcamento_conjunto_id: string | null
           pedido_id: string
+          peso_fabricado_kg: number
           peso_kg: number | null
           prioridade: number
           progresso: number
           quantidade: number
+          quantidade_fabricada: number
           status: string
           tag: string
           updated_at: string
@@ -967,11 +1260,14 @@ export type Database = {
           id?: string
           inicio_previsto?: string | null
           liberado_qualidade?: boolean
+          orcamento_conjunto_id?: string | null
           pedido_id: string
+          peso_fabricado_kg?: number
           peso_kg?: number | null
           prioridade?: number
           progresso?: number
           quantidade?: number
+          quantidade_fabricada?: number
           status?: string
           tag: string
           updated_at?: string
@@ -984,16 +1280,26 @@ export type Database = {
           id?: string
           inicio_previsto?: string | null
           liberado_qualidade?: boolean
+          orcamento_conjunto_id?: string | null
           pedido_id?: string
+          peso_fabricado_kg?: number
           peso_kg?: number | null
           prioridade?: number
           progresso?: number
           quantidade?: number
+          quantidade_fabricada?: number
           status?: string
           tag?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pedido_conjuntos_orcamento_conjunto_id_fkey"
+            columns: ["orcamento_conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "orcamento_conjuntos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pedido_conjuntos_pedido_id_fkey"
             columns: ["pedido_id"]
@@ -1009,10 +1315,14 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_emissao: string
+          data_sla: string | null
           id: string
           numero: string
           observacoes: string | null
           orcamento_id: string | null
+          pcp_status: string
+          pomg_codigo: string | null
+          prazo_dias: number | null
           prazo_entrega: string | null
           status: Database["public"]["Enums"]["pedido_status"]
           sub_area_id: string | null
@@ -1024,10 +1334,14 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_emissao?: string
+          data_sla?: string | null
           id?: string
           numero: string
           observacoes?: string | null
           orcamento_id?: string | null
+          pcp_status?: string
+          pomg_codigo?: string | null
+          prazo_dias?: number | null
           prazo_entrega?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
@@ -1039,10 +1353,14 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_emissao?: string
+          data_sla?: string | null
           id?: string
           numero?: string
           observacoes?: string | null
           orcamento_id?: string | null
+          pcp_status?: string
+          pomg_codigo?: string | null
+          prazo_dias?: number | null
           prazo_entrega?: string | null
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
@@ -1072,6 +1390,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pomg_sequencias: {
+        Row: {
+          ano: number
+          ultimo: number
+        }
+        Insert: {
+          ano: number
+          ultimo?: number
+        }
+        Update: {
+          ano?: number
+          ultimo?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -1138,6 +1471,57 @@ export type Database = {
           },
           {
             foreignKeyName: "romaneio_itens_romaneio_id_fkey"
+            columns: ["romaneio_id"]
+            isOneToOne: false
+            referencedRelation: "romaneios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      romaneio_notas: {
+        Row: {
+          conjunto_id: string | null
+          created_at: string
+          data_emissao: string | null
+          id: string
+          numero: string
+          observacoes: string | null
+          peso_kg: number | null
+          romaneio_id: string
+          valor: number | null
+        }
+        Insert: {
+          conjunto_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          id?: string
+          numero: string
+          observacoes?: string | null
+          peso_kg?: number | null
+          romaneio_id: string
+          valor?: number | null
+        }
+        Update: {
+          conjunto_id?: string | null
+          created_at?: string
+          data_emissao?: string | null
+          id?: string
+          numero?: string
+          observacoes?: string | null
+          peso_kg?: number | null
+          romaneio_id?: string
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "romaneio_notas_conjunto_id_fkey"
+            columns: ["conjunto_id"]
+            isOneToOne: false
+            referencedRelation: "pedido_conjuntos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "romaneio_notas_romaneio_id_fkey"
             columns: ["romaneio_id"]
             isOneToOne: false
             referencedRelation: "romaneios"
@@ -1246,6 +1630,7 @@ export type Database = {
           id: string
           numero: string
           observacoes: string | null
+          pomg_codigo: string | null
           prazo_cliente: string | null
           responsavel_id: string | null
           status: Database["public"]["Enums"]["solicitacao_status"]
@@ -1261,6 +1646,7 @@ export type Database = {
           id?: string
           numero: string
           observacoes?: string | null
+          pomg_codigo?: string | null
           prazo_cliente?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["solicitacao_status"]
@@ -1276,6 +1662,7 @@ export type Database = {
           id?: string
           numero?: string
           observacoes?: string | null
+          pomg_codigo?: string | null
           prazo_cliente?: string | null
           responsavel_id?: string | null
           status?: Database["public"]["Enums"]["solicitacao_status"]
@@ -1375,6 +1762,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      proximo_pomg: { Args: never; Returns: string }
     }
     Enums: {
       app_role:
