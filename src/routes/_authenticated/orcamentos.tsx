@@ -267,9 +267,18 @@ function OrcamentosPage() {
                           {STATUS_LABEL[r.status]}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setOpenedId(r.id); }}>
                           Abrir
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive"
+                          title="Excluir solicitação"
+                          onClick={(e) => { e.stopPropagation(); setDeleteTarget(r); }}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
