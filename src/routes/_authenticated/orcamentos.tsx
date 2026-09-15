@@ -32,6 +32,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ATIVIDADES, REQUISITOS, atividadeLabel, situacaoLabel } from "@/components/operations";
 import {
   Select,
   SelectContent,
@@ -1600,6 +1601,8 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const [motivoOpen, setMotivoOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [prazoEntrega, setPrazoEntrega] = useState("");
+  const [prazoDias, setPrazoDias] = useState("");
+  const [dataSla, setDataSla] = useState("");
 
   const { data: orc } = useQuery({
     queryKey: ["orcamento", sol.id],
@@ -1868,6 +1871,217 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+/* ---------------- Tab: Conjuntos do orçamento ---------------- */
+
+type OrcConjunto = { id: string; codigo: string; descricao: string | null; quantidade: number; peso_kg: number | null; ordem: number };
+type OrcAtividade = { id: string; conjunto_id: string; atividade: string; nome_extra: string | null; ordem: number };
+
+function ConjuntosTab({ sol }: { sol: Solicitacao }) {
+  const qc = useQueryClient();
+  const [novo, setNovo] = useState(false);
+  const [form, setForm] = useState({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
+  const [selecionadas, setSelecionadas] = useState<string[]>([...ATIVIDADES]);
+  const [extra, setExtra] = useState("");
+
+  const { data: orc } = useQuery({
+    queryKey: ["orcamento", sol.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("orcamentos").select("*").eq("solicitacao_id", sol.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      return data as Orcamento | null;
+    },
+  });
+
+  const { data: conjuntos = [] } = useQuery({
+    queryKey: ["orcamento-conjuntos", orc?.id],
+    enabled: !!orc?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("orcamento_conjuntos").select("*").eq("orcamento_id", orc!.id).order("ordem");
+      if (error) throw error;
+      return data as unknown as OrcConjunto[];
+    },
+  });
+
+  const { data: atividades = [] } = useQuery({
+    queryKey: ["orcamento-conjunto-atividades", orc?.id, conjuntos.map((c) => c.id).join(",")],
+    enabled: conjuntos.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_conjunto_atividades")
+        .select("*")
+        .in("conjunto_id", conjuntos.map((c) => c.id))
+        .order("ordem");
+      if (error) throw error;
+      return data as unknown as OrcAtividade[];
+    },
+  });
+
+  const criar = useMutation({
+    mutationFn: async () => {
+      if (!orc) throw new Error("Crie a proposta antes de cadastrar conjuntos");
+      const { data, error } = await supabase
+        .from("orcamento_conjuntos")
+        .insert({ orcamento_id: orc.id, codigo: form.codigo, descricao: form.descricao || null, quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
+        .select("id")
+        .single();
+      if (error) throw error;
+      const lista = [...selecionadas.map((a) => ({ atividade: a, nome_extra: null as string | null })), ...(extra ? [{ atividade: "extra", nome_extra: extra }] : [])];
+      if (lista.length) {
+        const ins = await supabase.from("orcamento_conjunto_atividades").insert(lista.map((a, i) => ({ conjunto_id: data.id, atividade: a.atividade, nome_extra: a.nome_extra, ordem: i })));
+        if (ins.error) throw ins.error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Conjunto criado");
+      setNovo(false);
+      setForm({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
+      setSelecionadas([...ATIVIDADES]);
+      setExtra("");
+      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos", orc?.id] });
+      qc.invalidateQueries({ queryKey: ["orcamento-conjunto-atividades", orc?.id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remover = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("orcamento_conjuntos").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos", orc?.id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!orc) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">Crie a proposta na aba Proposta para cadastrar os conjuntos.</CardContent>
+      </Card>
+    );
+  }
+
+  const pesoTotal = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="text-sm text-muted-foreground">
+          {conjuntos.length} conjunto(s) · {pesoTotal.toFixed(0)} kg no total
+        </div>
+        <Button size="sm" onClick={() => setNovo(true)} disabled={orc.status !== "rascunho"}>
+          <Plus className="h-4 w-4 mr-2" />
+          Conjunto
+        </Button>
+      </div>
+
+      <div className="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Código</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Qtd.</TableHead>
+              <TableHead>Peso</TableHead>
+              <TableHead>Atividades</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {conjuntos.length ? (
+              conjuntos.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-mono text-xs font-medium">{c.codigo}</TableCell>
+                  <TableCell className="text-xs">{c.descricao ?? "—"}</TableCell>
+                  <TableCell>{c.quantidade}</TableCell>
+                  <TableCell>{c.peso_kg ? `${c.peso_kg} kg` : "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {atividades
+                        .filter((a) => a.conjunto_id === c.id)
+                        .map((a) => (
+                          <Badge key={a.id} variant="outline" className="text-[10px]">
+                            {atividadeLabel(a.atividade, a.nome_extra)}
+                          </Badge>
+                        ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {orc.status === "rascunho" && (
+                      <Button size="sm" variant="ghost" onClick={() => remover.mutate(c.id)}>
+                        Remover
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                  Nenhum conjunto cadastrado nesta proposta.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={novo} onOpenChange={setNovo}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo conjunto</DialogTitle>
+            <DialogDescription>Informe peso e atividades previstas para o conjunto.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Código</Label>
+              <Input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Quantidade</Label>
+              <Input type="number" min="1" value={form.quantidade} onChange={(e) => setForm({ ...form, quantidade: e.target.value })} />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Descrição</Label>
+              <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Peso (kg)</Label>
+              <Input type="number" value={form.peso_kg} onChange={(e) => setForm({ ...form, peso_kg: e.target.value })} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Atividades</Label>
+            <div className="flex flex-wrap gap-2">
+              {ATIVIDADES.map((a) => {
+                const ativo = selecionadas.includes(a);
+                return (
+                  <Button key={a} type="button" size="sm" variant={ativo ? "default" : "outline"} onClick={() => setSelecionadas(ativo ? selecionadas.filter((x) => x !== a) : [...selecionadas, a])}>
+                    {atividadeLabel(a)}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Atividade extra</Label>
+            <Input value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="Atividade fora do padrão (opcional)" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNovo(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => criar.mutate()} disabled={!form.codigo || criar.isPending}>
+              Criar conjunto
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
