@@ -2027,7 +2027,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {orc.status === "rascunho" && (
+                    {editavel && (
                       <Button size="sm" variant="ghost" onClick={() => remover.mutate(c.id)}>
                         Remover
                       </Button>
