@@ -698,6 +698,8 @@ type Analise = {
   materiais: string | null;
   processos: string | null;
   horas_estimadas: number | null;
+  aquisicao_materiais: boolean;
+  prazo_aquisicao_dias: number | null;
   data_analise: string;
 };
 
@@ -728,6 +730,8 @@ function AnaliseTab({ solicitacaoId }: { solicitacaoId: string }) {
         materiais: current.materiais ?? null,
         processos: current.processos ?? null,
         horas_estimadas: current.horas_estimadas ?? null,
+        aquisicao_materiais: current.aquisicao_materiais ?? false,
+        prazo_aquisicao_dias: current.aquisicao_materiais ? (current.prazo_aquisicao_dias ?? null) : null,
       };
       if (analise?.id) {
         const { error } = await supabase.from("analises_tecnicas").update(payload).eq("id", analise.id);
@@ -814,13 +818,111 @@ function AnaliseTab({ solicitacaoId }: { solicitacaoId: string }) {
           onChange={(e) => setForm({ ...form, processos: e.target.value })}
         />
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label>Aquisição de materiais</Label>
+          <Select
+            value={String(current.aquisicao_materiais ?? false)}
+            onValueChange={(v) => setForm({ ...form, aquisicao_materiais: v === "true" })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Sim</SelectItem>
+              <SelectItem value="false">Não</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Prazo de aquisição (dias)</Label>
+          <Input
+            type="number"
+            min="0"
+            disabled={!current.aquisicao_materiais}
+            value={current.prazo_aquisicao_dias ?? ""}
+            onChange={(e) => setForm({ ...form, prazo_aquisicao_dias: e.target.value ? Number(e.target.value) : null })}
+          />
+        </div>
+      </div>
       <div className="flex justify-end">
         <Button type="submit" disabled={saveMut.isPending}>
           <ClipboardCheck className="h-4 w-4 mr-2" />
           {saveMut.isPending ? "Salvando..." : analise ? "Atualizar análise" : "Registrar análise"}
         </Button>
       </div>
+      <RequisitosDemanda solicitacaoId={solicitacaoId} />
     </form>
+  );
+}
+
+/* Relatórios/inspeções aplicáveis à demanda (POMG) */
+function RequisitosDemanda({ solicitacaoId }: { solicitacaoId: string }) {
+  const qc = useQueryClient();
+  const [nomeEnsaio, setNomeEnsaio] = useState("");
+
+  const { data: requisitos = [] } = useQuery({
+    queryKey: ["demanda-requisitos", solicitacaoId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("demanda_requisitos").select("*").eq("solicitacao_id", solicitacaoId).order("created_at");
+      if (error) throw error;
+      return data as unknown as { id: string; tipo: string; nome_ensaio: string | null }[];
+    },
+  });
+
+  const toggle = useMutation({
+    mutationFn: async ({ tipo, nome }: { tipo: string; nome?: string }) => {
+      const existente = requisitos.find((r) => r.tipo === tipo && (tipo !== "outro" || r.nome_ensaio === nome));
+      if (existente) {
+        const { error } = await supabase.from("demanda_requisitos").delete().eq("id", existente.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("demanda_requisitos").insert({ solicitacao_id: solicitacaoId, tipo, nome_ensaio: tipo === "outro" ? (nome ?? null) : null });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["demanda-requisitos", solicitacaoId] });
+      setNomeEnsaio("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-3 rounded-md border p-4">
+      <div>
+        <div className="text-sm font-semibold">Relatórios e inspeções da demanda</div>
+        <p className="text-xs text-muted-foreground">Definidos por POMG e usados na Qualidade e no Databook.</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {REQUISITOS.filter((r) => r.value !== "outro").map((r) => {
+          const ativo = requisitos.some((x) => x.tipo === r.value);
+          return (
+            <Button key={r.value} type="button" size="sm" variant={ativo ? "default" : "outline"} onClick={() => toggle.mutate({ tipo: r.value })}>
+              {r.label}
+            </Button>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex-1 min-w-[180px] space-y-1.5">
+          <Label>Outro ensaio</Label>
+          <Input value={nomeEnsaio} onChange={(e) => setNomeEnsaio(e.target.value)} placeholder="Ex.: Ultrassom" />
+        </div>
+        <Button type="button" size="sm" variant="outline" onClick={() => toggle.mutate({ tipo: "outro", nome: nomeEnsaio })} disabled={!nomeEnsaio}>
+          Adicionar ensaio
+        </Button>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {requisitos
+          .filter((r) => r.tipo === "outro")
+          .map((r) => (
+            <Badge key={r.id} variant="secondary" className="cursor-pointer" onClick={() => toggle.mutate({ tipo: "outro", nome: r.nome_ensaio ?? "" })}>
+              {r.nome_ensaio} ✕
+            </Badge>
+          ))}
+      </div>
+    </div>
   );
 }
 
@@ -835,6 +937,10 @@ type Orcamento = {
   condicoes_comerciais: string | null;
   validade: string | null;
   status: "rascunho" | "enviado" | "aprovado" | "reprovado";
+  situacao: string;
+  prazo_dias: number | null;
+  data_sla: string | null;
+  pomg_codigo: string | null;
   enviado_em: string | null;
   respondido_em: string | null;
   motivo_reprovacao: string | null;
@@ -975,7 +1081,7 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
       await saveMut.mutateAsync();
       const { error } = await supabase
         .from("orcamentos")
-        .update({ status: "enviado", enviado_em: new Date().toISOString() })
+        .update({ status: "enviado", situacao: "ag_aprovacao", enviado_em: new Date().toISOString() })
         .eq("id", orc.id);
       if (error) throw error;
       await supabase
@@ -998,12 +1104,17 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
         <CardContent className="pt-6 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-mono text-xs text-muted-foreground">{orc.numero}</div>
+              <div className="font-mono text-xs text-muted-foreground">
+                {sol.pomg_codigo ?? ""} · {orc.numero}
+              </div>
               <div className="text-lg font-semibold">R$ {total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</div>
+              <div className="text-xs text-muted-foreground">
+                Solicitada em {formatDate(sol.data_recebimento)} · enviada em {formatDate(orc.enviado_em)}
+                {orc.data_sla ? ` · SLA ${formatDate(orc.data_sla)}` : ""}
+                {orc.prazo_dias ? ` · prazo ${orc.prazo_dias} dias` : ""}
+              </div>
             </div>
-            <Badge variant={orc.status === "rascunho" ? "secondary" : "default"}>
-              {orc.status === "rascunho" ? "Rascunho" : orc.status === "enviado" ? "Enviado" : orc.status === "aprovado" ? "Aprovado" : "Reprovado"}
-            </Badge>
+            <Badge variant={orc.situacao === "cancelado" ? "destructive" : orc.situacao === "orcamento" ? "secondary" : "default"}>{situacaoLabel(orc.situacao)}</Badge>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -1523,9 +1634,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const aprovarMut = useMutation({
     mutationFn: async () => {
       if (!orc) throw new Error("Sem proposta");
+      if (!prazoDias || !dataSla) throw new Error("Informe o prazo e a data SLA da aprovação");
       const { error } = await supabase
         .from("orcamentos")
-        .update({ status: "aprovado", respondido_em: new Date().toISOString() })
+        .update({ status: "aprovado", situacao: "aprovado", prazo_dias: Number(prazoDias), data_sla: dataSla, respondido_em: new Date().toISOString() })
         .eq("id", orc.id);
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "aprovada" }).eq("id", sol.id);
@@ -1542,7 +1654,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
       if (!orc) throw new Error("Sem proposta");
       const { error } = await supabase
         .from("orcamentos")
-        .update({ status: "reprovado", respondido_em: new Date().toISOString(), motivo_reprovacao: motivo })
+        .update({ status: "reprovado", situacao: "cancelado", respondido_em: new Date().toISOString(), motivo_reprovacao: motivo })
         .eq("id", orc.id);
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "reprovada" }).eq("id", sol.id);
@@ -1560,16 +1672,62 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
     mutationFn: async () => {
       if (!orc) throw new Error("Sem proposta");
       const numero = `PED-${Date.now().toString().slice(-8)}`;
-      const { error } = await supabase.from("pedidos").insert({
-        numero,
-        orcamento_id: orc.id,
-        contrato_id: sol.contrato_id,
-        sub_area_id: sol.sub_area_id,
-        prazo_entrega: prazoEntrega || null,
-        valor_total: Number(orc.valor_total),
-        status: "aberto",
-      });
+      const { data: novoPedido, error } = await supabase
+        .from("pedidos")
+        .insert({
+          numero,
+          pomg_codigo: sol.pomg_codigo,
+          orcamento_id: orc.id,
+          contrato_id: sol.contrato_id,
+          sub_area_id: sol.sub_area_id,
+          prazo_entrega: prazoEntrega || orc.data_sla,
+          data_sla: orc.data_sla,
+          prazo_dias: orc.prazo_dias,
+          valor_total: Number(orc.valor_total),
+          status: "aberto",
+          pcp_status: "nao_iniciado",
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // Copia os conjuntos e atividades definidos no orçamento
+      const { data: ocs } = await supabase.from("orcamento_conjuntos").select("*").eq("orcamento_id", orc.id).order("ordem");
+      for (const oc of (ocs ?? []) as unknown as { id: string; codigo: string; descricao: string | null; quantidade: number; peso_kg: number | null }[]) {
+        const { data: pc, error: pce } = await supabase
+          .from("pedido_conjuntos")
+          .insert({
+            pedido_id: novoPedido.id,
+            orcamento_conjunto_id: oc.id,
+            codigo: oc.codigo,
+            tag: oc.codigo,
+            descricao: oc.descricao ?? oc.codigo,
+            quantidade: Number(oc.quantidade),
+            peso_kg: oc.peso_kg,
+            inicio_previsto: new Date().toISOString().slice(0, 10),
+            fim_previsto: prazoEntrega || orc.data_sla,
+          })
+          .select("id")
+          .single();
+        if (pce) throw pce;
+        const { data: ats } = await supabase.from("orcamento_conjunto_atividades").select("*").eq("conjunto_id", oc.id).order("ordem");
+        const lista = (ats ?? []) as unknown as { atividade: string; nome_extra: string | null; ordem: number }[];
+        if (lista.length) {
+          const ins = await supabase
+            .from("pedido_conjunto_atividades")
+            .insert(lista.map((a, i) => ({ pedido_id: novoPedido.id, conjunto_id: pc.id, atividade: a.atividade, nome_extra: a.nome_extra, ordem: a.ordem ?? i })));
+          if (ins.error) throw ins.error;
+        }
+      }
+
+      // Abre o databook com os relatórios definidos na análise técnica
+      const { data: reqs } = await supabase.from("demanda_requisitos").select("tipo, nome_ensaio").eq("solicitacao_id", sol.id);
+      const requisitos = (reqs ?? []) as unknown as { tipo: string; nome_ensaio: string | null }[];
+      if (requisitos.length) {
+        const ins = await supabase.from("databook_relatorios").insert(requisitos.map((r) => ({ pedido_id: novoPedido.id, tipo: r.tipo, nome_ensaio: r.nome_ensaio })));
+        if (ins.error) throw ins.error;
+      }
+
       await supabase.from("solicitacoes_orcamento").update({ status: "convertida_pedido" }).eq("id", sol.id);
     },
     onSuccess: () => {
@@ -1606,6 +1764,25 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
               </div>
             </div>
           </div>
+
+          {orc.status === "enviado" && (
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="space-y-2">
+                <Label>Prazo (dias)</Label>
+                <Input type="number" min="1" value={prazoDias} onChange={(e) => setPrazoDias(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Data SLA</Label>
+                <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
+              </div>
+            </div>
+          )}
+
+          {orc.status === "aprovado" && (
+            <p className="text-sm text-muted-foreground">
+              Prazo {orc.prazo_dias ?? "—"} dias · Data SLA {formatDate(orc.data_sla)}
+            </p>
+          )}
 
           {orc.status === "enviado" && (
             <div className="flex gap-2 pt-2">
