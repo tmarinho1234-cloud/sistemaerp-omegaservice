@@ -293,7 +293,7 @@ function OrcamentosPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>POMG</TableHead>
-                  <TableHead>Número</TableHead>
+                  
                   <TableHead>Empresa</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Sub-área</TableHead>
@@ -306,13 +306,13 @@ function OrcamentosPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       Carregando...
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       Nenhuma solicitação encontrada.
                     </TableCell>
                   </TableRow>
@@ -320,7 +320,7 @@ function OrcamentosPage() {
                   filtered.map((r) => (
                     <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenedId(r.id)}>
                       <TableCell className="font-mono text-xs font-semibold">{r.pomg_codigo ?? "—"}</TableCell>
-                      <TableCell className="font-mono text-xs">{r.numero}</TableCell>
+                      
                       <TableCell>{r.contratos?.empresa ?? "—"}</TableCell>
                       <TableCell>{r.contratos?.nome ?? "—"}</TableCell>
                       <TableCell>{r.sub_areas?.nome ?? "—"}</TableCell>
