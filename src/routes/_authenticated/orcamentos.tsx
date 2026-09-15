@@ -68,6 +68,16 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/orcamentos")({
+  head: () => ({
+    meta: [
+      { title: "Orçamentos | Omega Service ERP" },
+      { name: "description", content: "Solicitações POMG, conjuntos, análise técnica, propostas e aprovação com prazo e SLA." },
+      { property: "og:title", content: "Orçamentos | Omega Service ERP" },
+      { property: "og:description", content: "Solicitações POMG, conjuntos, análise técnica, propostas e aprovação com prazo e SLA." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: OrcamentosPage,
 });
 
