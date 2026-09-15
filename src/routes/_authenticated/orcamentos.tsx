@@ -241,10 +241,11 @@ function OrcamentosPage() {
     },
 
     onSuccess: () => {
-      toast.success("Solicitação excluída");
+      toast.success("Demanda excluída de todos os módulos");
       setDeleteTarget(null);
-      qc.invalidateQueries({ queryKey: ["solicitacoes"] });
+      qc.invalidateQueries();
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
