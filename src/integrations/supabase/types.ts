@@ -878,6 +878,57 @@ export type Database = {
           },
         ]
       }
+      orcamento_historico: {
+        Row: {
+          acao: string
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          orcamento_id: string
+          solicitacao_id: string | null
+          valor_anterior: number | null
+          valor_novo: number | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          orcamento_id: string
+          solicitacao_id?: string | null
+          valor_anterior?: number | null
+          valor_novo?: number | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          orcamento_id?: string
+          solicitacao_id?: string | null
+          valor_anterior?: number | null
+          valor_novo?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orcamento_historico_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orcamento_historico_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_orcamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamento_itens: {
         Row: {
           categoria: Database["public"]["Enums"]["qqp_categoria"]

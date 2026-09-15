@@ -15,6 +15,13 @@
       "when": 1789496746079,
       "tag": "0001_pomg_demandas_databook",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789502619624,
+      "tag": "0002_orcamento_historico",
+      "breakpoints": true
     }
   ]
 }

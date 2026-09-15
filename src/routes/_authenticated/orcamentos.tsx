@@ -1089,6 +1089,7 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
 
   const enviarMut = useMutation({
     mutationFn: async () => {
+      const valorAnterior = Number(orc.valor_total ?? 0);
       await saveMut.mutateAsync();
       const { error } = await supabase
         .from("orcamentos")
@@ -1099,12 +1100,18 @@ function PropostaEditor({ orc, sol }: { orc: Orcamento; sol: Solicitacao }) {
         .from("solicitacoes_orcamento")
         .update({ status: "enviada" })
         .eq("id", sol.id);
+      await registrarHistorico({
+        orcamentoId: orc.id,
+        solicitacaoId: sol.id,
+        acao: "enviada",
+        descricao: "Proposta enviada ao cliente — aguardando aprovação",
+        valorAnterior,
+        valorNovo: total,
+      });
     },
     onSuccess: () => {
       toast.success("Proposta enviada ao cliente");
-      qc.invalidateQueries({ queryKey: ["orcamento", sol.id] });
-      qc.invalidateQueries({ queryKey: ["solicitacoes"] });
-      qc.invalidateQueries({ queryKey: ["solicitacao", sol.id] });
+      qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1604,12 +1611,14 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
   );
 }
 
-/* ---------------- Tab: Aprovação (aprovar/reprovar + converter em pedido) ---------------- */
+/* ---------------- Tab: Aprovação (aprovar / reprovar / reabrir para alteração) ---------------- */
 
 function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [motivoOpen, setMotivoOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
+  const [alterarOpen, setAlterarOpen] = useState(false);
+  const [motivoAlteracao, setMotivoAlteracao] = useState("");
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [prazoDias, setPrazoDias] = useState("");
   const [dataSla, setDataSla] = useState("");
@@ -1654,38 +1663,33 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         .eq("id", orc.id);
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "aprovada" }).eq("id", sol.id);
-    },
-    onSuccess: () => {
-      toast.success("Orçamento aprovado");
-      qc.invalidateQueries();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
-  const reprovarMut = useMutation({
-    mutationFn: async () => {
-      if (!orc) throw new Error("Sem proposta");
-      const { error } = await supabase
-        .from("orcamentos")
-        .update({ status: "reprovado", situacao: "cancelado", respondido_em: new Date().toISOString(), motivo_reprovacao: motivo })
-        .eq("id", orc.id);
-      if (error) throw error;
-      await supabase.from("solicitacoes_orcamento").update({ status: "reprovada" }).eq("id", sol.id);
-    },
-    onSuccess: () => {
-      toast.success("Orçamento reprovado");
-      setMotivoOpen(false);
-      setMotivo("");
-      qc.invalidateQueries();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+      const entrega = prazoEntrega || dataSla;
 
-  const converterMut = useMutation({
-    mutationFn: async () => {
-      if (!orc) throw new Error("Sem proposta");
+      // Já existe pedido (reaprovação após alteração): apenas atualiza os dados
+      if (pedido) {
+        const upd = await supabase
+          .from("pedidos")
+          .update({
+            valor_total: Number(orc.valor_total),
+            prazo_entrega: entrega,
+            data_sla: dataSla,
+            prazo_dias: Number(prazoDias),
+          })
+          .eq("id", pedido.id);
+        if (upd.error) throw upd.error;
+        await registrarHistorico({
+          orcamentoId: orc.id,
+          solicitacaoId: sol.id,
+          acao: "reaprovado",
+          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}`,
+          valorNovo: Number(orc.valor_total),
+        });
+        return;
+      }
+
       const numero = `PED-${Date.now().toString().slice(-8)}`;
-      const { data: novoPedido, error } = await supabase
+      const { data: novoPedido, error: pe } = await supabase
         .from("pedidos")
         .insert({
           numero,
@@ -1693,16 +1697,16 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           orcamento_id: orc.id,
           contrato_id: sol.contrato_id,
           sub_area_id: sol.sub_area_id,
-          prazo_entrega: prazoEntrega || orc.data_sla,
-          data_sla: orc.data_sla,
-          prazo_dias: orc.prazo_dias,
+          prazo_entrega: entrega,
+          data_sla: dataSla,
+          prazo_dias: Number(prazoDias),
           valor_total: Number(orc.valor_total),
           status: "aberto",
           pcp_status: "nao_iniciado",
         })
         .select("id")
         .single();
-      if (error) throw error;
+      if (pe) throw pe;
 
       // Copia os conjuntos e atividades definidos no orçamento
       const { data: ocs } = await supabase.from("orcamento_conjuntos").select("*").eq("orcamento_id", orc.id).order("ordem");
@@ -1718,7 +1722,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
             quantidade: Number(oc.quantidade),
             peso_kg: oc.peso_kg,
             inicio_previsto: new Date().toISOString().slice(0, 10),
-            fim_previsto: prazoEntrega || orc.data_sla,
+            fim_previsto: entrega,
           })
           .select("id")
           .single();
@@ -1741,11 +1745,63 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         if (ins.error) throw ins.error;
       }
 
-      await supabase.from("solicitacoes_orcamento").update({ status: "convertida_pedido" }).eq("id", sol.id);
+      await registrarHistorico({
+        orcamentoId: orc.id,
+        solicitacaoId: sol.id,
+        acao: "aprovado",
+        descricao: `Proposta aprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Demanda liberada para o PCP.`,
+        valorNovo: Number(orc.valor_total),
+      });
     },
     onSuccess: () => {
-      toast.success("Pedido gerado — segue para o PCP");
-      setPrazoEntrega("");
+      toast.success("Orçamento aprovado — demanda liberada para o PCP");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reprovarMut = useMutation({
+    mutationFn: async () => {
+      if (!orc) throw new Error("Sem proposta");
+      const { error } = await supabase
+        .from("orcamentos")
+        .update({ status: "reprovado", situacao: "cancelado", respondido_em: new Date().toISOString(), motivo_reprovacao: motivo })
+        .eq("id", orc.id);
+      if (error) throw error;
+      await supabase.from("solicitacoes_orcamento").update({ status: "reprovada" }).eq("id", sol.id);
+      await registrarHistorico({ orcamentoId: orc.id, solicitacaoId: sol.id, acao: "cancelado", descricao: motivo });
+    },
+    onSuccess: () => {
+      toast.success("Orçamento reprovado");
+      setMotivoOpen(false);
+      setMotivo("");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const reabrirMut = useMutation({
+    mutationFn: async () => {
+      if (!orc) throw new Error("Sem proposta");
+      if (!motivoAlteracao.trim()) throw new Error("Informe o que será alterado");
+      const { error } = await supabase
+        .from("orcamentos")
+        .update({ status: "rascunho", situacao: "orcamento", respondido_em: null })
+        .eq("id", orc.id);
+      if (error) throw error;
+      await supabase.from("solicitacoes_orcamento").update({ status: "orcamento_em_elaboracao" }).eq("id", sol.id);
+      await registrarHistorico({
+        orcamentoId: orc.id,
+        solicitacaoId: sol.id,
+        acao: "reaberto",
+        descricao: motivoAlteracao,
+        valorAnterior: Number(orc.valor_total),
+      });
+    },
+    onSuccess: () => {
+      toast.success("Proposta reaberta — após alterar, envie novamente para aprovação");
+      setAlterarOpen(false);
+      setMotivoAlteracao("");
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -1788,6 +1844,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
                 <Label>Data SLA</Label>
                 <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
               </div>
+              <div className="space-y-2">
+                <Label>Prazo de entrega (opcional)</Label>
+                <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
+              </div>
             </div>
           )}
 
@@ -1823,28 +1883,43 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         </CardContent>
       </Card>
 
-      {orc.status === "aprovado" && !pedido && (
+      {orc.status === "aprovado" && (
         <Card>
           <CardContent className="pt-6 space-y-3">
-            <h3 className="text-sm font-semibold">Converter em Pedido</h3>
+            <h3 className="text-sm font-semibold">Alterar orçamento aprovado</h3>
             <p className="text-sm text-muted-foreground">
-              Gera o pedido e envia para o PCP iniciar o levantamento de materiais e o planejamento.
+              Reabre a proposta para alteração. Depois de alterar, ela volta para aprovação e o histórico registra o motivo.
             </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Prazo de entrega</Label>
-                <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
-              </div>
-            </div>
             <div className="flex justify-end">
-              <Button onClick={() => converterMut.mutate()} disabled={converterMut.isPending}>
+              <Button variant="outline" onClick={() => setAlterarOpen(true)}>
                 <ArrowRight className="h-4 w-4 mr-2" />
-                Gerar Pedido
+                Reabrir para alteração
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      <HistoricoCard orcamentoId={orc.id} />
+
+      <AlertDialog open={alterarOpen} onOpenChange={setAlterarOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reabrir para alteração</AlertDialogTitle>
+            <AlertDialogDescription>
+              Descreva o que será alterado. A proposta volta para elaboração e, ao ser enviada de novo, retorna à aprovação.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea rows={3} value={motivoAlteracao} onChange={(e) => setMotivoAlteracao(e.target.value)} />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => reabrirMut.mutate()} disabled={!motivoAlteracao.trim() || reabrirMut.isPending}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {pedido && (
         <Card>
@@ -2098,5 +2173,90 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/* ---------------- Histórico de alterações do orçamento ---------------- */
+
+type HistoricoItem = {
+  id: string;
+  acao: string;
+  descricao: string | null;
+  valor_anterior: number | null;
+  valor_novo: number | null;
+  created_at: string;
+};
+
+const ACAO_LABEL: Record<string, string> = {
+  enviada: "Enviada para aprovação",
+  aprovado: "Aprovado",
+  reaprovado: "Reaprovado após alteração",
+  reaberto: "Reaberto para alteração",
+  cancelado: "Cancelado / reprovado",
+};
+
+async function registrarHistorico(params: {
+  orcamentoId: string;
+  solicitacaoId: string;
+  acao: string;
+  descricao?: string | null;
+  valorAnterior?: number | null;
+  valorNovo?: number | null;
+}) {
+  const { data: auth } = await supabase.auth.getUser();
+  await supabase.from("orcamento_historico").insert({
+    orcamento_id: params.orcamentoId,
+    solicitacao_id: params.solicitacaoId,
+    acao: params.acao,
+    descricao: params.descricao ?? null,
+    valor_anterior: params.valorAnterior ?? null,
+    valor_novo: params.valorNovo ?? null,
+    created_by: auth.user?.id ?? null,
+  });
+}
+
+function HistoricoCard({ orcamentoId }: { orcamentoId: string }) {
+  const { data: itens = [] } = useQuery({
+    queryKey: ["orcamento-historico", orcamentoId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamento_historico")
+        .select("id, acao, descricao, valor_anterior, valor_novo, created_at")
+        .eq("orcamento_id", orcamentoId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as HistoricoItem[];
+    },
+  });
+
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-3">
+        <h3 className="text-sm font-semibold">Histórico de alterações</h3>
+        {itens.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum movimento registrado ainda.</p>
+        ) : (
+          <ul className="space-y-3">
+            {itens.map((h) => (
+              <li key={h.id} className="border-l-2 border-border pl-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{ACAO_LABEL[h.acao] ?? h.acao}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(h.created_at).toLocaleString("pt-BR")}
+                  </span>
+                </div>
+                {h.descricao && <p className="text-sm text-muted-foreground">{h.descricao}</p>}
+                {h.valor_anterior !== null && h.valor_novo !== null && Number(h.valor_anterior) !== Number(h.valor_novo) && (
+                  <p className="text-xs text-muted-foreground">
+                    Valor: R$ {Number(h.valor_anterior).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} → R${" "}
+                    {Number(h.valor_novo).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   );
 }
