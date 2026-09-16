@@ -179,7 +179,7 @@ function QualidadePage() {
                 {conjuntos.length ? (
                   conjuntos.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell className="font-mono font-medium">{c.tag}</TableCell>
+                      <TableCell className="font-mono font-medium">{c.tag} · {pedido?.pomg_codigo ?? pedido?.numero}</TableCell>
                       <TableCell>
                         <div>{c.codigo}</div>
                         <div className="text-xs text-muted-foreground">{c.descricao}</div>
@@ -226,7 +226,7 @@ function QualidadePage() {
                   <div key={i.id} className="flex flex-wrap items-center justify-between gap-2 border-b py-2 text-sm">
                     <div>
                       <div className="font-medium">
-                        <span className="font-mono">{c?.tag ?? "—"}</span> · {i.tipo}
+                        <span className="font-mono">{c ? `${c.tag} · ${pedido?.pomg_codigo ?? pedido?.numero ?? ""}` : "—"}</span> · {i.tipo}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {dateBr(i.data_inspecao)} {i.observacoes ? `· ${i.observacoes}` : ""}
@@ -254,7 +254,7 @@ function QualidadePage() {
                   <div key={n.id} className="flex flex-wrap items-center justify-between gap-2 border-b py-2 text-sm">
                     <div>
                       <div className="font-medium">
-                        <span className="font-mono">{c?.tag ?? "—"}</span> · {n.descricao}
+                        <span className="font-mono">{c ? `${c.tag} · ${pedido?.pomg_codigo ?? pedido?.numero ?? ""}` : "—"}</span> · {n.descricao}
                       </div>
                       <div className="text-xs text-muted-foreground">{n.exige_retrabalho ? "Exige retrabalho" : "Sem retrabalho"}</div>
                     </div>
@@ -282,7 +282,7 @@ function QualidadePage() {
               <SelectContent>
                 {conjuntos.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.tag} · {c.codigo}
+                    {c.tag} · {pedido?.pomg_codigo ?? pedido?.numero} · {c.codigo}
                   </SelectItem>
                 ))}
               </SelectContent>

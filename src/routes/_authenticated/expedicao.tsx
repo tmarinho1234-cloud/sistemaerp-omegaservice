@@ -230,7 +230,7 @@ function ExpedicaoPage() {
                     const restante = Number(c.quantidade) - entregue;
                     return (
                       <TableRow key={c.id}>
-                        <TableCell className="font-mono font-medium">{c.tag}</TableCell>
+                        <TableCell className="font-mono font-medium">{c.tag} · {pedido?.pomg_codigo ?? pedido?.numero}</TableCell>
                         <TableCell>
                           <div>{c.codigo}</div>
                           <div className="text-xs text-muted-foreground">{c.descricao}</div>
@@ -308,7 +308,7 @@ function ExpedicaoPage() {
                         const c = conjuntos.find((x) => x.id === i.conjunto_id);
                         return (
                           <div key={i.id} className="flex justify-between border-b py-1 text-xs">
-                            <span className="font-mono">{c?.tag ?? "—"} · {c?.codigo}</span>
+                            <span className="font-mono">{c ? `${c.tag} · ${pedido?.pomg_codigo ?? pedido?.numero ?? ""}` : "—"} · {c?.codigo}</span>
                             <span>
                               {i.quantidade} un · {i.peso_kg ? `${i.peso_kg} kg` : "—"}
                             </span>
@@ -326,7 +326,7 @@ function ExpedicaoPage() {
                         const c = conjuntos.find((x) => x.id === n.conjunto_id);
                         return (
                           <div key={n.id} className="flex justify-between border-b py-1 text-xs">
-                            <span className="font-mono">NF {n.numero} · {c ? `${c.tag}` : "proposta"}</span>
+                            <span className="font-mono">NF {n.numero} · {c ? `${c.tag} · ${pedido?.pomg_codigo ?? pedido?.numero ?? ""}` : "proposta"}</span>
                             <span>
                               {n.peso_kg ? `${n.peso_kg} kg` : "—"} · {n.valor ? moneyBr(Number(n.valor)) : "—"} · {dateBr(n.data_emissao)}
                             </span>
@@ -392,7 +392,7 @@ function ExpedicaoPage() {
                   .filter((c) => c.liberado_qualidade)
                   .map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.tag} · saldo {Number(c.quantidade) - (expedidoPorConjunto.get(c.id) ?? 0)}
+                      {c.tag} · {pedido?.pomg_codigo ?? pedido?.numero} · saldo {Number(c.quantidade) - (expedidoPorConjunto.get(c.id) ?? 0)}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -431,7 +431,7 @@ function ExpedicaoPage() {
                 <SelectItem value="proposta">Proposta inteira</SelectItem>
                 {conjuntos.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.tag} · {c.codigo}
+                    {c.tag} · {pedido?.pomg_codigo ?? pedido?.numero} · {c.codigo}
                   </SelectItem>
                 ))}
               </SelectContent>

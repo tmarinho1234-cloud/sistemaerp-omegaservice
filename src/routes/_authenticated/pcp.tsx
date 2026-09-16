@@ -299,7 +299,7 @@ function PcpPage() {
                     {conjuntos.length ? (
                       conjuntos.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="font-mono font-medium">{c.tag}</TableCell>
+                          <TableCell className="font-mono font-medium">{c.tag} · {pedido.pomg_codigo ?? pedido.numero}</TableCell>
                           <TableCell>
                             <div>{c.codigo}</div>
                             <div className="text-xs text-muted-foreground">{c.descricao}</div>
@@ -369,7 +369,7 @@ function PcpPage() {
       <Dialog open={Boolean(reprogramando)} onOpenChange={(o) => !o && setReprogramando(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reprogramar {reprogramando?.tag}</DialogTitle>
+            <DialogTitle>Reprogramar {reprogramando?.tag} · {pedido?.pomg_codigo ?? pedido?.numero ?? ""}</DialogTitle>
           </DialogHeader>
           <div className="space-y-1.5">
             <Label>Nova data</Label>

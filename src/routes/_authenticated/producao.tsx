@@ -88,7 +88,7 @@ function ProducaoPage() {
   );
 
   const [editando, setEditando] = useState<Atividade | null>(null);
-  const [ef, setEf] = useState({ status: "em_andamento", quantidade: "", peso: "", observacoes: "" });
+  const [ef, setEf] = useState({ quantidade: "", percent: "" });
   const [extraOpen, setExtraOpen] = useState(false);
   const [extra, setExtra] = useState({ conjunto_id: "", nome: "" });
   const [paradaOpen, setParadaOpen] = useState(false);
@@ -128,14 +128,17 @@ function ProducaoPage() {
   const salvarAtividade = useMutation({
     mutationFn: async () => {
       if (!editando) return;
+      const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
+      const totalQtd = Number(conjunto?.quantidade ?? 0);
       const quantidade = Number(ef.quantidade || 0);
+      const status = totalQtd > 0 && quantidade >= totalQtd ? "concluida" : quantidade > 0 ? "em_andamento" : "nao_iniciada";
       const { error } = await supabase
         .from("pedido_conjunto_atividades")
-        .update({ status: ef.status, quantidade_executada: quantidade, peso_executado_kg: Number(ef.peso || 0), observacoes: ef.observacoes || null })
+        .update({ status, quantidade_executada: quantidade })
         .eq("id", editando.id);
       if (error) throw error;
 
-      const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
+
       const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", editando.conjunto_id);
       if (le) throw le;
       const todas = (lista ?? []) as unknown as Atividade[];
@@ -143,10 +146,10 @@ function ProducaoPage() {
       const progresso = todas.length ? (concluidas / todas.length) * 100 : 0;
       const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
       const pesoFab = conjunto?.peso_kg && conjunto.quantidade ? (Number(conjunto.peso_kg) * fabricada) / Number(conjunto.quantidade) : 0;
-      const status = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
+      const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
       const upd = await supabase
         .from("pedido_conjuntos")
-        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status }) })
+        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status: statusConjunto }) })
         .eq("id", editando.conjunto_id);
       if (upd.error) throw upd.error;
     },
@@ -329,7 +332,7 @@ function ProducaoPage() {
               <CardHeader className="flex-row flex-wrap items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-base">
-                    <span className="font-mono">{c.tag}</span> · {c.codigo}
+                    <span className="font-mono">{c.tag} · {pedido?.pomg_codigo ?? pedido?.numero ?? "—"}</span> · {c.codigo}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground">
                     {c.descricao} · total {c.quantidade} · fabricado {Number(c.quantidade_fabricada ?? 0)} · restante {restante} · peso {c.peso_kg ? `${c.peso_kg} kg` : "—"}
@@ -347,9 +350,8 @@ function ProducaoPage() {
                       <TableRow>
                         <TableHead>Atividade</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Executado</TableHead>
-                        <TableHead>Peso</TableHead>
-                        <TableHead>Observações</TableHead>
+                        <TableHead>Concluído</TableHead>
+                        <TableHead>Avanço</TableHead>
                         <TableHead />
                       </TableRow>
                     </TableHeader>
@@ -366,15 +368,18 @@ function ProducaoPage() {
                             <TableCell>
                               {Number(a.quantidade_executada ?? 0)} / {c.quantidade}
                             </TableCell>
-                            <TableCell>{Number(a.peso_executado_kg ?? 0).toFixed(0)} kg</TableCell>
-                            <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">{a.observacoes ?? "—"}</TableCell>
+                            <TableCell>
+                              {c.quantidade ? `${Math.min(100, (Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
+                            </TableCell>
                             <TableCell>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
+                                  const total = Number(c.quantidade ?? 0);
+                                  const q = Number(a.quantidade_executada ?? 0);
                                   setEditando(a);
-                                  setEf({ status: a.status, quantidade: String(a.quantidade_executada ?? 0), peso: String(a.peso_executado_kg ?? 0), observacoes: a.observacoes ?? "" });
+                                  setEf({ quantidade: String(q), percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
                                 }}
                               >
                                 Apontar
@@ -384,7 +389,7 @@ function ProducaoPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="py-6 text-center text-muted-foreground">
+                          <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
                             Nenhuma atividade definida para este conjunto.
                           </TableCell>
                         </TableRow>
@@ -464,31 +469,33 @@ function ProducaoPage() {
           <DialogHeader>
             <DialogTitle>Apontar {editando ? atividadeLabel(editando.atividade, editando.nome_extra) : ""}</DialogTitle>
           </DialogHeader>
-          <Field label="Status">
-            <Select value={ef.status} onValueChange={(v) => setEf({ ...ef, status: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_ATIVIDADE.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Quantidade executada">
-              <Input type="number" min="0" value={ef.quantidade} onChange={(e) => setEf({ ...ef, quantidade: e.target.value })} />
+            <Field label="Quantidade concluída">
+              <Input
+                type="number"
+                min="0"
+                value={ef.quantidade}
+                onChange={(e) => {
+                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
+                  const q = Number(e.target.value || 0);
+                  setEf({ quantidade: e.target.value, percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
+                }}
+              />
             </Field>
-            <Field label="Peso executado (kg)">
-              <Input type="number" min="0" value={ef.peso} onChange={(e) => setEf({ ...ef, peso: e.target.value })} />
+            <Field label="Avanço (%)">
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={ef.percent}
+                onChange={(e) => {
+                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
+                  const p = Number(e.target.value || 0);
+                  setEf({ percent: e.target.value, quantidade: total ? String(Math.round((p / 100) * total)) : "0" });
+                }}
+              />
             </Field>
           </div>
-          <Field label="Observações">
-            <Textarea value={ef.observacoes} onChange={(e) => setEf({ ...ef, observacoes: e.target.value })} />
-          </Field>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditando(null)}>
               Cancelar
