@@ -1366,6 +1366,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_emissao: string
+          data_inicio_producao: string | null
           data_sla: string | null
           id: string
           numero: string
@@ -1375,6 +1376,7 @@ export type Database = {
           pomg_codigo: string | null
           prazo_dias: number | null
           prazo_entrega: string | null
+          producao_iniciada: boolean
           status: Database["public"]["Enums"]["pedido_status"]
           sub_area_id: string | null
           updated_at: string
@@ -1385,6 +1387,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_emissao?: string
+          data_inicio_producao?: string | null
           data_sla?: string | null
           id?: string
           numero: string
@@ -1394,6 +1397,7 @@ export type Database = {
           pomg_codigo?: string | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
+          producao_iniciada?: boolean
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
           updated_at?: string
@@ -1404,6 +1408,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_emissao?: string
+          data_inicio_producao?: string | null
           data_sla?: string | null
           id?: string
           numero?: string
@@ -1413,6 +1418,7 @@ export type Database = {
           pomg_codigo?: string | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
+          producao_iniciada?: boolean
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
           updated_at?: string
