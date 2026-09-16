@@ -277,7 +277,6 @@ function ProducaoPage() {
                   <TableHead>POMG</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Subárea</TableHead>
-                  <TableHead>Fabricado</TableHead>
                   <TableHead>Peso fabricado / total</TableHead>
                   <TableHead>Avanço</TableHead>
                   <TableHead>Prazo / SLA</TableHead>
