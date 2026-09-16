@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
+  ListChecks,
   FileText,
   ClipboardList,
   Factory,
@@ -28,7 +29,7 @@ type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Visão Geral",
-    items: [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+    items: [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "/painel", label: "Painel de Demandas", icon: ListChecks }],
   },
   {
     title: "Processo",
