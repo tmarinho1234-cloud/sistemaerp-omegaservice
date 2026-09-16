@@ -92,6 +92,7 @@ function ProducaoPage() {
 
   const [editando, setEditando] = useState<Atividade | null>(null);
   const [ef, setEf] = useState({ quantidade: "", percent: "" });
+  const [prontos, setProntos] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState(false);
   const [extra, setExtra] = useState({ conjunto_id: "", nome: "" });
   const [paradaOpen, setParadaOpen] = useState(false);
@@ -133,32 +134,42 @@ function ProducaoPage() {
       if (!editando) return;
       const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
       const totalQtd = Number(conjunto?.quantidade ?? 0);
-      const quantidade = Number(ef.quantidade || 0);
-      const status = totalQtd > 0 && quantidade >= totalQtd ? "concluida" : quantidade > 0 ? "em_andamento" : "nao_iniciada";
+      const percent = Math.max(0, Math.min(100, Number(ef.percent || 0)));
+      const quantidade = totalQtd ? (percent / 100) * totalQtd : 0;
+      const status = percent >= 100 ? "concluida" : percent > 0 ? "em_andamento" : "nao_iniciada";
       const { error } = await supabase
         .from("pedido_conjunto_atividades")
         .update({ status, quantidade_executada: quantidade })
         .eq("id", editando.id);
       if (error) throw error;
-
-
-      const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", editando.conjunto_id);
-      if (le) throw le;
-      const todas = (lista ?? []) as unknown as Atividade[];
-      const concluidas = todas.filter((a) => a.status === "concluida").length;
-      const progresso = todas.length ? (concluidas / todas.length) * 100 : 0;
-      const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
-      const pesoFab = conjunto?.peso_kg && conjunto.quantidade ? (Number(conjunto.peso_kg) * fabricada) / Number(conjunto.quantidade) : 0;
-      const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
-      const upd = await supabase
-        .from("pedido_conjuntos")
-        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status: statusConjunto }) })
-        .eq("id", editando.conjunto_id);
-      if (upd.error) throw upd.error;
+      await recalcularConjunto(editando.conjunto_id);
     },
     onSuccess: () => {
       toast.success("Atividade atualizada");
       setEditando(null);
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  /** Informa quantos conjuntos estão prontos; sobe o avanço das atividades atrasadas. */
+  const salvarProntos = useMutation({
+    mutationFn: async (conjuntoId: string) => {
+      const conjunto = conjuntos.find((c) => c.id === conjuntoId);
+      const total = Number(conjunto?.quantidade ?? 0);
+      const desejada = Math.max(0, Number(prontos[conjuntoId] || 0));
+      const qtd = total ? Math.min(total, desejada) : desejada;
+      const lista = atividades.filter((a) => a.conjunto_id === conjuntoId);
+      for (const a of lista) {
+        if (Number(a.quantidade_executada ?? 0) >= qtd) continue;
+        const status = total > 0 && qtd >= total ? "concluida" : qtd > 0 ? "em_andamento" : "nao_iniciada";
+        const { error } = await supabase.from("pedido_conjunto_atividades").update({ quantidade_executada: qtd, status }).eq("id", a.id);
+        if (error) throw error;
+      }
+      await recalcularConjunto(conjuntoId);
+    },
+    onSuccess: () => {
+      toast.success("Quantidade pronta registrada");
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -341,7 +352,23 @@ function ProducaoPage() {
                     {c.descricao} · total {c.quantidade} · fabricado {Number(c.quantidade_fabricada ?? 0)} · restante {restante} · peso {c.peso_kg ? `${c.peso_kg} kg` : "—"}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Conjuntos prontos</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={Number(c.quantidade)}
+                        className="h-9 w-24"
+                        value={prontos[c.id] ?? String(Number(c.quantidade_fabricada ?? 0))}
+                        onChange={(e) => setProntos({ ...prontos, [c.id]: e.target.value })}
+                      />
+                      <Button size="sm" variant="outline" onClick={() => salvarProntos.mutate(c.id)} disabled={salvarProntos.isPending}>
+                        Aplicar
+                      </Button>
+                    </div>
+                  </div>
                   <ProgressBar value={c.progresso} />
                   <Badge variant="outline">{c.status.replaceAll("_", " ")}</Badge>
                 </div>
@@ -353,7 +380,6 @@ function ProducaoPage() {
                       <TableRow>
                         <TableHead>Atividade</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Concluído</TableHead>
                         <TableHead>Avanço</TableHead>
                         <TableHead />
                       </TableRow>
@@ -369,11 +395,9 @@ function ProducaoPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {Number(a.quantidade_executada ?? 0)} / {c.quantidade}
-                            </TableCell>
-                            <TableCell>
                               {c.quantidade ? `${Math.min(100, (Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
                             </TableCell>
+
                             <TableCell>
                               <Button
                                 size="sm"
@@ -392,7 +416,7 @@ function ProducaoPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
+                          <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
                             Nenhuma atividade definida para este conjunto.
                           </TableCell>
                         </TableRow>
@@ -472,33 +496,12 @@ function ProducaoPage() {
           <DialogHeader>
             <DialogTitle>Apontar {editando ? atividadeLabel(editando.atividade, editando.nome_extra) : ""}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Quantidade concluída">
-              <Input
-                type="number"
-                min="0"
-                value={ef.quantidade}
-                onChange={(e) => {
-                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
-                  const q = Number(e.target.value || 0);
-                  setEf({ quantidade: e.target.value, percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
-                }}
-              />
-            </Field>
+          <div className="grid gap-3">
             <Field label="Avanço (%)">
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={ef.percent}
-                onChange={(e) => {
-                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
-                  const p = Number(e.target.value || 0);
-                  setEf({ percent: e.target.value, quantidade: total ? String(Math.round((p / 100) * total)) : "0" });
-                }}
-              />
+              <Input type="number" min="0" max="100" value={ef.percent} onChange={(e) => setEf({ quantidade: "", percent: e.target.value })} />
             </Field>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditando(null)}>
               Cancelar
@@ -633,6 +636,26 @@ function ProducaoPage() {
       </Dialog>
     </div>
   );
+}
+
+/** Recalcula avanço médio, quantidade e peso fabricados do conjunto. */
+async function recalcularConjunto(conjuntoId: string) {
+  const { data: cj, error: ce } = await supabase.from("pedido_conjuntos").select("*").eq("id", conjuntoId).maybeSingle();
+  if (ce) throw ce;
+  const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", conjuntoId);
+  if (le) throw le;
+  const todas = (lista ?? []) as unknown as Atividade[];
+  const total = Number(cj?.quantidade ?? 0);
+  const percents = todas.map((a) => (total ? Math.min(100, (Number(a.quantidade_executada ?? 0) / total) * 100) : 0));
+  const progresso = percents.length ? percents.reduce((s, p) => s + p, 0) / percents.length : 0;
+  const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
+  const pesoFab = cj?.peso_kg && total ? (Number(cj.peso_kg) * fabricada) / total : 0;
+  const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
+  const upd = await supabase
+    .from("pedido_conjuntos")
+    .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(cj?.liberado_qualidade ? {} : { status: statusConjunto }) })
+    .eq("id", conjuntoId);
+  if (upd.error) throw upd.error;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
