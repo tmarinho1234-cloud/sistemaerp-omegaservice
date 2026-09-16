@@ -1041,9 +1041,17 @@ function RequisitosDemanda({ solicitacaoId }: { solicitacaoId: string }) {
         const { error } = await supabase.from("demanda_requisitos").insert({ solicitacao_id: solicitacaoId, tipo, nome_ensaio: tipo === "outro" ? (nome ?? null) : null });
         if (error) throw error;
       }
+      // Reflete o checklist nas demandas já iniciadas (Qualidade / Databook)
+      const { data: orcs } = await supabase.from("orcamentos").select("id").eq("solicitacao_id", solicitacaoId);
+      for (const o of (orcs ?? []) as unknown as { id: string }[]) {
+        const { data: ped } = await supabase.from("pedidos").select("id").eq("orcamento_id", o.id).maybeSingle();
+        if (ped?.id) {
+          await sincronizarPedido({ orcamentoId: o.id, pedidoId: ped.id, solicitacaoId, entrega: null });
+        }
+      }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["demanda-requisitos", solicitacaoId] });
+      qc.invalidateQueries();
       setNomeEnsaio("");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -1828,11 +1836,12 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           })
           .eq("id", pedido.id);
         if (upd.error) throw upd.error;
+        await sincronizarPedido({ orcamentoId: orc.id, pedidoId: pedido.id, solicitacaoId: sol.id, entrega });
         await registrarHistorico({
           orcamentoId: orc.id,
           solicitacaoId: sol.id,
           acao: "reaprovado",
-          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}`,
+          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Alterações aplicadas nos módulos.`,
           valorNovo: Number(orc.valor_total),
         });
         return;
@@ -2363,6 +2372,161 @@ async function registrarHistorico(params: {
     valor_novo: params.valorNovo ?? null,
     created_by: auth.user?.id ?? null,
   });
+}
+
+/** Propaga as alterações da proposta para os módulos já iniciados (PCP, Produção, Qualidade, Expedição, Databook). */
+async function sincronizarPedido(params: {
+  orcamentoId: string;
+  pedidoId: string;
+  solicitacaoId: string;
+  entrega: string | null;
+}) {
+  const { orcamentoId, pedidoId, solicitacaoId, entrega } = params;
+
+  const { data: ocsRaw } = await supabase
+    .from("orcamento_conjuntos")
+    .select("*")
+    .eq("orcamento_id", orcamentoId)
+    .order("ordem");
+  const ocs = (ocsRaw ?? []) as unknown as {
+    id: string;
+    codigo: string;
+    descricao: string | null;
+    quantidade: number;
+    peso_kg: number | null;
+  }[];
+
+  const { data: pcsRaw } = await supabase
+    .from("pedido_conjuntos")
+    .select("id, orcamento_conjunto_id, codigo")
+    .eq("pedido_id", pedidoId);
+  const pcs = (pcsRaw ?? []) as unknown as { id: string; orcamento_conjunto_id: string | null; codigo: string }[];
+
+  for (const oc of ocs) {
+    const existente = pcs.find((p) => p.orcamento_conjunto_id === oc.id) ?? pcs.find((p) => p.codigo === oc.codigo);
+    let conjuntoId: string;
+
+    if (existente) {
+      const upd = await supabase
+        .from("pedido_conjuntos")
+        .update({
+          orcamento_conjunto_id: oc.id,
+          codigo: oc.codigo,
+          descricao: oc.descricao ?? oc.codigo,
+          quantidade: Number(oc.quantidade),
+          peso_kg: oc.peso_kg,
+          ...(entrega ? { fim_previsto: entrega } : {}),
+        })
+        .eq("id", existente.id);
+      if (upd.error) throw upd.error;
+      conjuntoId = existente.id;
+    } else {
+      const { data: novo, error } = await supabase
+        .from("pedido_conjuntos")
+        .insert({
+          pedido_id: pedidoId,
+          orcamento_conjunto_id: oc.id,
+          codigo: oc.codigo,
+          tag: oc.codigo,
+          descricao: oc.descricao ?? oc.codigo,
+          quantidade: Number(oc.quantidade),
+          peso_kg: oc.peso_kg,
+          inicio_previsto: new Date().toISOString().slice(0, 10),
+          fim_previsto: entrega,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      conjuntoId = novo.id;
+    }
+
+    // Atividades do conjunto: acrescenta as novas, remove as que saíram (sem execução registrada)
+    const { data: atsRaw } = await supabase
+      .from("orcamento_conjunto_atividades")
+      .select("*")
+      .eq("conjunto_id", oc.id)
+      .order("ordem");
+    const ats = (atsRaw ?? []) as unknown as { atividade: string; nome_extra: string | null; ordem: number }[];
+
+    const { data: pcaRaw } = await supabase
+      .from("pedido_conjunto_atividades")
+      .select("id, atividade, nome_extra, quantidade_executada")
+      .eq("conjunto_id", conjuntoId);
+    const pca = (pcaRaw ?? []) as unknown as {
+      id: string;
+      atividade: string;
+      nome_extra: string | null;
+      quantidade_executada: number;
+    }[];
+
+    const chave = (a: { atividade: string; nome_extra: string | null }) => `${a.atividade}|${a.nome_extra ?? ""}`;
+    const atuais = new Set(ats.map(chave));
+
+    const novas = ats.filter((a) => !pca.some((p) => chave(p) === chave(a)));
+    if (novas.length) {
+      const ins = await supabase.from("pedido_conjunto_atividades").insert(
+        novas.map((a, i) => ({
+          pedido_id: pedidoId,
+          conjunto_id: conjuntoId,
+          atividade: a.atividade,
+          nome_extra: a.nome_extra,
+          ordem: a.ordem ?? i,
+        })),
+      );
+      if (ins.error) throw ins.error;
+    }
+
+    const removerAtiv = pca.filter((p) => !atuais.has(chave(p)) && Number(p.quantidade_executada) === 0).map((p) => p.id);
+    if (removerAtiv.length) await supabase.from("pedido_conjunto_atividades").delete().in("id", removerAtiv);
+  }
+
+  // Conjuntos excluídos do orçamento: removidos apenas se ainda não tiveram movimentação
+  const idsOrcamento = new Set(ocs.map((o) => o.id));
+  const codigos = new Set(ocs.map((o) => o.codigo));
+  const obsoletos = pcs.filter(
+    (p) => !(p.orcamento_conjunto_id && idsOrcamento.has(p.orcamento_conjunto_id)) && !codigos.has(p.codigo),
+  );
+  for (const p of obsoletos) {
+    const [apont, insp, rom] = await Promise.all([
+      supabase.from("apontamentos_producao").select("id").eq("conjunto_id", p.id).limit(1),
+      supabase.from("inspecoes_qualidade").select("id").eq("conjunto_id", p.id).limit(1),
+      supabase.from("romaneio_itens").select("id").eq("conjunto_id", p.id).limit(1),
+    ]);
+    const temMovimento = (apont.data?.length ?? 0) + (insp.data?.length ?? 0) + (rom.data?.length ?? 0) > 0;
+    if (temMovimento) continue;
+    await supabase.from("pedido_conjunto_atividades").delete().eq("conjunto_id", p.id);
+    await supabase.from("cronograma_etapas").delete().eq("conjunto_id", p.id);
+    await supabase.from("pedido_conjuntos").delete().eq("id", p.id);
+  }
+
+  // Databook / Qualidade: sincroniza os requisitos definidos na análise técnica
+  const { data: reqsRaw } = await supabase
+    .from("demanda_requisitos")
+    .select("tipo, nome_ensaio")
+    .eq("solicitacao_id", solicitacaoId);
+  const reqs = (reqsRaw ?? []) as unknown as { tipo: string; nome_ensaio: string | null }[];
+  const { data: dbRaw } = await supabase
+    .from("databook_relatorios")
+    .select("id, tipo, nome_ensaio, status, storage_path")
+    .eq("pedido_id", pedidoId);
+  const dbs = (dbRaw ?? []) as unknown as {
+    id: string;
+    tipo: string;
+    nome_ensaio: string | null;
+    status: string;
+    storage_path: string | null;
+  }[];
+  const kReq = (r: { tipo: string; nome_ensaio: string | null }) => `${r.tipo}|${r.nome_ensaio ?? ""}`;
+  const setReq = new Set(reqs.map(kReq));
+  const faltantes = reqs.filter((r) => !dbs.some((d) => kReq(d) === kReq(r)));
+  if (faltantes.length) {
+    const ins = await supabase
+      .from("databook_relatorios")
+      .insert(faltantes.map((r) => ({ pedido_id: pedidoId, tipo: r.tipo, nome_ensaio: r.nome_ensaio })));
+    if (ins.error) throw ins.error;
+  }
+  const removerDb = dbs.filter((d) => !setReq.has(kReq(d)) && !d.storage_path).map((d) => d.id);
+  if (removerDb.length) await supabase.from("databook_relatorios").delete().in("id", removerDb);
 }
 
 function HistoricoCard({ orcamentoId }: { orcamentoId: string }) {
