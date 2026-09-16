@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarRange, RefreshCw, X } from "lucide-react";
+import { CalendarRange, Play, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   FarolDot,
