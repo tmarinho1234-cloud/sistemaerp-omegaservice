@@ -146,10 +146,10 @@ function ProducaoPage() {
       const progresso = todas.length ? (concluidas / todas.length) * 100 : 0;
       const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
       const pesoFab = conjunto?.peso_kg && conjunto.quantidade ? (Number(conjunto.peso_kg) * fabricada) / Number(conjunto.quantidade) : 0;
-      const status = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
+      const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
       const upd = await supabase
         .from("pedido_conjuntos")
-        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status }) })
+        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status: statusConjunto }) })
         .eq("id", editando.conjunto_id);
       if (upd.error) throw upd.error;
     },
@@ -469,31 +469,33 @@ function ProducaoPage() {
           <DialogHeader>
             <DialogTitle>Apontar {editando ? atividadeLabel(editando.atividade, editando.nome_extra) : ""}</DialogTitle>
           </DialogHeader>
-          <Field label="Status">
-            <Select value={ef.status} onValueChange={(v) => setEf({ ...ef, status: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_ATIVIDADE.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Quantidade executada">
-              <Input type="number" min="0" value={ef.quantidade} onChange={(e) => setEf({ ...ef, quantidade: e.target.value })} />
+            <Field label="Quantidade concluída">
+              <Input
+                type="number"
+                min="0"
+                value={ef.quantidade}
+                onChange={(e) => {
+                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
+                  const q = Number(e.target.value || 0);
+                  setEf({ quantidade: e.target.value, percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
+                }}
+              />
             </Field>
-            <Field label="Peso executado (kg)">
-              <Input type="number" min="0" value={ef.peso} onChange={(e) => setEf({ ...ef, peso: e.target.value })} />
+            <Field label="Avanço (%)">
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={ef.percent}
+                onChange={(e) => {
+                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
+                  const p = Number(e.target.value || 0);
+                  setEf({ percent: e.target.value, quantidade: total ? String(Math.round((p / 100) * total)) : "0" });
+                }}
+              />
             </Field>
           </div>
-          <Field label="Observações">
-            <Textarea value={ef.observacoes} onChange={(e) => setEf({ ...ef, observacoes: e.target.value })} />
-          </Field>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditando(null)}>
               Cancelar
