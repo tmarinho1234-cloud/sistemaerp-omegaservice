@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "sdk_version": "2.2.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://mgxzyyvrnzjfgqvughhc.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "flowright-erp",
+      "version": "0.1.0",
+      "title": "Flowright ERP"
+    },
+    "tools": [
+      {
+        "name": "listar_demandas",
+        "title": "Listar demandas (POMG)",
+        "description": "Lista as demandas aprovadas (pedidos) com código POMG, contrato, subárea, status do PCP, prazo/SLA e avanço.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status_pcp": {
+              "type": "string",
+              "description": "Filtro opcional de status do PCP: nao_iniciado, aguardando_material, em_fabricacao, ag_entrega, entregue, paralisada"
+            },
+            "contrato": {
+              "type": "string",
+              "description": "Filtro opcional por número ou nome do contrato."
+            },
+            "limite": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "detalhar_demanda",
+        "title": "Detalhar demanda",
+        "description": "Detalha uma demanda pelo código POMG: dados do pedido, conjuntos com peso e avanço, atividades, relatórios do databook, romaneios e medições.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "pomg_codigo": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Código POMG da demanda, ex. POMG-001-2026."
+            }
+          },
+          "required": [
+            "pomg_codigo"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "listar_solicitacoes",
+        "title": "Listar solicitações e propostas",
+        "description": "Lista as solicitações de orçamento com código POMG, contrato, subárea, status e a proposta vinculada (valor, situação, prazo e SLA).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "description": "Filtro opcional pelo status da solicitação."
+            },
+            "limite": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "registrar_atividade_nao_prevista",
+        "title": "Registrar atividade não prevista",
+        "description": "Registra uma atividade ou ensaio não previsto surgido durante a produção, vinculado a uma demanda POMG.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "pomg_codigo": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Código POMG da demanda."
+            },
+            "nome": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Nome da atividade ou ensaio."
+            },
+            "descricao": {
+              "type": "string"
+            },
+            "observacao": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pendente",
+                "em_andamento",
+                "concluida"
+              ],
+              "default": "pendente",
+              "description": "Situação da atividade."
+            }
+          },
+          "required": [
+            "pomg_codigo",
+            "nome"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

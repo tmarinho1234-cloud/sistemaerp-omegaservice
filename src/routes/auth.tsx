@@ -9,6 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import omegaLogo from "@/assets/omega-logo.jpg.asset.json";
 
+function destinoSeguro(next?: string) {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -17,15 +21,22 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   ssr: false,
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s.next === "string" ? { next: s.next } : {},
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/dashboard" });
+    if (data.user) {
+      const destino = destinoSeguro(search.next);
+      if (destino) throw redirect({ href: destino });
+      throw redirect({ to: "/dashboard" });
+    }
   },
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [loading, setLoading] = useState(false);
 
   const [loginEmail, setLoginEmail] = useState("");
@@ -37,10 +48,16 @@ function AuthPage() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") navigate({ to: "/dashboard" });
+      if (event !== "SIGNED_IN") return;
+      const destino = destinoSeguro(next);
+      if (destino) {
+        window.location.href = destino;
+        return;
+      }
+      navigate({ to: "/dashboard" });
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
