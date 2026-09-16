@@ -29,6 +29,13 @@
       "when": 1789529049813,
       "tag": "0003_producao_iniciada_realtime",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789569094773,
+      "tag": "0004_realtime_todos_modulos",
+      "breakpoints": true
     }
   ]
 }
