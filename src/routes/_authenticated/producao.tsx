@@ -303,7 +303,7 @@ function ProducaoPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                      Nenhuma demanda em produção.
+                      Nenhuma demanda iniciada. Use "Iniciar produção" no PCP para liberar a demanda aqui.
                     </TableCell>
                   </TableRow>
                 )}
