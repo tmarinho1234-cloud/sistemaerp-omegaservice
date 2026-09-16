@@ -21,9 +21,8 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s.next === "string" ? s.next : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s.next === "string" ? { next: s.next } : {},
   beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getUser();
     if (data.user) {
@@ -49,10 +48,16 @@ function AuthPage() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") navigate({ to: "/dashboard" });
+      if (event !== "SIGNED_IN") return;
+      const destino = destinoSeguro(next);
+      if (destino) {
+        window.location.href = destino;
+        return;
+      }
+      navigate({ to: "/dashboard" });
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
