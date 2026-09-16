@@ -29,7 +29,11 @@ type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 const navGroups: { title: string; items: NavItem[] }[] = [
   {
     title: "Visão Geral",
-    items: [{ to: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, { to: "/painel", label: "Painel de Demandas", icon: ListChecks }],
+    items: [
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/painel", label: "Painel de Demandas", icon: ListChecks },
+      { to: "/fluxo", label: "Fluxo da Demanda", icon: GitBranch },
+    ],
   },
   {
     title: "Processo",
