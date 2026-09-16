@@ -230,7 +230,67 @@ function ProducaoPage() {
           </div>
         }
       />
-      <PedidoSelect pedidos={pedidos} value={pedidoId} onChange={setPedidoId} />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Demandas em produção</CardTitle>
+          <p className="text-xs text-muted-foreground">Clique em uma demanda para acompanhar a produção dos conjuntos.</p>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>POMG</TableHead>
+                  <TableHead>Contrato</TableHead>
+                  <TableHead>Subárea</TableHead>
+                  <TableHead>Fabricado</TableHead>
+                  <TableHead>Avanço</TableHead>
+                  <TableHead>Prazo / SLA</TableHead>
+                  <TableHead>Farol</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {linhas.length ? (
+                  linhas.map(({ pedido: p, real, restante, fabricadas, totalQtd, farol }) => (
+                    <TableRow
+                      key={p.id}
+                      className={cn("cursor-pointer", p.id === pedidoId && "bg-sidebar-accent")}
+                      onClick={() => setPedidoId(p.id)}
+                    >
+                      <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
+                      <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">
+                        {fabricadas} de {totalQtd}
+                      </TableCell>
+                      <TableCell>
+                        <ProgressBar value={real} />
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {dateBr(p.data_sla ?? p.prazo_entrega)}
+                        {restante !== null && (
+                          <span className={cn("ml-2", restante < 0 ? "text-destructive" : "text-muted-foreground")}>
+                            {restante < 0 ? `${Math.abs(restante)}d em atraso` : `${restante}d`}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <FarolDot farol={farol} />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                      Nenhuma demanda em produção.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard label="A fabricar" value={totais.total} detail={`${totais.peso.toFixed(0)} kg previstos`} />
