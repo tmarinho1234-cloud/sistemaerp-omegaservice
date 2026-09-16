@@ -108,6 +108,21 @@ function PcpPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const iniciarProducao = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ producao_iniciada: true, data_inicio_producao: new Date().toISOString(), pcp_status: "em_fabricacao", status: "em_producao" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Produção iniciada — a demanda já aparece no módulo de Produção");
+      qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const reprogramar = useMutation({
     mutationFn: async () => {
       if (!pedidoId || !reprogramando) return;
