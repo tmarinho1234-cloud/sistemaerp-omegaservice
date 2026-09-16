@@ -74,6 +74,19 @@ function ProducaoPage() {
   const { data: conjuntos = [] } = useConjuntos(pedidoId);
   const { data: atividades = [] } = useAtividades(pedidoId);
 
+  const linhas = useMemo(
+    () =>
+      pedidos.map((p) => {
+        const cs = todosConjuntos.filter((c) => c.pedido_id === p.id);
+        const real = cs.length ? cs.reduce((s, c) => s + Number(c.progresso), 0) / cs.length : 0;
+        const restante = diasRestantes(p.data_sla ?? p.prazo_entrega);
+        const fabricadas = cs.reduce((s, c) => s + Number(c.quantidade_fabricada ?? 0), 0);
+        const totalQtd = cs.reduce((s, c) => s + Number(c.quantidade ?? 0), 0);
+        return { pedido: p, real, restante, fabricadas, totalQtd, farol: calcularFarol({ previsto: avancoPrevisto(cs), real, restante, status: p.pcp_status }) };
+      }),
+    [pedidos, todosConjuntos],
+  );
+
   const [editando, setEditando] = useState<Atividade | null>(null);
   const [ef, setEf] = useState({ status: "em_andamento", quantidade: "", peso: "", observacoes: "" });
   const [extraOpen, setExtraOpen] = useState(false);
