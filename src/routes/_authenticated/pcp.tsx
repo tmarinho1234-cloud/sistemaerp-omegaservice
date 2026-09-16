@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarRange, RefreshCw, X } from "lucide-react";
+import { CalendarRange, Play, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   FarolDot,
@@ -27,6 +27,7 @@ import {
   pcpStatusLabel,
   useConjuntos,
   usePedidos,
+  useSincronizacaoTempoReal,
   useTodosConjuntos,
   type ConjuntoResumo,
 } from "@/components/operations";
@@ -49,6 +50,7 @@ type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: st
 
 function PcpPage() {
   const qc = useQueryClient();
+  useSincronizacaoTempoReal();
   const { data: pedidos = [] } = usePedidos();
   const { data: todosConjuntos = [] } = useTodosConjuntos();
   const [contrato, setContrato] = useState("todos");
@@ -103,6 +105,21 @@ function PcpPage() {
     },
     onSuccess: () => {
       toast.success("Situação atualizada");
+      qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const iniciarProducao = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("pedidos")
+        .update({ producao_iniciada: true, data_inicio_producao: new Date().toISOString(), pcp_status: "em_fabricacao", status: "em_producao" })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Produção iniciada — a demanda já aparece no módulo de Produção");
       qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -201,6 +218,7 @@ function PcpPage() {
                   <TableHead>Prazo restante</TableHead>
                   <TableHead>Situação</TableHead>
                   <TableHead>Farol</TableHead>
+                  <TableHead>Produção</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -233,11 +251,21 @@ function PcpPage() {
                       <TableCell>
                         <FarolDot farol={farol} />
                       </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {p.producao_iniciada ? (
+                          <Badge variant="outline">Iniciada em {dateBr(p.data_inicio_producao)}</Badge>
+                        ) : (
+                          <Button size="sm" onClick={() => iniciarProducao.mutate(p.id)} disabled={iniciarProducao.isPending}>
+                            <Play className="mr-2 h-4 w-4" />
+                            Iniciar produção
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda aprovada chegou ao PCP.
                     </TableCell>
                   </TableRow>
@@ -271,6 +299,7 @@ function PcpPage() {
               <Info label="Avanço real" value={`${detalhe.real.toFixed(0)}%`} />
               <Info label="Valor" value={moneyBr(pedido.valor_total)} />
               <Info label="Peso total" value={`${pesoTotal.toLocaleString("pt-BR")} kg`} />
+              <Info label="Início de fabricação" value={pedido.producao_iniciada ? dateBr(pedido.data_inicio_producao) : "Não iniciada"} />
             </CardContent>
           </Card>
 

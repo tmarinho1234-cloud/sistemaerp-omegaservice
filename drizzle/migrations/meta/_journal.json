@@ -22,6 +22,13 @@
       "when": 1789502619624,
       "tag": "0002_orcamento_historico",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789529049813,
+      "tag": "0003_producao_iniciada_realtime",
+      "breakpoints": true
     }
   ]
 }

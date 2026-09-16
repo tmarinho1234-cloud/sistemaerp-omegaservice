@@ -30,6 +30,7 @@ import {
   useAtividades,
   useConjuntos,
   usePedidos,
+  useSincronizacaoTempoReal,
   useTodosConjuntos,
   type Atividade,
 } from "@/components/operations";
@@ -64,7 +65,9 @@ type NaoPrevista = { id: string; conjunto_id: string | null; nome: string; descr
 
 function ProducaoPage() {
   const qc = useQueryClient();
-  const { data: pedidos = [] } = usePedidos();
+  useSincronizacaoTempoReal();
+  const { data: todosPedidos = [] } = usePedidos();
+  const pedidos = useMemo(() => todosPedidos.filter((p) => p.producao_iniciada), [todosPedidos]);
   const [pedidoId, setPedidoId] = useState("");
   useEffect(() => {
     if (!pedidoId && pedidos[0]) setPedidoId(pedidos[0].id);
@@ -300,7 +303,7 @@ function ProducaoPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                      Nenhuma demanda em produção.
+                      Nenhuma demanda iniciada. Use "Iniciar produção" no PCP para liberar a demanda aqui.
                     </TableCell>
                   </TableRow>
                 )}

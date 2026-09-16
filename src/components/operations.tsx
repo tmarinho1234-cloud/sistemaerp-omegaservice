@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,8 @@ export type PedidoResumo = {
   data_sla: string | null;
   prazo_dias: number | null;
   pcp_status: string;
+  producao_iniciada: boolean;
+  data_inicio_producao: string | null;
   valor_total: number;
   status: "aberto" | "em_producao" | "concluido" | "cancelado";
   contrato_id: string | null;
@@ -141,6 +144,31 @@ export function FarolDot({ farol }: { farol: Farol }) {
       {info.label}
     </span>
   );
+}
+
+/** Mantém PCP, Produção e painéis sincronizados em tempo real. */
+export function useSincronizacaoTempoReal() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const canal = supabase
+      .channel("operacoes-tempo-real")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+        qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjuntos" }, () => {
+        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
+        qc.invalidateQueries({ queryKey: ["conjuntos"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjunto_atividades" }, () => {
+        qc.invalidateQueries({ queryKey: ["atividades-conjunto"] });
+        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
+        qc.invalidateQueries({ queryKey: ["conjuntos"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [qc]);
 }
 
 export function usePedidos() {
