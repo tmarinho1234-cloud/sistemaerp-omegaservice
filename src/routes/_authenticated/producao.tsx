@@ -85,7 +85,9 @@ function ProducaoPage() {
         const restante = diasRestantes(p.data_sla ?? p.prazo_entrega);
         const fabricadas = cs.reduce((s, c) => s + Number(c.quantidade_fabricada ?? 0), 0);
         const totalQtd = cs.reduce((s, c) => s + Number(c.quantidade ?? 0), 0);
-        return { pedido: p, real, restante, fabricadas, totalQtd, farol: calcularFarol({ previsto: avancoPrevisto(cs), real, restante, status: p.pcp_status }) };
+        const pesoTotal = cs.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
+        const pesoFab = cs.reduce((s, c) => s + Number(c.peso_fabricado_kg ?? 0), 0);
+        return { pedido: p, real, restante, fabricadas, totalQtd, pesoFab, pesoTotal, farol: calcularFarol({ previsto: avancoPrevisto(cs), real, restante, status: p.pcp_status }) };
       }),
     [pedidos, todosConjuntos],
   );
@@ -276,6 +278,7 @@ function ProducaoPage() {
                   <TableHead>Contrato</TableHead>
                   <TableHead>Subárea</TableHead>
                   <TableHead>Fabricado</TableHead>
+                  <TableHead>Peso fabricado / total</TableHead>
                   <TableHead>Avanço</TableHead>
                   <TableHead>Prazo / SLA</TableHead>
                   <TableHead>Farol</TableHead>
@@ -283,10 +286,10 @@ function ProducaoPage() {
               </TableHeader>
               <TableBody>
                 {linhas.length ? (
-                  linhas.map(({ pedido: p, real, restante, fabricadas, totalQtd, farol }) => (
+                  linhas.map(({ pedido: p, real, restante, fabricadas, totalQtd, pesoFab, pesoTotal, farol }) => (
                     <TableRow
                       key={p.id}
-                      className={cn("cursor-pointer", p.id === pedidoId && "bg-sidebar-accent")}
+                      className={cn("cursor-pointer", p.id === pedidoId && "bg-muted font-medium ring-1 ring-inset ring-primary/30")}
                       onClick={() => setPedidoId(p.id)}
                     >
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
@@ -294,6 +297,10 @@ function ProducaoPage() {
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">
                         {fabricadas} de {totalQtd}
+                      </TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        <span className="font-medium">{pesoFab.toFixed(0)} kg</span>
+                        <span className="text-muted-foreground"> de {pesoTotal.toFixed(0)} kg</span>
                       </TableCell>
                       <TableCell>
                         <ProgressBar value={real} />
@@ -313,7 +320,7 @@ function ProducaoPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda iniciada. Use "Iniciar produção" no PCP para liberar a demanda aqui.
                     </TableCell>
                   </TableRow>
