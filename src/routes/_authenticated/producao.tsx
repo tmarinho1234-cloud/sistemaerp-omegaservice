@@ -285,7 +285,7 @@ function ProducaoPage() {
               </TableHeader>
               <TableBody>
                 {linhas.length ? (
-                  linhas.map(({ pedido: p, real, restante, fabricadas, totalQtd, pesoFab, pesoTotal, farol }) => (
+                  linhas.map(({ pedido: p, real, restante, pesoFab, pesoTotal, farol }) => (
                     <TableRow
                       key={p.id}
                       className={cn("cursor-pointer", p.id === pedidoId && "bg-muted font-medium ring-1 ring-inset ring-primary/30")}
