@@ -1828,11 +1828,12 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           })
           .eq("id", pedido.id);
         if (upd.error) throw upd.error;
+        await sincronizarPedido({ orcamentoId: orc.id, pedidoId: pedido.id, solicitacaoId: sol.id, entrega });
         await registrarHistorico({
           orcamentoId: orc.id,
           solicitacaoId: sol.id,
           acao: "reaprovado",
-          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}`,
+          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Alterações aplicadas nos módulos.`,
           valorNovo: Number(orc.valor_total),
         });
         return;
