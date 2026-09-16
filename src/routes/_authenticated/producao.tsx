@@ -294,9 +294,6 @@ function ProducaoPage() {
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
                       <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
-                      <TableCell className="text-xs">
-                        {fabricadas} de {totalQtd}
-                      </TableCell>
                       <TableCell className="text-xs whitespace-nowrap">
                         <span className="font-medium">{pesoFab.toFixed(0)} kg</span>
                         <span className="text-muted-foreground"> de {pesoTotal.toFixed(0)} kg</span>
