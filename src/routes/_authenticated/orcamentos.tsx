@@ -1370,7 +1370,6 @@ function ItensEditor({
         categoria: (novo.categoria ?? "outros") as QqpCategoria,
         quantidade: novo.quantidade ?? 1,
         unidade: novo.unidade ?? "un",
-        peso_kg: novo.peso_kg ?? null,
         preco_unitario: novo.preco_unitario ?? 0,
         ordem: itens.length,
       });
@@ -1418,7 +1417,6 @@ function ItensEditor({
                 <TableHead className="w-40">Categoria QQP</TableHead>
                 <TableHead className="w-20">Qtd</TableHead>
                 <TableHead className="w-16">Un.</TableHead>
-                <TableHead className="w-24">Peso (kg)</TableHead>
                 <TableHead className="w-28">Unitário</TableHead>
                 <TableHead className="w-28">Total</TableHead>
                 {editable && <TableHead className="w-10" />}
@@ -1427,7 +1425,7 @@ function ItensEditor({
             <TableBody>
               {itens.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={editable ? 8 : 7} className="text-center text-muted-foreground py-4">
+                  <TableCell colSpan={editable ? 7 : 6} className="text-center text-muted-foreground py-4">
                     Nenhum item.
                   </TableCell>
                 </TableRow>
@@ -1438,7 +1436,6 @@ function ItensEditor({
                     <TableCell className="text-xs">{categoriaLabel(i.categoria)}</TableCell>
                     <TableCell>{Number(i.quantidade)}</TableCell>
                     <TableCell>{i.unidade}</TableCell>
-                    <TableCell>{i.peso_kg ?? "—"}</TableCell>
                     <TableCell>R$ {Number(i.preco_unitario).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                     <TableCell className="font-medium">R$ {Number(i.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                     {editable && (
@@ -1497,16 +1494,7 @@ function ItensEditor({
                 onChange={(e) => setNovo({ ...novo, unidade: e.target.value })}
               />
             </div>
-            <div className="col-span-1 space-y-1">
-              <Label className="text-xs">Peso</Label>
-              <Input
-                type="number"
-                step="0.001"
-                value={novo.peso_kg ?? ""}
-                onChange={(e) => setNovo({ ...novo, peso_kg: e.target.value ? Number(e.target.value) : null })}
-              />
-            </div>
-            <div className="col-span-1 space-y-1">
+            <div className="col-span-2 space-y-1">
               <Label className="text-xs">R$ Unit.</Label>
               <Input
                 type="number"
@@ -2179,7 +2167,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
       }
       const { data, error } = await supabase
         .from("orcamento_conjuntos")
-        .insert({ orcamento_id: orcamentoId, codigo: form.codigo.trim(), descricao: form.descricao || form.codigo.trim(), quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) : null, ordem: conjuntos.length })
+        .insert({ orcamento_id: orcamentoId, codigo: form.codigo.trim(), descricao: form.descricao || form.codigo.trim(), quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) * Number(form.quantidade || 1) : null, ordem: conjuntos.length })
         .select("id")
         .single();
       if (error) throw error;
@@ -2236,7 +2224,8 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
               <TableHead>Código</TableHead>
               <TableHead>Descrição</TableHead>
               <TableHead>Qtd.</TableHead>
-              <TableHead>Peso</TableHead>
+              <TableHead>Peso unit.</TableHead>
+              <TableHead>Peso total</TableHead>
               <TableHead>Atividades</TableHead>
               <TableHead />
             </TableRow>
@@ -2248,7 +2237,8 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
                   <TableCell className="font-mono text-xs font-medium">{c.codigo}</TableCell>
                   <TableCell className="text-xs">{c.descricao ?? "—"}</TableCell>
                   <TableCell>{c.quantidade}</TableCell>
-                  <TableCell>{c.peso_kg ? `${c.peso_kg} kg` : "—"}</TableCell>
+                  <TableCell>{c.peso_kg ? `${(Number(c.peso_kg) / Number(c.quantidade || 1)).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg` : "—"}</TableCell>
+                  <TableCell>{c.peso_kg ? `${Number(c.peso_kg).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg` : "—"}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {atividades
@@ -2271,7 +2261,7 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   Nenhum conjunto cadastrado nesta proposta.
                 </TableCell>
               </TableRow>
@@ -2300,8 +2290,12 @@ function ConjuntosTab({ sol }: { sol: Solicitacao }) {
               <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Peso (kg)</Label>
+              <Label>Peso unit. (kg)</Label>
               <Input type="number" value={form.peso_kg} onChange={(e) => setForm({ ...form, peso_kg: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Peso total (kg)</Label>
+              <Input readOnly disabled value={form.peso_kg ? (Number(form.peso_kg) * Number(form.quantidade || 1)).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) : ""} placeholder="Calculado automaticamente" />
             </div>
           </div>
           <div className="space-y-2">
