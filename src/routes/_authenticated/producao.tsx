@@ -92,6 +92,7 @@ function ProducaoPage() {
 
   const [editando, setEditando] = useState<Atividade | null>(null);
   const [ef, setEf] = useState({ quantidade: "", percent: "" });
+  const [prontos, setProntos] = useState<Record<string, string>>({});
   const [extraOpen, setExtraOpen] = useState(false);
   const [extra, setExtra] = useState({ conjunto_id: "", nome: "" });
   const [paradaOpen, setParadaOpen] = useState(false);
