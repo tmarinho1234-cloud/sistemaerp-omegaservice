@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,7 @@ function ProducaoPage() {
     if (!pedidoId && pedidos[0]) setPedidoId(pedidos[0].id);
   }, [pedidoId, pedidos]);
   const pedido = pedidos.find((p) => p.id === pedidoId);
+  const { data: todosConjuntos = [] } = useTodosConjuntos();
   const { data: conjuntos = [] } = useConjuntos(pedidoId);
   const { data: atividades = [] } = useAtividades(pedidoId);
 
