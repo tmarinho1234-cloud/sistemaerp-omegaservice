@@ -496,33 +496,12 @@ function ProducaoPage() {
           <DialogHeader>
             <DialogTitle>Apontar {editando ? atividadeLabel(editando.atividade, editando.nome_extra) : ""}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Quantidade concluída">
-              <Input
-                type="number"
-                min="0"
-                value={ef.quantidade}
-                onChange={(e) => {
-                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
-                  const q = Number(e.target.value || 0);
-                  setEf({ quantidade: e.target.value, percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
-                }}
-              />
-            </Field>
+          <div className="grid gap-3">
             <Field label="Avanço (%)">
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={ef.percent}
-                onChange={(e) => {
-                  const total = Number(conjuntos.find((c) => c.id === editando?.conjunto_id)?.quantidade ?? 0);
-                  const p = Number(e.target.value || 0);
-                  setEf({ percent: e.target.value, quantidade: total ? String(Math.round((p / 100) * total)) : "0" });
-                }}
-              />
+              <Input type="number" min="0" max="100" value={ef.percent} onChange={(e) => setEf({ quantidade: "", percent: e.target.value })} />
             </Field>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditando(null)}>
               Cancelar
