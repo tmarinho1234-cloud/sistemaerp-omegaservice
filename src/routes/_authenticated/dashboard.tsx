@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 type Pedido = { id: string; numero: string; contrato_id: string | null; prazo_entrega: string | null; valor_total: number; status: string; contratos?: { nome: string; empresa: string } | null };
-type Conjunto = { id: string; pedido_id: string; progresso: number; liberado_qualidade: boolean; status: string; peso_kg: number | null; quantidade: number };
+type Conjunto = { id: string; pedido_id: string; progresso: number; liberado_qualidade: boolean; status: string; peso_kg: number | null; peso_fabricado_kg: number | null; quantidade: number };
 
 function DashboardPage() {
   const [contratoId, setContratoId] = useState("todos"); const [pedidoId, setPedidoId] = useState("todos");
@@ -30,6 +30,7 @@ function DashboardPage() {
   const pedidosContrato = contratoId === "todos" ? pedidos : pedidos.filter((p) => p.contrato_id === contratoId); const ids = new Set((pedidoId !== "todos" ? pedidos.filter((p) => p.id === pedidoId) : pedidosContrato).map((p) => p.id));
   const fp = <T extends { pedido_id: string }>(rows: T[]) => rows.filter((r) => ids.has(r.pedido_id)); const conjuntos = fp(data?.conjuntos ?? []); const apontamentos = fp(data?.apontamentos ?? []); const paralisacoes = fp(data?.paralisacoes ?? []); const inspecoes = fp(data?.inspecoes ?? []); const ncs = fp(data?.ncs ?? []); const romaneios = fp(data?.romaneios ?? []); const medicoes = fp(data?.medicoes ?? []); const notas = fp(data?.notas ?? []);
   const hoje = Date.now(); const avance = conjuntos.length ? conjuntos.reduce((s, c) => s + Number(c.progresso), 0) / conjuntos.length : 0; const atrasados = pedidosContrato.filter((p) => ids.has(p.id) && p.status !== "concluido" && p.prazo_entrega && new Date(p.prazo_entrega).getTime() < hoje).length; const paradas = paralisacoes.reduce((s, p) => s + Number(p.duracao_horas ?? hoursBetween(p.inicio, p.fim)), 0); const produtivas = apontamentos.reduce((s, a) => s + hoursBetween(a.inicio, a.fim), 0); const eficiencia = produtivas + paradas ? produtivas / (produtivas + paradas) * 100 : 0;
+  const pesoConjuntos = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0); const pesoFabConjuntos = conjuntos.reduce((s, c) => s + Number(c.peso_fabricado_kg ?? 0), 0);
   const aprovOrc = (data?.orcamentos ?? []).filter((o) => o.status === "aprovado"); const enviadosOrc = (data?.orcamentos ?? []).filter((o) => o.status === "enviado"); const faturado = notas.filter((n) => n.status !== "cancelada").reduce((s, n) => s + Number(n.valor), 0); const recebido = notas.reduce((s, n) => s + Number(n.valor_recebido), 0);
   const chart = (pedidoId === "todos" ? pedidosContrato : pedidos.filter((p) => p.id === pedidoId)).map((p) => { const cs = (data?.conjuntos ?? []).filter((c) => c.pedido_id === p.id); return { pedido: p.numero, avanço: cs.length ? Math.round(cs.reduce((s, c) => s + Number(c.progresso), 0) / cs.length) : 0, liberado: cs.filter((c) => c.liberado_qualidade).length, expedido: cs.filter((c) => c.status === "expedido" || c.status === "concluido").length }; });
   const causas = Object.entries(paralisacoes.reduce<Record<string, number>>((a, p) => { a[p.motivo] = (a[p.motivo] ?? 0) + Number(p.duracao_horas ?? hoursBetween(p.inicio, p.fim)); return a; }, {})).sort((a,b) => b[1]-a[1]);
