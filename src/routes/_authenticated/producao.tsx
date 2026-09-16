@@ -352,7 +352,23 @@ function ProducaoPage() {
                     {c.descricao} · total {c.quantidade} · fabricado {Number(c.quantidade_fabricada ?? 0)} · restante {restante} · peso {c.peso_kg ? `${c.peso_kg} kg` : "—"}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Conjuntos prontos</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max={Number(c.quantidade)}
+                        className="h-9 w-24"
+                        value={prontos[c.id] ?? String(Number(c.quantidade_fabricada ?? 0))}
+                        onChange={(e) => setProntos({ ...prontos, [c.id]: e.target.value })}
+                      />
+                      <Button size="sm" variant="outline" onClick={() => salvarProntos.mutate(c.id)} disabled={salvarProntos.isPending}>
+                        Aplicar
+                      </Button>
+                    </div>
+                  </div>
                   <ProgressBar value={c.progresso} />
                   <Badge variant="outline">{c.status.replaceAll("_", " ")}</Badge>
                 </div>
@@ -364,7 +380,6 @@ function ProducaoPage() {
                       <TableRow>
                         <TableHead>Atividade</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Concluído</TableHead>
                         <TableHead>Avanço</TableHead>
                         <TableHead />
                       </TableRow>
@@ -380,11 +395,9 @@ function ProducaoPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              {Number(a.quantidade_executada ?? 0)} / {c.quantidade}
-                            </TableCell>
-                            <TableCell>
                               {c.quantidade ? `${Math.min(100, (Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
                             </TableCell>
+
                             <TableCell>
                               <Button
                                 size="sm"
