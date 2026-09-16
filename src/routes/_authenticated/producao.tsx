@@ -646,6 +646,26 @@ function ProducaoPage() {
   );
 }
 
+/** Recalcula avanço médio, quantidade e peso fabricados do conjunto. */
+async function recalcularConjunto(conjuntoId: string) {
+  const { data: cj, error: ce } = await supabase.from("pedido_conjuntos").select("*").eq("id", conjuntoId).maybeSingle();
+  if (ce) throw ce;
+  const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", conjuntoId);
+  if (le) throw le;
+  const todas = (lista ?? []) as unknown as Atividade[];
+  const total = Number(cj?.quantidade ?? 0);
+  const percents = todas.map((a) => (total ? Math.min(100, (Number(a.quantidade_executada ?? 0) / total) * 100) : 0));
+  const progresso = percents.length ? percents.reduce((s, p) => s + p, 0) / percents.length : 0;
+  const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
+  const pesoFab = cj?.peso_kg && total ? (Number(cj.peso_kg) * fabricada) / total : 0;
+  const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
+  const upd = await supabase
+    .from("pedido_conjuntos")
+    .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(cj?.liberado_qualidade ? {} : { status: statusConjunto }) })
+    .eq("id", conjuntoId);
+  if (upd.error) throw upd.error;
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
