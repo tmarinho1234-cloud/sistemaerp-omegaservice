@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authenticated/qualidade'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pcp'
+import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
@@ -52,6 +53,11 @@ const AuthenticatedProducaoRoute = AuthenticatedProducaoRouteImport.update({
 const AuthenticatedPcpRoute = AuthenticatedPcpRouteImport.update({
   id: '/pcp',
   path: '/pcp',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOrcamentosRoute = AuthenticatedOrcamentosRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/expedicao': typeof AuthenticatedExpedicaoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/expedicao': typeof AuthenticatedExpedicaoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
+  '/painel': typeof AuthenticatedPainelRoute
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRoute
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRoute
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
+  '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/expedicao'
     | '/medicao'
     | '/orcamentos'
+    | '/painel'
     | '/pcp'
     | '/producao'
     | '/qualidade'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/expedicao'
     | '/medicao'
     | '/orcamentos'
+    | '/painel'
     | '/pcp'
     | '/producao'
     | '/qualidade'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/_authenticated/expedicao'
     | '/_authenticated/medicao'
     | '/_authenticated/orcamentos'
+    | '/_authenticated/painel'
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
     | '/_authenticated/qualidade'
@@ -254,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/pcp'
       fullPath: '/pcp'
       preLoaderRoute: typeof AuthenticatedPcpRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/painel': {
+      id: '/_authenticated/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/orcamentos': {
@@ -328,6 +347,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRoute
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRoute
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
+  AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
@@ -343,6 +363,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRoute,
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRoute,
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
+  AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
