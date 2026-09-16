@@ -15,8 +15,7 @@ import {
   diasRestantes,
   pcpStatusLabel,
   usePedidos,
-  useTodosConjuntos,
-} from "@/components/operations";
+  useTodosConjuntos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -33,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
 });
 
 function PainelPage() {
+  useSincronizacaoTempoReal();
   const navigate = useNavigate();
   const { data: pedidos = [] } = usePedidos();
   const { data: conjuntos = [] } = useTodosConjuntos();

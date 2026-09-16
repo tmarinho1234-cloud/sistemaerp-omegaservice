@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Activity, AlertTriangle, Factory, Gauge, Receipt, ShieldCheck, Truck } from "lucide-react";
-import { MetricCard, ProgressBar, hoursBetween, moneyBr } from "@/components/operations";
+import { MetricCard, ProgressBar, hoursBetween, moneyBr, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Painel de KPIs | Omega Service ERP" }, { name: "description", content: "Indicadores de avanço, produção, qualidade, expedição e medição." }, { property: "og:title", content: "Painel de KPIs | Omega Service ERP" }, { property: "og:description", content: "Indicadores de avanço, produção, qualidade, expedição e medição." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: DashboardPage,
@@ -18,6 +18,7 @@ type Pedido = { id: string; numero: string; contrato_id: string | null; prazo_en
 type Conjunto = { id: string; pedido_id: string; progresso: number; liberado_qualidade: boolean; status: string; peso_kg: number | null; peso_fabricado_kg: number | null; quantidade: number };
 
 function DashboardPage() {
+  useSincronizacaoTempoReal();
   const [contratoId, setContratoId] = useState("todos"); const [pedidoId, setPedidoId] = useState("todos");
   const { data } = useQuery({ queryKey: ["kpi-central"], queryFn: async () => {
     const [ped, con, apo, par, ins, ncs, rom, med, nf, orc] = await Promise.all([

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BookOpenCheck, Download, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { MetricCard, ModuleHeader, PedidoSelect, REQUISITOS, dateBr, requisitoLabel, usePedidos } from "@/components/operations";
+import { MetricCard, ModuleHeader, PedidoSelect, REQUISITOS, dateBr, requisitoLabel, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/databook")({
   head: () => ({
@@ -48,6 +48,7 @@ type Relatorio = {
 };
 
 function DatabookPage() {
+  useSincronizacaoTempoReal();
   const qc = useQueryClient();
   const { data: pedidos = [] } = usePedidos();
   const [pedidoId, setPedidoId] = useState("");

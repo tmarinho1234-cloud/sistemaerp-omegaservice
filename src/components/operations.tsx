@@ -146,25 +146,48 @@ export function FarolDot({ farol }: { farol: Farol }) {
   );
 }
 
-/** Mantém PCP, Produção e painéis sincronizados em tempo real. */
+/** Tabelas observadas e quais consultas cada mudança atualiza. */
+const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
+  pedidos: ["pedidos-operacionais", "kpi-central", "pedido-por-orcamento"],
+  pedido_conjuntos: ["todos-conjuntos", "conjuntos", "kpi-central"],
+  pedido_conjunto_atividades: ["atividades-conjunto", "todos-conjuntos", "conjuntos", "kpi-central"],
+  solicitacoes_orcamento: ["solicitacoes", "solicitacao"],
+  analises_tecnicas: ["analise", "solicitacoes", "solicitacao"],
+  demanda_requisitos: ["demanda-requisitos", "requisitos-demanda", "databook"],
+  orcamentos: ["orcamento", "solicitacoes", "pedido-por-orcamento", "kpi-central"],
+  orcamento_conjuntos: ["orcamento-conjuntos", "orcamento-conjunto-atividades"],
+  orcamento_conjunto_atividades: ["orcamento-conjunto-atividades"],
+  orcamento_itens: ["itens", "orcamento"],
+  orcamento_historico: ["orcamento-historico"],
+  pcp_planos: ["pedidos-operacionais"],
+  pcp_reprogramacoes: ["reprogramacoes", "pedidos-operacionais"],
+  cronograma_etapas: ["conjuntos", "todos-conjuntos"],
+  apontamentos_producao: ["atividades-conjunto", "conjuntos", "todos-conjuntos", "kpi-central"],
+  paralisacoes: ["paralisacoes", "kpi-central"],
+  atividades_nao_previstas: ["atividades-nao-previstas"],
+  inspecoes_qualidade: ["inspecoes", "conjuntos", "todos-conjuntos", "kpi-central"],
+  nao_conformidades: ["ncs", "kpi-central"],
+  romaneios: ["romaneios", "kpi-central"],
+  romaneio_itens: ["romaneio-itens", "conjuntos", "todos-conjuntos", "kpi-central"],
+  romaneio_notas: ["romaneio-notas"],
+  medicoes: ["medicoes", "kpi-central"],
+  notas_fiscais: ["notas", "kpi-central"],
+  databook_relatorios: ["databook"],
+  contratos: ["contratos-select", "pedidos-operacionais", "kpi-central"],
+  sub_areas: ["sub-areas", "sub-areas-select", "pedidos-operacionais"],
+};
+
+/** Mantém todos os módulos (Orçamentos, PCP, Produção, Qualidade, Expedição, Medição, Databook e painéis) sincronizados em tempo real. */
 export function useSincronizacaoTempoReal() {
   const qc = useQueryClient();
   useEffect(() => {
-    const canal = supabase
-      .channel("operacoes-tempo-real")
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
-        qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjuntos" }, () => {
-        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
-        qc.invalidateQueries({ queryKey: ["conjuntos"] });
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjunto_atividades" }, () => {
-        qc.invalidateQueries({ queryKey: ["atividades-conjunto"] });
-        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
-        qc.invalidateQueries({ queryKey: ["conjuntos"] });
-      })
-      .subscribe();
+    let canal = supabase.channel("operacoes-tempo-real");
+    for (const [table, chaves] of Object.entries(TABELAS_SINCRONIZADAS)) {
+      canal = canal.on("postgres_changes", { event: "*", schema: "public", table }, () => {
+        for (const chave of chaves) qc.invalidateQueries({ queryKey: [chave] });
+      });
+    }
+    canal.subscribe();
     return () => {
       supabase.removeChannel(canal);
     };

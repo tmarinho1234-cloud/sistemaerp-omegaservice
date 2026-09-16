@@ -32,7 +32,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ATIVIDADES, REQUISITOS, atividadeLabel, situacaoLabel } from "@/components/operations";
+import { ATIVIDADES, REQUISITOS, atividadeLabel, situacaoLabel, useSincronizacaoTempoReal } from "@/components/operations";
 import {
   Select,
   SelectContent,
@@ -127,6 +127,7 @@ const STATUS_VARIANT: Record<
 };
 
 function OrcamentosPage() {
+  useSincronizacaoTempoReal();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
