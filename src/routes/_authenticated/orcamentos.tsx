@@ -1041,9 +1041,17 @@ function RequisitosDemanda({ solicitacaoId }: { solicitacaoId: string }) {
         const { error } = await supabase.from("demanda_requisitos").insert({ solicitacao_id: solicitacaoId, tipo, nome_ensaio: tipo === "outro" ? (nome ?? null) : null });
         if (error) throw error;
       }
+      // Reflete o checklist nas demandas já iniciadas (Qualidade / Databook)
+      const { data: orcs } = await supabase.from("orcamentos").select("id").eq("solicitacao_id", solicitacaoId);
+      for (const o of (orcs ?? []) as unknown as { id: string }[]) {
+        const { data: ped } = await supabase.from("pedidos").select("id").eq("orcamento_id", o.id).maybeSingle();
+        if (ped?.id) {
+          await sincronizarPedido({ orcamentoId: o.id, pedidoId: ped.id, solicitacaoId, entrega: null });
+        }
+      }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["demanda-requisitos", solicitacaoId] });
+      qc.invalidateQueries();
       setNomeEnsaio("");
     },
     onError: (e: Error) => toast.error(e.message),
