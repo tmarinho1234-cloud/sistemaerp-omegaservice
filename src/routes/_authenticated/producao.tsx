@@ -16,16 +16,20 @@ import { toast } from "sonner";
 import {
   ATIVIDADES,
   ATIVIDADE_EXTRA,
+  FarolDot,
   MetricCard,
   ModuleHeader,
-  PedidoSelect,
   ProgressBar,
   atividadeLabel,
+  avancoPrevisto,
+  calcularFarol,
   dateBr,
+  diasRestantes,
   hoursBetween,
   useAtividades,
   useConjuntos,
   usePedidos,
+  useTodosConjuntos,
   type Atividade,
 } from "@/components/operations";
 
