@@ -369,7 +369,7 @@ function ProducaoPage() {
                               {Number(a.quantidade_executada ?? 0)} / {c.quantidade}
                             </TableCell>
                             <TableCell>
-                              {c.quantidade ? `${((Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
+                              {c.quantidade ? `${Math.min(100, (Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
                             </TableCell>
                             <TableCell>
                               <Button
