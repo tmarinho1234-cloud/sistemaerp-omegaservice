@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,11 +22,18 @@ import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticated/databook'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -85,6 +93,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedCadastrosSubAreasRoute =
   AuthenticatedCadastrosSubAreasRouteImport.update({
     id: '/cadastros/sub-areas',
@@ -109,10 +123,17 @@ const AuthenticatedCadastrosContratosRoute =
     path: '/cadastros/contratos',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
@@ -122,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -130,6 +152,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
@@ -139,6 +163,7 @@ export interface FileRoutesByTo {
   '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -149,6 +174,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/databook': typeof AuthenticatedDatabookRoute
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRoute
@@ -158,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/pcp': typeof AuthenticatedPcpRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
@@ -168,6 +196,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/databook'
     | '/expedicao'
@@ -177,6 +207,7 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
+    | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
@@ -185,6 +216,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/databook'
     | '/expedicao'
@@ -194,6 +227,7 @@ export interface FileRouteTypes {
     | '/pcp'
     | '/producao'
     | '/qualidade'
+    | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
     | '/cadastros/funcionarios'
@@ -203,6 +237,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/dashboard'
     | '/_authenticated/databook'
     | '/_authenticated/expedicao'
@@ -212,6 +248,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
     | '/_authenticated/qualidade'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
     | '/_authenticated/cadastros/funcionarios'
@@ -222,10 +259,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -310,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/cadastros/sub-areas': {
       id: '/_authenticated/cadastros/sub-areas'
       path: '/cadastros/sub-areas'
@@ -337,6 +391,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cadastros/contratos'
       preLoaderRoute: typeof AuthenticatedCadastrosContratosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -382,6 +443,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
