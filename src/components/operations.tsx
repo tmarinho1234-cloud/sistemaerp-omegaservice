@@ -145,6 +145,31 @@ export function FarolDot({ farol }: { farol: Farol }) {
   );
 }
 
+/** Mantém PCP, Produção e painéis sincronizados em tempo real. */
+export function useSincronizacaoTempoReal() {
+  const qc = useQueryClient();
+  useEffect(() => {
+    const canal = supabase
+      .channel("operacoes-tempo-real")
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedidos" }, () => {
+        qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjuntos" }, () => {
+        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
+        qc.invalidateQueries({ queryKey: ["conjuntos"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "pedido_conjunto_atividades" }, () => {
+        qc.invalidateQueries({ queryKey: ["atividades-conjunto"] });
+        qc.invalidateQueries({ queryKey: ["todos-conjuntos"] });
+        qc.invalidateQueries({ queryKey: ["conjuntos"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(canal);
+    };
+  }, [qc]);
+}
+
 export function usePedidos() {
   return useQuery({
     queryKey: ["pedidos-operacionais"],
