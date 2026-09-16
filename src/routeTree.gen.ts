@@ -19,6 +19,7 @@ import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pc
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
+import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
 import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticated/databook'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -76,6 +77,11 @@ const AuthenticatedOrcamentosRoute = AuthenticatedOrcamentosRouteImport.update({
 const AuthenticatedMedicaoRoute = AuthenticatedMedicaoRouteImport.update({
   id: '/medicao',
   path: '/medicao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFluxoRoute = AuthenticatedFluxoRouteImport.update({
+  id: '/fluxo',
+  path: '/fluxo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedExpedicaoRoute = AuthenticatedExpedicaoRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/fluxo': typeof AuthenticatedFluxoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/databook': typeof AuthenticatedDatabookRoute
   '/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/fluxo': typeof AuthenticatedFluxoRoute
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/databook': typeof AuthenticatedDatabookRoute
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRoute
+  '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRoute
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/databook'
     | '/expedicao'
+    | '/fluxo'
     | '/medicao'
     | '/orcamentos'
     | '/painel'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/databook'
     | '/expedicao'
+    | '/fluxo'
     | '/medicao'
     | '/orcamentos'
     | '/painel'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/databook'
     | '/_authenticated/expedicao'
+    | '/_authenticated/fluxo'
     | '/_authenticated/medicao'
     | '/_authenticated/orcamentos'
     | '/_authenticated/painel'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMedicaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/fluxo': {
+      id: '/_authenticated/fluxo'
+      path: '/fluxo'
+      fullPath: '/fluxo'
+      preLoaderRoute: typeof AuthenticatedFluxoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/expedicao': {
       id: '/_authenticated/expedicao'
       path: '/expedicao'
@@ -406,6 +425,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDatabookRoute: typeof AuthenticatedDatabookRoute
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRoute
+  AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRoute
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
@@ -422,6 +442,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDatabookRoute: AuthenticatedDatabookRoute,
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRoute,
+  AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRoute,
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
