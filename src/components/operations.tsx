@@ -13,6 +13,8 @@ export type PedidoResumo = {
   data_sla: string | null;
   prazo_dias: number | null;
   pcp_status: string;
+  producao_iniciada: boolean;
+  data_inicio_producao: string | null;
   valor_total: number;
   status: "aberto" | "em_producao" | "concluido" | "cancelado";
   contrato_id: string | null;
