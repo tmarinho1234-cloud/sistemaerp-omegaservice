@@ -249,11 +249,21 @@ function PcpPage() {
                       <TableCell>
                         <FarolDot farol={farol} />
                       </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {p.producao_iniciada ? (
+                          <Badge variant="outline">Iniciada em {dateBr(p.data_inicio_producao)}</Badge>
+                        ) : (
+                          <Button size="sm" onClick={() => iniciarProducao.mutate(p.id)} disabled={iniciarProducao.isPending}>
+                            <Play className="mr-2 h-4 w-4" />
+                            Iniciar produção
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda aprovada chegou ao PCP.
                     </TableCell>
                   </TableRow>
