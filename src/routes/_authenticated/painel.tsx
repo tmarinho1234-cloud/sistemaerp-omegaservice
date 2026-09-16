@@ -15,7 +15,7 @@ import {
   diasRestantes,
   pcpStatusLabel,
   usePedidos,
-  useTodosConjuntos,, useSincronizacaoTempoReal } from "@/components/operations";
+  useTodosConjuntos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
