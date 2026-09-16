@@ -216,6 +216,7 @@ function PcpPage() {
                   <TableHead>Prazo restante</TableHead>
                   <TableHead>Situação</TableHead>
                   <TableHead>Farol</TableHead>
+                  <TableHead>Produção</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
