@@ -30,6 +30,7 @@ import {
   useAtividades,
   useConjuntos,
   usePedidos,
+  useSincronizacaoTempoReal,
   useTodosConjuntos,
   type Atividade,
 } from "@/components/operations";
