@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Receipt, Plus, Banknote } from "lucide-react";
 import { toast } from "sonner";
-import { MetricCard, ModuleHeader, PedidoSelect, dateBr, moneyBr, usePedidos } from "@/components/operations";
+import { MetricCard, ModuleHeader, PedidoSelect, dateBr, moneyBr, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/medicao")({
   head: () => ({ meta: [{ title: "Medição | Omega Service ERP" }, { name: "description", content: "Medições, notas fiscais, vencimentos e pagamentos por pedido." }, { property: "og:title", content: "Medição | Omega Service ERP" }, { property: "og:description", content: "Medições, notas fiscais, vencimentos e pagamentos por pedido." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: MedicaoPage,
@@ -21,6 +21,7 @@ type Medicao = { id: string; numero: string; valor_medido: number; status: strin
 type Nota = { id: string; medicao_id: string | null; numero: string; data_emissao: string; data_vencimento: string | null; valor: number; status: string; data_pagamento: string | null; valor_recebido: number };
 
 function MedicaoPage() {
+  useSincronizacaoTempoReal();
   const qc = useQueryClient(); const { data: pedidos = [] } = usePedidos(); const [pedidoId, setPedidoId] = useState(""); const [novaMedicao, setNovaMedicao] = useState(false); const [novaNota, setNovaNota] = useState(false);
   const [mf, setMf] = useState({ numero: "", inicio: "", fim: "", valor: "", observacoes: "" }); const [nf, setNf] = useState({ medicao_id: "", numero: "", emissao: new Date().toISOString().slice(0,10), vencimento: "", valor: "" });
   useEffect(() => { if (!pedidoId && pedidos[0]) setPedidoId(pedidos[0].id); }, [pedidoId, pedidos]); const pedido = pedidos.find((p) => p.id === pedidoId);

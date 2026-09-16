@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ShieldCheck, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { MetricCard, ModuleHeader, PedidoSelect, ProgressBar, dateBr, requisitoLabel, useConjuntos, usePedidos } from "@/components/operations";
+import { MetricCard, ModuleHeader, PedidoSelect, ProgressBar, dateBr, requisitoLabel, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/qualidade")({
   head: () => ({
@@ -37,6 +37,7 @@ type NC = { id: string; conjunto_id: string; inspecao_id: string; descricao: str
 type Requisito = { id: string; tipo: string; nome_ensaio: string | null };
 
 function QualidadePage() {
+  useSincronizacaoTempoReal();
   const qc = useQueryClient();
   const { data: pedidos = [] } = usePedidos();
   const [pedidoId, setPedidoId] = useState("");

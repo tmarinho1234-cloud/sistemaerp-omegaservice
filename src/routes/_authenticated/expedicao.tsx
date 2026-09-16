@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Truck, Plus, Banknote } from "lucide-react";
 import { toast } from "sonner";
-import { MetricCard, ModuleHeader, PedidoSelect, ProgressBar, dateBr, moneyBr, useConjuntos, usePedidos } from "@/components/operations";
+import { MetricCard, ModuleHeader, PedidoSelect, ProgressBar, dateBr, moneyBr, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/expedicao")({
   head: () => ({
@@ -34,6 +34,7 @@ type Item = { id: string; romaneio_id: string; conjunto_id: string; quantidade: 
 type Nota = { id: string; romaneio_id: string; conjunto_id: string | null; numero: string; peso_kg: number | null; valor: number | null; data_emissao: string | null };
 
 function ExpedicaoPage() {
+  useSincronizacaoTempoReal();
   const qc = useQueryClient();
   const { data: pedidos = [] } = usePedidos();
   const [pedidoId, setPedidoId] = useState("");
