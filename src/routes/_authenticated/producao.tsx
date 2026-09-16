@@ -416,7 +416,7 @@ function ProducaoPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
+                          <TableCell colSpan={4} className="py-6 text-center text-muted-foreground">
                             Nenhuma atividade definida para este conjunto.
                           </TableCell>
                         </TableRow>
