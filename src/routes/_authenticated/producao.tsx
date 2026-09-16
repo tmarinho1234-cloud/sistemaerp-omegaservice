@@ -88,7 +88,7 @@ function ProducaoPage() {
   );
 
   const [editando, setEditando] = useState<Atividade | null>(null);
-  const [ef, setEf] = useState({ status: "em_andamento", quantidade: "", peso: "", observacoes: "" });
+  const [ef, setEf] = useState({ quantidade: "", percent: "" });
   const [extraOpen, setExtraOpen] = useState(false);
   const [extra, setExtra] = useState({ conjunto_id: "", nome: "" });
   const [paradaOpen, setParadaOpen] = useState(false);
@@ -128,14 +128,17 @@ function ProducaoPage() {
   const salvarAtividade = useMutation({
     mutationFn: async () => {
       if (!editando) return;
+      const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
+      const totalQtd = Number(conjunto?.quantidade ?? 0);
       const quantidade = Number(ef.quantidade || 0);
+      const status = totalQtd > 0 && quantidade >= totalQtd ? "concluida" : quantidade > 0 ? "em_andamento" : "nao_iniciada";
       const { error } = await supabase
         .from("pedido_conjunto_atividades")
-        .update({ status: ef.status, quantidade_executada: quantidade, peso_executado_kg: Number(ef.peso || 0), observacoes: ef.observacoes || null })
+        .update({ status, quantidade_executada: quantidade })
         .eq("id", editando.id);
       if (error) throw error;
 
-      const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
+
       const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", editando.conjunto_id);
       if (le) throw le;
       const todas = (lista ?? []) as unknown as Atividade[];
@@ -329,7 +332,7 @@ function ProducaoPage() {
               <CardHeader className="flex-row flex-wrap items-center justify-between gap-3">
                 <div>
                   <CardTitle className="text-base">
-                    <span className="font-mono">{c.tag}</span> · {c.codigo}
+                    <span className="font-mono">{c.tag} · {pedido?.pomg_codigo ?? pedido?.numero ?? "—"}</span> · {c.codigo}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground">
                     {c.descricao} · total {c.quantidade} · fabricado {Number(c.quantidade_fabricada ?? 0)} · restante {restante} · peso {c.peso_kg ? `${c.peso_kg} kg` : "—"}
@@ -347,9 +350,8 @@ function ProducaoPage() {
                       <TableRow>
                         <TableHead>Atividade</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Executado</TableHead>
-                        <TableHead>Peso</TableHead>
-                        <TableHead>Observações</TableHead>
+                        <TableHead>Concluído</TableHead>
+                        <TableHead>Avanço</TableHead>
                         <TableHead />
                       </TableRow>
                     </TableHeader>
@@ -366,15 +368,18 @@ function ProducaoPage() {
                             <TableCell>
                               {Number(a.quantidade_executada ?? 0)} / {c.quantidade}
                             </TableCell>
-                            <TableCell>{Number(a.peso_executado_kg ?? 0).toFixed(0)} kg</TableCell>
-                            <TableCell className="max-w-[220px] truncate text-xs text-muted-foreground">{a.observacoes ?? "—"}</TableCell>
+                            <TableCell>
+                              {c.quantidade ? `${((Number(a.quantidade_executada ?? 0) / Number(c.quantidade)) * 100).toFixed(0)}%` : "0%"}
+                            </TableCell>
                             <TableCell>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => {
+                                  const total = Number(c.quantidade ?? 0);
+                                  const q = Number(a.quantidade_executada ?? 0);
                                   setEditando(a);
-                                  setEf({ status: a.status, quantidade: String(a.quantidade_executada ?? 0), peso: String(a.peso_executado_kg ?? 0), observacoes: a.observacoes ?? "" });
+                                  setEf({ quantidade: String(q), percent: total ? String(Math.round((q / total) * 1000) / 10) : "0" });
                                 }}
                               >
                                 Apontar
@@ -384,7 +389,7 @@ function ProducaoPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="py-6 text-center text-muted-foreground">
+                          <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
                             Nenhuma atividade definida para este conjunto.
                           </TableCell>
                         </TableRow>
