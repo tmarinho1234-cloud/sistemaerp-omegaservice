@@ -1370,7 +1370,6 @@ function ItensEditor({
         categoria: (novo.categoria ?? "outros") as QqpCategoria,
         quantidade: novo.quantidade ?? 1,
         unidade: novo.unidade ?? "un",
-        peso_kg: novo.peso_kg ?? null,
         preco_unitario: novo.preco_unitario ?? 0,
         ordem: itens.length,
       });
@@ -1418,7 +1417,6 @@ function ItensEditor({
                 <TableHead className="w-40">Categoria QQP</TableHead>
                 <TableHead className="w-20">Qtd</TableHead>
                 <TableHead className="w-16">Un.</TableHead>
-                <TableHead className="w-24">Peso (kg)</TableHead>
                 <TableHead className="w-28">Unitário</TableHead>
                 <TableHead className="w-28">Total</TableHead>
                 {editable && <TableHead className="w-10" />}
@@ -1427,7 +1425,7 @@ function ItensEditor({
             <TableBody>
               {itens.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={editable ? 8 : 7} className="text-center text-muted-foreground py-4">
+                  <TableCell colSpan={editable ? 7 : 6} className="text-center text-muted-foreground py-4">
                     Nenhum item.
                   </TableCell>
                 </TableRow>
@@ -1438,7 +1436,6 @@ function ItensEditor({
                     <TableCell className="text-xs">{categoriaLabel(i.categoria)}</TableCell>
                     <TableCell>{Number(i.quantidade)}</TableCell>
                     <TableCell>{i.unidade}</TableCell>
-                    <TableCell>{i.peso_kg ?? "—"}</TableCell>
                     <TableCell>R$ {Number(i.preco_unitario).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                     <TableCell className="font-medium">R$ {Number(i.preco_total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
                     {editable && (
@@ -1497,16 +1494,7 @@ function ItensEditor({
                 onChange={(e) => setNovo({ ...novo, unidade: e.target.value })}
               />
             </div>
-            <div className="col-span-1 space-y-1">
-              <Label className="text-xs">Peso</Label>
-              <Input
-                type="number"
-                step="0.001"
-                value={novo.peso_kg ?? ""}
-                onChange={(e) => setNovo({ ...novo, peso_kg: e.target.value ? Number(e.target.value) : null })}
-              />
-            </div>
-            <div className="col-span-1 space-y-1">
+            <div className="col-span-2 space-y-1">
               <Label className="text-xs">R$ Unit.</Label>
               <Input
                 type="number"
