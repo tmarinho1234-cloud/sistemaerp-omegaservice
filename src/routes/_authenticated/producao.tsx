@@ -133,32 +133,42 @@ function ProducaoPage() {
       if (!editando) return;
       const conjunto = conjuntos.find((c) => c.id === editando.conjunto_id);
       const totalQtd = Number(conjunto?.quantidade ?? 0);
-      const quantidade = Number(ef.quantidade || 0);
-      const status = totalQtd > 0 && quantidade >= totalQtd ? "concluida" : quantidade > 0 ? "em_andamento" : "nao_iniciada";
+      const percent = Math.max(0, Math.min(100, Number(ef.percent || 0)));
+      const quantidade = totalQtd ? (percent / 100) * totalQtd : 0;
+      const status = percent >= 100 ? "concluida" : percent > 0 ? "em_andamento" : "nao_iniciada";
       const { error } = await supabase
         .from("pedido_conjunto_atividades")
         .update({ status, quantidade_executada: quantidade })
         .eq("id", editando.id);
       if (error) throw error;
-
-
-      const { data: lista, error: le } = await supabase.from("pedido_conjunto_atividades").select("*").eq("conjunto_id", editando.conjunto_id);
-      if (le) throw le;
-      const todas = (lista ?? []) as unknown as Atividade[];
-      const concluidas = todas.filter((a) => a.status === "concluida").length;
-      const progresso = todas.length ? (concluidas / todas.length) * 100 : 0;
-      const fabricada = todas.length ? Math.min(...todas.map((a) => Number(a.quantidade_executada ?? 0))) : 0;
-      const pesoFab = conjunto?.peso_kg && conjunto.quantidade ? (Number(conjunto.peso_kg) * fabricada) / Number(conjunto.quantidade) : 0;
-      const statusConjunto = progresso >= 100 ? "aguardando_qualidade" : progresso > 0 ? "em_producao" : "planejado";
-      const upd = await supabase
-        .from("pedido_conjuntos")
-        .update({ progresso, quantidade_fabricada: fabricada, peso_fabricado_kg: pesoFab, ...(conjunto?.liberado_qualidade ? {} : { status: statusConjunto }) })
-        .eq("id", editando.conjunto_id);
-      if (upd.error) throw upd.error;
+      await recalcularConjunto(editando.conjunto_id);
     },
     onSuccess: () => {
       toast.success("Atividade atualizada");
       setEditando(null);
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  /** Informa quantos conjuntos estão prontos; sobe o avanço das atividades atrasadas. */
+  const salvarProntos = useMutation({
+    mutationFn: async (conjuntoId: string) => {
+      const conjunto = conjuntos.find((c) => c.id === conjuntoId);
+      const total = Number(conjunto?.quantidade ?? 0);
+      const desejada = Math.max(0, Number(prontos[conjuntoId] || 0));
+      const qtd = total ? Math.min(total, desejada) : desejada;
+      const lista = atividades.filter((a) => a.conjunto_id === conjuntoId);
+      for (const a of lista) {
+        if (Number(a.quantidade_executada ?? 0) >= qtd) continue;
+        const status = total > 0 && qtd >= total ? "concluida" : qtd > 0 ? "em_andamento" : "nao_iniciada";
+        const { error } = await supabase.from("pedido_conjunto_atividades").update({ quantidade_executada: qtd, status }).eq("id", a.id);
+        if (error) throw error;
+      }
+      await recalcularConjunto(conjuntoId);
+    },
+    onSuccess: () => {
+      toast.success("Quantidade pronta registrada");
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
