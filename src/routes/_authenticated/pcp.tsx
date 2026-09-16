@@ -50,6 +50,7 @@ type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: st
 
 function PcpPage() {
   const qc = useQueryClient();
+  useSincronizacaoTempoReal();
   const { data: pedidos = [] } = usePedidos();
   const { data: todosConjuntos = [] } = useTodosConjuntos();
   const [contrato, setContrato] = useState("todos");
