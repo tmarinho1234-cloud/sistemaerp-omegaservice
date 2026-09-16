@@ -299,6 +299,7 @@ function PcpPage() {
               <Info label="Avanço real" value={`${detalhe.real.toFixed(0)}%`} />
               <Info label="Valor" value={moneyBr(pedido.valor_total)} />
               <Info label="Peso total" value={`${pesoTotal.toLocaleString("pt-BR")} kg`} />
+              <Info label="Início de fabricação" value={pedido.producao_iniciada ? dateBr(pedido.data_inicio_producao) : "Não iniciada"} />
             </CardContent>
           </Card>
 
