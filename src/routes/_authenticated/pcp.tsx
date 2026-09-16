@@ -27,6 +27,7 @@ import {
   pcpStatusLabel,
   useConjuntos,
   usePedidos,
+  useSincronizacaoTempoReal,
   useTodosConjuntos,
   type ConjuntoResumo,
 } from "@/components/operations";
