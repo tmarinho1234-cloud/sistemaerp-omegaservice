@@ -468,6 +468,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feriados: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       funcionarios: {
         Row: {
           ativo: boolean
@@ -985,6 +1012,7 @@ export type Database = {
           condicoes_comerciais: string | null
           created_at: string
           created_by: string | null
+          data_aprovacao: string | null
           data_sla: string | null
           enviado_em: string | null
           id: string
@@ -1006,6 +1034,7 @@ export type Database = {
           condicoes_comerciais?: string | null
           created_at?: string
           created_by?: string | null
+          data_aprovacao?: string | null
           data_sla?: string | null
           enviado_em?: string | null
           id?: string
@@ -1027,6 +1056,7 @@ export type Database = {
           condicoes_comerciais?: string | null
           created_at?: string
           created_by?: string | null
+          data_aprovacao?: string | null
           data_sla?: string | null
           enviado_em?: string | null
           id?: string
@@ -1182,6 +1212,7 @@ export type Database = {
           motivo: string
           nova_data: string
           pedido_id: string
+          tipo: string
         }
         Insert: {
           conjunto_id?: string | null
@@ -1193,6 +1224,7 @@ export type Database = {
           motivo: string
           nova_data: string
           pedido_id: string
+          tipo?: string
         }
         Update: {
           conjunto_id?: string | null
@@ -1204,6 +1236,7 @@ export type Database = {
           motivo?: string
           nova_data?: string
           pedido_id?: string
+          tipo?: string
         }
         Relationships: [
           {
@@ -1365,6 +1398,9 @@ export type Database = {
           contrato_id: string | null
           created_at: string
           created_by: string | null
+          data_aprovacao: string | null
+          data_chegada_materiais: string | null
+          data_chegada_materiais_original: string | null
           data_emissao: string
           data_inicio_producao: string | null
           data_sla: string | null
@@ -1374,6 +1410,7 @@ export type Database = {
           orcamento_id: string | null
           pcp_status: string
           pomg_codigo: string | null
+          prazo_aquisicao_dias: number | null
           prazo_dias: number | null
           prazo_entrega: string | null
           producao_iniciada: boolean
@@ -1386,6 +1423,9 @@ export type Database = {
           contrato_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_aprovacao?: string | null
+          data_chegada_materiais?: string | null
+          data_chegada_materiais_original?: string | null
           data_emissao?: string
           data_inicio_producao?: string | null
           data_sla?: string | null
@@ -1395,6 +1435,7 @@ export type Database = {
           orcamento_id?: string | null
           pcp_status?: string
           pomg_codigo?: string | null
+          prazo_aquisicao_dias?: number | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
           producao_iniciada?: boolean
@@ -1407,6 +1448,9 @@ export type Database = {
           contrato_id?: string | null
           created_at?: string
           created_by?: string | null
+          data_aprovacao?: string | null
+          data_chegada_materiais?: string | null
+          data_chegada_materiais_original?: string | null
           data_emissao?: string
           data_inicio_producao?: string | null
           data_sla?: string | null
@@ -1416,6 +1460,7 @@ export type Database = {
           orcamento_id?: string | null
           pcp_status?: string
           pomg_codigo?: string | null
+          prazo_aquisicao_dias?: number | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
           producao_iniciada?: boolean
