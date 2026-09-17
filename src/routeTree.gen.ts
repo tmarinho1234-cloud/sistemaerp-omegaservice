@@ -26,6 +26,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
+import { Route as AuthenticatedCadastrosFeriadosRouteImport } from './routes/_authenticated/cadastros/feriados'
 import { Route as AuthenticatedCadastrosEquipamentosRouteImport } from './routes/_authenticated/cadastros/equipamentos'
 import { Route as AuthenticatedCadastrosContratosRouteImport } from './routes/_authenticated/cadastros/contratos'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -117,6 +118,12 @@ const AuthenticatedCadastrosFuncionariosRoute =
     path: '/cadastros/funcionarios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCadastrosFeriadosRoute =
+  AuthenticatedCadastrosFeriadosRouteImport.update({
+    id: '/cadastros/feriados',
+    path: '/cadastros/feriados',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCadastrosEquipamentosRoute =
   AuthenticatedCadastrosEquipamentosRouteImport.update({
     id: '/cadastros/equipamentos',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
@@ -174,6 +182,7 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
@@ -197,6 +206,7 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
   '/_authenticated/cadastros/equipamentos': typeof AuthenticatedCadastrosEquipamentosRoute
+  '/_authenticated/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
 }
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
+    | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
   fileRoutesByTo: FileRoutesByTo
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
     | '/cadastros/equipamentos'
+    | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
   id:
@@ -263,6 +275,7 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/_authenticated/cadastros/contratos'
     | '/_authenticated/cadastros/equipamentos'
+    | '/_authenticated/cadastros/feriados'
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
   fileRoutesById: FileRoutesById
@@ -397,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCadastrosFuncionariosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cadastros/feriados': {
+      id: '/_authenticated/cadastros/feriados'
+      path: '/cadastros/feriados'
+      fullPath: '/cadastros/feriados'
+      preLoaderRoute: typeof AuthenticatedCadastrosFeriadosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cadastros/equipamentos': {
       id: '/_authenticated/cadastros/equipamentos'
       path: '/cadastros/equipamentos'
@@ -434,6 +454,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
+  AuthenticatedCadastrosFeriadosRoute: typeof AuthenticatedCadastrosFeriadosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
   AuthenticatedCadastrosSubAreasRoute: typeof AuthenticatedCadastrosSubAreasRoute
 }
@@ -452,6 +473,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
   AuthenticatedCadastrosEquipamentosRoute:
     AuthenticatedCadastrosEquipamentosRoute,
+  AuthenticatedCadastrosFeriadosRoute: AuthenticatedCadastrosFeriadosRoute,
   AuthenticatedCadastrosFuncionariosRoute:
     AuthenticatedCadastrosFuncionariosRoute,
   AuthenticatedCadastrosSubAreasRoute: AuthenticatedCadastrosSubAreasRoute,
