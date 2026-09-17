@@ -13,6 +13,10 @@ export type PedidoResumo = {
   prazo_entrega: string | null;
   data_sla: string | null;
   prazo_dias: number | null;
+  data_aprovacao: string | null;
+  prazo_aquisicao_dias: number | null;
+  data_chegada_materiais: string | null;
+  data_chegada_materiais_original: string | null;
   pcp_status: string;
   producao_iniciada: boolean;
   data_inicio_producao: string | null;
@@ -105,6 +109,35 @@ export const dateBr = (value?: string | null) => (value ? new Date(`${value.slic
 export const moneyBr = (value: number) => Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const hoursBetween = (start: string, end?: string | null) => Math.max(0, (new Date(end ?? Date.now()).getTime() - new Date(start).getTime()) / 3_600_000);
 
+export type Feriado = { id: string; data: string; nome: string; ativo: boolean };
+
+/** Feriados cadastrados, usados nos cálculos de dias úteis. */
+export function useFeriados() {
+  return useQuery({
+    queryKey: ["feriados"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("feriados").select("*").eq("ativo", true).order("data");
+      if (error) throw error;
+      return data as unknown as Feriado[];
+    },
+  });
+}
+
+/** Soma dias úteis a uma data (ISO yyyy-mm-dd), pulando sábados, domingos e feriados cadastrados. */
+export function somarDiasUteis(base: string | null | undefined, dias: number | null | undefined, feriados: string[] = []) {
+  if (!base || !dias || dias <= 0) return base ? base.slice(0, 10) : null;
+  const set = new Set(feriados.map((f) => f.slice(0, 10)));
+  const d = new Date(`${base.slice(0, 10)}T12:00:00`);
+  let restantes = Math.floor(dias);
+  while (restantes > 0) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    const iso = d.toISOString().slice(0, 10);
+    if (dow !== 0 && dow !== 6 && !set.has(iso)) restantes -= 1;
+  }
+  return d.toISOString().slice(0, 10);
+}
+
 export const diasRestantes = (prazo?: string | null) =>
   prazo ? Math.ceil((new Date(`${prazo.slice(0, 10)}T12:00:00`).getTime() - Date.now()) / 86_400_000) : null;
 
@@ -175,6 +208,7 @@ const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
   databook_relatorios: ["databook"],
   contratos: ["contratos-select", "pedidos-operacionais", "kpi-central"],
   sub_areas: ["sub-areas", "sub-areas-select", "pedidos-operacionais"],
+  feriados: ["feriados"],
 };
 
 /** Mantém todos os módulos (Orçamentos, PCP, Produção, Qualidade, Expedição, Medição, Databook e painéis) sincronizados em tempo real. */

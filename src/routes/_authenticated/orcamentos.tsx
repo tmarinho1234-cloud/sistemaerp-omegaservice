@@ -32,7 +32,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ATIVIDADES, REQUISITOS, atividadeLabel, situacaoLabel, useSincronizacaoTempoReal } from "@/components/operations";
+import { ATIVIDADES, REQUISITOS, atividadeLabel, dateBr, situacaoLabel, somarDiasUteis, useFeriados, useSincronizacaoTempoReal } from "@/components/operations";
 import {
   Select,
   SelectContent,
@@ -1110,6 +1110,7 @@ type Orcamento = {
   situacao: string;
   prazo_dias: number | null;
   data_sla: string | null;
+  data_aprovacao: string | null;
   pomg_codigo: string | null;
   enviado_em: string | null;
   respondido_em: string | null;
@@ -1769,6 +1770,30 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [prazoDias, setPrazoDias] = useState("");
   const [dataSla, setDataSla] = useState("");
+  const [dataAprovacao, setDataAprovacao] = useState(new Date().toISOString().slice(0, 10));
+  const { data: feriados = [] } = useFeriados();
+
+  const { data: analise } = useQuery({
+    queryKey: ["analise-aquisicao", sol.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("analises_tecnicas")
+        .select("aquisicao_materiais, prazo_aquisicao_dias")
+        .eq("solicitacao_id", sol.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { aquisicao_materiais: boolean; prazo_aquisicao_dias: number | null } | null;
+    },
+  });
+  const prazoAquisicao = analise?.aquisicao_materiais ? (analise.prazo_aquisicao_dias ?? null) : null;
+  const chegadaPrevista = somarDiasUteis(
+    dataAprovacao,
+    prazoAquisicao,
+    feriados.map((f) => f.data),
+  );
+
 
   const { data: orc } = useQuery({
     queryKey: ["orcamento", sol.id],
@@ -1804,14 +1829,23 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
     mutationFn: async () => {
       if (!orc) throw new Error("Sem proposta");
       if (!prazoDias || !dataSla) throw new Error("Informe o prazo e a data SLA da aprovação");
+      if (!dataAprovacao) throw new Error("Informe a data de aprovação");
       const { error } = await supabase
         .from("orcamentos")
-        .update({ status: "aprovado", situacao: "aprovado", prazo_dias: Number(prazoDias), data_sla: dataSla, respondido_em: new Date().toISOString() })
+        .update({
+          status: "aprovado",
+          situacao: "aprovado",
+          prazo_dias: Number(prazoDias),
+          data_sla: dataSla,
+          data_aprovacao: dataAprovacao,
+          respondido_em: new Date().toISOString(),
+        })
         .eq("id", orc.id);
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "aprovada" }).eq("id", sol.id);
 
       const entrega = prazoEntrega || dataSla;
+      const chegada = somarDiasUteis(dataAprovacao, prazoAquisicao, feriados.map((f) => f.data));
 
       // Já existe pedido (reaprovação após alteração): apenas atualiza os dados
       if (pedido) {
@@ -1822,6 +1856,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
             prazo_entrega: entrega,
             data_sla: dataSla,
             prazo_dias: Number(prazoDias),
+            data_aprovacao: dataAprovacao,
+            prazo_aquisicao_dias: prazoAquisicao,
+            data_chegada_materiais: chegada,
+            data_chegada_materiais_original: pedido.data_chegada_materiais_original ?? chegada,
           })
           .eq("id", pedido.id);
         if (upd.error) throw upd.error;
@@ -1830,7 +1868,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           orcamentoId: orc.id,
           solicitacaoId: sol.id,
           acao: "reaprovado",
-          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Alterações aplicadas nos módulos.`,
+          descricao: `Proposta reaprovada — aprovação ${dataAprovacao}, prazo ${prazoDias} dias, SLA ${dataSla}${prazoAquisicao ? `, aquisição ${prazoAquisicao} dias úteis (chegada ${chegada})` : ""}. Alterações aplicadas nos módulos.`,
           valorNovo: Number(orc.valor_total),
         });
         return;
@@ -1848,6 +1886,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           prazo_entrega: entrega,
           data_sla: dataSla,
           prazo_dias: Number(prazoDias),
+          data_aprovacao: dataAprovacao,
+          prazo_aquisicao_dias: prazoAquisicao,
+          data_chegada_materiais: chegada,
+          data_chegada_materiais_original: chegada,
           valor_total: Number(orc.valor_total),
           status: "aberto",
           pcp_status: "nao_iniciado",

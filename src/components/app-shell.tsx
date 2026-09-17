@@ -16,6 +16,7 @@ import {
   Building2,
   Wrench,
   UserCog,
+  CalendarDays,
   LogOut,
   Menu,
   X,
@@ -55,6 +56,7 @@ const navGroups: { title: string; items: NavItem[] }[] = [
       { to: "/cadastros/contratos", label: "Contratos", icon: Building2 },
       { to: "/cadastros/equipamentos", label: "Equipamentos", icon: Wrench },
       { to: "/cadastros/funcionarios", label: "Funcionários", icon: UserCog },
+      { to: "/cadastros/feriados", label: "Feriados", icon: CalendarDays },
     ],
   },
 ];
