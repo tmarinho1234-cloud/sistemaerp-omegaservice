@@ -1770,6 +1770,30 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const [prazoEntrega, setPrazoEntrega] = useState("");
   const [prazoDias, setPrazoDias] = useState("");
   const [dataSla, setDataSla] = useState("");
+  const [dataAprovacao, setDataAprovacao] = useState(new Date().toISOString().slice(0, 10));
+  const { data: feriados = [] } = useFeriados();
+
+  const { data: analise } = useQuery({
+    queryKey: ["analise-aquisicao", sol.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("analises_tecnicas")
+        .select("aquisicao_materiais, prazo_aquisicao_dias")
+        .eq("solicitacao_id", sol.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { aquisicao_materiais: boolean; prazo_aquisicao_dias: number | null } | null;
+    },
+  });
+  const prazoAquisicao = analise?.aquisicao_materiais ? (analise.prazo_aquisicao_dias ?? null) : null;
+  const chegadaPrevista = somarDiasUteis(
+    dataAprovacao,
+    prazoAquisicao,
+    feriados.map((f) => f.data),
+  );
+
 
   const { data: orc } = useQuery({
     queryKey: ["orcamento", sol.id],
