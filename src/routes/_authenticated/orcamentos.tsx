@@ -32,7 +32,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ATIVIDADES, REQUISITOS, atividadeLabel, situacaoLabel, useSincronizacaoTempoReal } from "@/components/operations";
+import { ATIVIDADES, REQUISITOS, atividadeLabel, dateBr, situacaoLabel, somarDiasUteis, useFeriados, useSincronizacaoTempoReal } from "@/components/operations";
 import {
   Select,
   SelectContent,
@@ -1110,6 +1110,7 @@ type Orcamento = {
   situacao: string;
   prazo_dias: number | null;
   data_sla: string | null;
+  data_aprovacao: string | null;
   pomg_codigo: string | null;
   enviado_em: string | null;
   respondido_em: string | null;
