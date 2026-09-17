@@ -1829,14 +1829,23 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
     mutationFn: async () => {
       if (!orc) throw new Error("Sem proposta");
       if (!prazoDias || !dataSla) throw new Error("Informe o prazo e a data SLA da aprovação");
+      if (!dataAprovacao) throw new Error("Informe a data de aprovação");
       const { error } = await supabase
         .from("orcamentos")
-        .update({ status: "aprovado", situacao: "aprovado", prazo_dias: Number(prazoDias), data_sla: dataSla, respondido_em: new Date().toISOString() })
+        .update({
+          status: "aprovado",
+          situacao: "aprovado",
+          prazo_dias: Number(prazoDias),
+          data_sla: dataSla,
+          data_aprovacao: dataAprovacao,
+          respondido_em: new Date().toISOString(),
+        })
         .eq("id", orc.id);
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "aprovada" }).eq("id", sol.id);
 
       const entrega = prazoEntrega || dataSla;
+      const chegada = somarDiasUteis(dataAprovacao, prazoAquisicao, feriados.map((f) => f.data));
 
       // Já existe pedido (reaprovação após alteração): apenas atualiza os dados
       if (pedido) {
@@ -1847,6 +1856,10 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
             prazo_entrega: entrega,
             data_sla: dataSla,
             prazo_dias: Number(prazoDias),
+            data_aprovacao: dataAprovacao,
+            prazo_aquisicao_dias: prazoAquisicao,
+            data_chegada_materiais: chegada,
+            data_chegada_materiais_original: pedido.data_chegada_materiais_original ?? chegada,
           })
           .eq("id", pedido.id);
         if (upd.error) throw upd.error;
@@ -1855,7 +1868,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           orcamentoId: orc.id,
           solicitacaoId: sol.id,
           acao: "reaprovado",
-          descricao: `Proposta reaprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Alterações aplicadas nos módulos.`,
+          descricao: `Proposta reaprovada — aprovação ${dataAprovacao}, prazo ${prazoDias} dias, SLA ${dataSla}${prazoAquisicao ? `, aquisição ${prazoAquisicao} dias úteis (chegada ${chegada})` : ""}. Alterações aplicadas nos módulos.`,
           valorNovo: Number(orc.valor_total),
         });
         return;
