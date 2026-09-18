@@ -25,11 +25,14 @@ import {
   diasRestantes,
   moneyBr,
   pcpStatusLabel,
+  somarDiasUteis,
   useConjuntos,
+  useFeriados,
   usePedidos,
   useSincronizacaoTempoReal,
   useTodosConjuntos,
   type ConjuntoResumo,
+  type PedidoResumo,
 } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/pcp")({
@@ -46,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/pcp")({
   component: PcpPage,
 });
 
-type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: string | null; nova_data: string; motivo: string; impacto_dias: number; created_at: string };
+type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: string | null; nova_data: string; motivo: string; impacto_dias: number; tipo: string; created_at: string };
 
 function PcpPage() {
   const qc = useQueryClient();
