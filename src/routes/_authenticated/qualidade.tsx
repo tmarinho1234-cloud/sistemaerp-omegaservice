@@ -64,7 +64,12 @@ function QualidadePage() {
     queryKey: ["inspecoes", pedidoId],
     enabled: Boolean(pedidoId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("inspecoes_qualidade").select("*").eq("pedido_id", pedidoId).order("data_inspecao", { ascending: false });
+      const { data, error } = await supabase
+        .from("inspecoes_qualidade")
+        .select("*")
+        .eq("pedido_id", pedidoId)
+        .order("data_inspecao", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Inspecao[];
     },
