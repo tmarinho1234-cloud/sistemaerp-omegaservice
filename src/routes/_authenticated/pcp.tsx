@@ -259,6 +259,11 @@ function PcpPage() {
                   <TableHead>POMG</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Subárea</TableHead>
+                  <TableHead>Aprovação</TableHead>
+                  <TableHead>Aquisição</TableHead>
+                  <TableHead>Chegada materiais / início prev.</TableHead>
+                  <TableHead>Início real</TableHead>
+                  <TableHead>Entrega</TableHead>
                   <TableHead>Avanço geral</TableHead>
                   <TableHead>Previsto</TableHead>
                   <TableHead>Real</TableHead>
@@ -275,6 +280,27 @@ function PcpPage() {
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
                       <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{dateBr(p.data_aprovacao)}</TableCell>
+                      <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="underline decoration-dotted underline-offset-2"
+                          onClick={() => {
+                            setAquisicaoPedido(p);
+                            setAquisicao({ dias: String(p.prazo_aquisicao_dias ?? ""), motivo: "" });
+                          }}
+                        >
+                          {p.prazo_aquisicao_dias ? `${p.prazo_aquisicao_dias} dias úteis` : "sem aquisição"}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {dateBr(p.data_chegada_materiais)}
+                        {p.data_chegada_materiais_original && p.data_chegada_materiais_original !== p.data_chegada_materiais && (
+                          <span className="ml-1 text-muted-foreground line-through">{dateBr(p.data_chegada_materiais_original)}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">{p.producao_iniciada ? dateBr(p.data_inicio_producao) : "—"}</TableCell>
+                      <TableCell className="text-xs">{dateBr(p.prazo_entrega ?? p.data_sla)}</TableCell>
                       <TableCell>
                         <ProgressBar value={real} />
                       </TableCell>
@@ -312,7 +338,7 @@ function PcpPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={15} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda aprovada chegou ao PCP.
                     </TableCell>
                   </TableRow>
