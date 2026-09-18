@@ -373,6 +373,16 @@ function PcpPage() {
               <Info label="Valor" value={moneyBr(pedido.valor_total)} />
               <Info label="Peso total" value={`${pesoTotal.toLocaleString("pt-BR")} kg`} />
               <Info label="Início de fabricação" value={pedido.producao_iniciada ? dateBr(pedido.data_inicio_producao) : "Não iniciada"} />
+              <Info label="Data de aprovação" value={dateBr(pedido.data_aprovacao)} />
+              <Info label="Prazo de aquisição" value={pedido.prazo_aquisicao_dias ? `${pedido.prazo_aquisicao_dias} dias úteis` : "Sem aquisição"} />
+              <Info
+                label="Chegada materiais / início prev."
+                value={
+                  pedido.data_chegada_materiais_original && pedido.data_chegada_materiais_original !== pedido.data_chegada_materiais
+                    ? `${dateBr(pedido.data_chegada_materiais)} (original ${dateBr(pedido.data_chegada_materiais_original)})`
+                    : dateBr(pedido.data_chegada_materiais)
+                }
+              />
             </CardContent>
           </Card>
 
@@ -487,6 +497,36 @@ function PcpPage() {
             </Button>
             <Button onClick={() => reprogramar.mutate()} disabled={!reprog.nova_data || !reprog.motivo}>
               Registrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(aquisicaoPedido)} onOpenChange={(o) => !o && setAquisicaoPedido(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Prazo de aquisição · {aquisicaoPedido?.pomg_codigo ?? aquisicaoPedido?.numero ?? ""}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Aprovação em {dateBr(aquisicaoPedido?.data_aprovacao)} · chegada atual {dateBr(aquisicaoPedido?.data_chegada_materiais)}
+          </p>
+          <div className="space-y-1.5">
+            <Label>Prazo de aquisição (dias úteis)</Label>
+            <Input type="number" min="0" value={aquisicao.dias} onChange={(e) => setAquisicao({ ...aquisicao, dias: e.target.value })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Motivo da reprogramação</Label>
+            <Textarea value={aquisicao.motivo} onChange={(e) => setAquisicao({ ...aquisicao, motivo: e.target.value })} />
+          </div>
+          <p className="text-sm">
+            Nova chegada dos materiais / início da fabricação: <strong>{dateBr(novaChegada)}</strong>
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAquisicaoPedido(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => reprogramarAquisicao.mutate()} disabled={!aquisicao.dias || !aquisicao.motivo || reprogramarAquisicao.isPending}>
+              Recalcular e registrar
             </Button>
           </DialogFooter>
         </DialogContent>
