@@ -61,6 +61,11 @@ function PcpPage() {
   const [pedidoId, setPedidoId] = useState("");
   const [reprogramando, setReprogramando] = useState<ConjuntoResumo | null>(null);
   const [reprog, setReprog] = useState({ nova_data: "", motivo: "" });
+  const [aquisicaoPedido, setAquisicaoPedido] = useState<PedidoResumo | null>(null);
+  const [aquisicao, setAquisicao] = useState({ dias: "", motivo: "" });
+  const { data: feriados = [] } = useFeriados();
+  const datasFeriados = useMemo(() => feriados.map((f) => f.data), [feriados]);
+  const novaChegada = somarDiasUteis(aquisicaoPedido?.data_aprovacao, aquisicao.dias ? Number(aquisicao.dias) : null, datasFeriados);
   const pedido = pedidos.find((p) => p.id === pedidoId);
   const { data: conjuntos = [] } = useConjuntos(pedidoId);
 
