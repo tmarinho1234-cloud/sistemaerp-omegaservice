@@ -1939,7 +1939,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         orcamentoId: orc.id,
         solicitacaoId: sol.id,
         acao: "aprovado",
-        descricao: `Proposta aprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Demanda liberada para o PCP.`,
+        descricao: `Proposta aprovada em ${dataAprovacao} — prazo ${prazoDias} dias, SLA ${dataSla}${prazoAquisicao ? `, aquisição ${prazoAquisicao} dias úteis (chegada dos materiais ${chegada})` : ""}. Demanda liberada para o PCP.`,
         valorNovo: Number(orc.valor_total),
       });
     },
@@ -2025,25 +2025,45 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
           </div>
 
           {orc.status === "enviado" && (
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="space-y-2">
-                <Label>Prazo (dias)</Label>
-                <Input type="number" min="1" value={prazoDias} onChange={(e) => setPrazoDias(e.target.value)} />
+            <>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="space-y-2">
+                  <Label>Data de aprovação</Label>
+                  <Input type="date" value={dataAprovacao} onChange={(e) => setDataAprovacao(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prazo (dias)</Label>
+                  <Input type="number" min="1" value={prazoDias} onChange={(e) => setPrazoDias(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data SLA</Label>
+                  <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Prazo de entrega (opcional)</Label>
+                  <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Data SLA</Label>
-                <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
+              <div className="rounded-md border bg-muted/40 p-3 text-sm">
+                <div className="font-medium">Aquisição de materiais</div>
+                {prazoAquisicao ? (
+                  <p className="text-muted-foreground">
+                    Prazo de {prazoAquisicao} dias úteis (definido na Análise Técnica) · chegada dos materiais / início da fabricação previsto para{" "}
+                    <strong>{dateBr(chegadaPrevista)}</strong>
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">Sem aquisição de materiais na Análise Técnica — a fabricação pode iniciar após a aprovação.</p>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label>Prazo de entrega (opcional)</Label>
-                <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
-              </div>
-            </div>
+            </>
           )}
 
           {orc.status === "aprovado" && (
             <p className="text-sm text-muted-foreground">
-              Prazo {orc.prazo_dias ?? "—"} dias · Data SLA {formatDate(orc.data_sla)}
+              Aprovado em {formatDate(orc.data_aprovacao)} · Prazo {orc.prazo_dias ?? "—"} dias · Data SLA {formatDate(orc.data_sla)}
+              {pedido?.prazo_aquisicao_dias
+                ? ` · aquisição ${pedido.prazo_aquisicao_dias} dias úteis · chegada dos materiais ${dateBr(pedido.data_chegada_materiais)}`
+                : ""}
             </p>
           )}
 

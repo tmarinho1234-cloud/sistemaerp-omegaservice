@@ -25,11 +25,14 @@ import {
   diasRestantes,
   moneyBr,
   pcpStatusLabel,
+  somarDiasUteis,
   useConjuntos,
+  useFeriados,
   usePedidos,
   useSincronizacaoTempoReal,
   useTodosConjuntos,
   type ConjuntoResumo,
+  type PedidoResumo,
 } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/pcp")({
@@ -46,7 +49,7 @@ export const Route = createFileRoute("/_authenticated/pcp")({
   component: PcpPage,
 });
 
-type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: string | null; nova_data: string; motivo: string; impacto_dias: number; created_at: string };
+type Reprogramacao = { id: string; conjunto_id: string | null; data_anterior: string | null; nova_data: string; motivo: string; impacto_dias: number; tipo: string; created_at: string };
 
 function PcpPage() {
   const qc = useQueryClient();
@@ -58,6 +61,11 @@ function PcpPage() {
   const [pedidoId, setPedidoId] = useState("");
   const [reprogramando, setReprogramando] = useState<ConjuntoResumo | null>(null);
   const [reprog, setReprog] = useState({ nova_data: "", motivo: "" });
+  const [aquisicaoPedido, setAquisicaoPedido] = useState<PedidoResumo | null>(null);
+  const [aquisicao, setAquisicao] = useState({ dias: "", motivo: "" });
+  const { data: feriados = [] } = useFeriados();
+  const datasFeriados = useMemo(() => feriados.map((f) => f.data), [feriados]);
+  const novaChegada = somarDiasUteis(aquisicaoPedido?.data_aprovacao, aquisicao.dias ? Number(aquisicao.dias) : null, datasFeriados);
   const pedido = pedidos.find((p) => p.id === pedidoId);
   const { data: conjuntos = [] } = useConjuntos(pedidoId);
 
@@ -144,6 +152,45 @@ function PcpPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reprogramarAquisicao = useMutation({
+    mutationFn: async () => {
+      const p = aquisicaoPedido;
+      if (!p) return;
+      if (!p.data_aprovacao) throw new Error("Esta demanda não tem data de aprovação registrada");
+      const dias = Number(aquisicao.dias);
+      if (!dias || dias < 0) throw new Error("Informe o novo prazo de aquisição em dias úteis");
+      const nova = somarDiasUteis(p.data_aprovacao, dias, datasFeriados);
+      if (!nova) throw new Error("Não foi possível calcular a nova data");
+      const anterior = p.data_chegada_materiais;
+      const impacto = anterior ? Math.round((new Date(`${nova}T12:00:00`).getTime() - new Date(`${anterior}T12:00:00`).getTime()) / 86400000) : 0;
+      const ins = await supabase.from("pcp_reprogramacoes").insert({
+        pedido_id: p.id,
+        data_anterior: anterior,
+        nova_data: nova,
+        motivo: `Aquisição de materiais: ${dias} dias úteis — ${aquisicao.motivo}`,
+        impacto_dias: impacto,
+        tipo: "aquisicao",
+      });
+      if (ins.error) throw ins.error;
+      const upd = await supabase
+        .from("pedidos")
+        .update({
+          prazo_aquisicao_dias: dias,
+          data_chegada_materiais: nova,
+          data_chegada_materiais_original: p.data_chegada_materiais_original ?? anterior ?? nova,
+        })
+        .eq("id", p.id);
+      if (upd.error) throw upd.error;
+    },
+    onSuccess: () => {
+      toast.success("Prazo de aquisição atualizado e nova data de chegada calculada");
+      setAquisicaoPedido(null);
+      setAquisicao({ dias: "", motivo: "" });
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const criticos = linhas.filter((l) => l.farol === "vermelho").length;
   const desvio = linhas.filter((l) => l.farol === "amarelo").length;
   const pesoTotal = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
@@ -212,6 +259,11 @@ function PcpPage() {
                   <TableHead>POMG</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Subárea</TableHead>
+                  <TableHead>Aprovação</TableHead>
+                  <TableHead>Aquisição</TableHead>
+                  <TableHead>Chegada materiais / início prev.</TableHead>
+                  <TableHead>Início real</TableHead>
+                  <TableHead>Entrega</TableHead>
                   <TableHead>Avanço geral</TableHead>
                   <TableHead>Previsto</TableHead>
                   <TableHead>Real</TableHead>
@@ -228,6 +280,27 @@ function PcpPage() {
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
                       <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{dateBr(p.data_aprovacao)}</TableCell>
+                      <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="underline decoration-dotted underline-offset-2"
+                          onClick={() => {
+                            setAquisicaoPedido(p);
+                            setAquisicao({ dias: String(p.prazo_aquisicao_dias ?? ""), motivo: "" });
+                          }}
+                        >
+                          {p.prazo_aquisicao_dias ? `${p.prazo_aquisicao_dias} dias úteis` : "sem aquisição"}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {dateBr(p.data_chegada_materiais)}
+                        {p.data_chegada_materiais_original && p.data_chegada_materiais_original !== p.data_chegada_materiais && (
+                          <span className="ml-1 text-muted-foreground line-through">{dateBr(p.data_chegada_materiais_original)}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">{p.producao_iniciada ? dateBr(p.data_inicio_producao) : "—"}</TableCell>
+                      <TableCell className="text-xs">{dateBr(p.prazo_entrega ?? p.data_sla)}</TableCell>
                       <TableCell>
                         <ProgressBar value={real} />
                       </TableCell>
@@ -265,7 +338,7 @@ function PcpPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={15} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda aprovada chegou ao PCP.
                     </TableCell>
                   </TableRow>
@@ -300,6 +373,16 @@ function PcpPage() {
               <Info label="Valor" value={moneyBr(pedido.valor_total)} />
               <Info label="Peso total" value={`${pesoTotal.toLocaleString("pt-BR")} kg`} />
               <Info label="Início de fabricação" value={pedido.producao_iniciada ? dateBr(pedido.data_inicio_producao) : "Não iniciada"} />
+              <Info label="Data de aprovação" value={dateBr(pedido.data_aprovacao)} />
+              <Info label="Prazo de aquisição" value={pedido.prazo_aquisicao_dias ? `${pedido.prazo_aquisicao_dias} dias úteis` : "Sem aquisição"} />
+              <Info
+                label="Chegada materiais / início prev."
+                value={
+                  pedido.data_chegada_materiais_original && pedido.data_chegada_materiais_original !== pedido.data_chegada_materiais
+                    ? `${dateBr(pedido.data_chegada_materiais)} (original ${dateBr(pedido.data_chegada_materiais_original)})`
+                    : dateBr(pedido.data_chegada_materiais)
+                }
+              />
             </CardContent>
           </Card>
 
@@ -414,6 +497,36 @@ function PcpPage() {
             </Button>
             <Button onClick={() => reprogramar.mutate()} disabled={!reprog.nova_data || !reprog.motivo}>
               Registrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(aquisicaoPedido)} onOpenChange={(o) => !o && setAquisicaoPedido(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Prazo de aquisição · {aquisicaoPedido?.pomg_codigo ?? aquisicaoPedido?.numero ?? ""}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Aprovação em {dateBr(aquisicaoPedido?.data_aprovacao)} · chegada atual {dateBr(aquisicaoPedido?.data_chegada_materiais)}
+          </p>
+          <div className="space-y-1.5">
+            <Label>Prazo de aquisição (dias úteis)</Label>
+            <Input type="number" min="0" value={aquisicao.dias} onChange={(e) => setAquisicao({ ...aquisicao, dias: e.target.value })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Motivo da reprogramação</Label>
+            <Textarea value={aquisicao.motivo} onChange={(e) => setAquisicao({ ...aquisicao, motivo: e.target.value })} />
+          </div>
+          <p className="text-sm">
+            Nova chegada dos materiais / início da fabricação: <strong>{dateBr(novaChegada)}</strong>
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAquisicaoPedido(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => reprogramarAquisicao.mutate()} disabled={!aquisicao.dias || !aquisicao.motivo || reprogramarAquisicao.isPending}>
+              Recalcular e registrar
             </Button>
           </DialogFooter>
         </DialogContent>
