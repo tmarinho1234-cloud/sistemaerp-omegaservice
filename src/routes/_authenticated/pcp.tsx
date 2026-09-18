@@ -152,6 +152,45 @@ function PcpPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reprogramarAquisicao = useMutation({
+    mutationFn: async () => {
+      const p = aquisicaoPedido;
+      if (!p) return;
+      if (!p.data_aprovacao) throw new Error("Esta demanda não tem data de aprovação registrada");
+      const dias = Number(aquisicao.dias);
+      if (!dias || dias < 0) throw new Error("Informe o novo prazo de aquisição em dias úteis");
+      const nova = somarDiasUteis(p.data_aprovacao, dias, datasFeriados);
+      if (!nova) throw new Error("Não foi possível calcular a nova data");
+      const anterior = p.data_chegada_materiais;
+      const impacto = anterior ? Math.round((new Date(`${nova}T12:00:00`).getTime() - new Date(`${anterior}T12:00:00`).getTime()) / 86400000) : 0;
+      const ins = await supabase.from("pcp_reprogramacoes").insert({
+        pedido_id: p.id,
+        data_anterior: anterior,
+        nova_data: nova,
+        motivo: `Aquisição de materiais: ${dias} dias úteis — ${aquisicao.motivo}`,
+        impacto_dias: impacto,
+        tipo: "aquisicao",
+      });
+      if (ins.error) throw ins.error;
+      const upd = await supabase
+        .from("pedidos")
+        .update({
+          prazo_aquisicao_dias: dias,
+          data_chegada_materiais: nova,
+          data_chegada_materiais_original: p.data_chegada_materiais_original ?? anterior ?? nova,
+        })
+        .eq("id", p.id);
+      if (upd.error) throw upd.error;
+    },
+    onSuccess: () => {
+      toast.success("Prazo de aquisição atualizado e nova data de chegada calculada");
+      setAquisicaoPedido(null);
+      setAquisicao({ dias: "", motivo: "" });
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const criticos = linhas.filter((l) => l.farol === "vermelho").length;
   const desvio = linhas.filter((l) => l.farol === "amarelo").length;
   const pesoTotal = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
