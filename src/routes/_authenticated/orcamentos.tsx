@@ -1939,7 +1939,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
         orcamentoId: orc.id,
         solicitacaoId: sol.id,
         acao: "aprovado",
-        descricao: `Proposta aprovada — prazo ${prazoDias} dias, SLA ${dataSla}. Demanda liberada para o PCP.`,
+        descricao: `Proposta aprovada em ${dataAprovacao} — prazo ${prazoDias} dias, SLA ${dataSla}${prazoAquisicao ? `, aquisição ${prazoAquisicao} dias úteis (chegada dos materiais ${chegada})` : ""}. Demanda liberada para o PCP.`,
         valorNovo: Number(orc.valor_total),
       });
     },
