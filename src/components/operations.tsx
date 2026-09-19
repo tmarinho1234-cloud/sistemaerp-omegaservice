@@ -17,6 +17,8 @@ export type PedidoResumo = {
   prazo_aquisicao_dias: number | null;
   data_chegada_materiais: string | null;
   data_chegada_materiais_original: string | null;
+  prazo_fabricacao_dias: number | null;
+  data_entrega_reprogramada: string | null;
   pcp_status: string;
   producao_iniciada: boolean;
   data_inicio_producao: string | null;
@@ -141,6 +143,27 @@ export function somarDiasUteis(base: string | null | undefined, dias: number | n
 export const diasRestantes = (prazo?: string | null) =>
   prazo ? Math.ceil((new Date(`${prazo.slice(0, 10)}T12:00:00`).getTime() - Date.now()) / 86_400_000) : null;
 
+/** Diferença em dias corridos entre duas datas ISO (b − a). */
+export const diffDias = (a?: string | null, b?: string | null) =>
+  a && b ? Math.round((new Date(`${b.slice(0, 10)}T12:00:00`).getTime() - new Date(`${a.slice(0, 10)}T12:00:00`).getTime()) / 86_400_000) : null;
+
+/** Prazo de entrega original da demanda (SLA ou prazo do pedido). */
+export const prazoOriginal = (p: PedidoResumo) => p.data_sla ?? p.prazo_entrega;
+
+/** Prazo de entrega em vigor: a reprogramação, quando existir. */
+export const prazoVigente = (p: PedidoResumo) => p.data_entrega_reprogramada ?? prazoOriginal(p);
+
+/** Data-base para contar o prazo de fabricação em dias úteis. */
+export function baseFabricacao(p: PedidoResumo) {
+  if (p.producao_iniciada && p.data_inicio_producao) {
+    const d = new Date(p.data_inicio_producao);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+  return p.data_chegada_materiais ?? p.data_aprovacao ?? null;
+}
+
 export function avancoPrevisto(conjuntos: ConjuntoResumo[]) {
   if (!conjuntos.length) return 0;
   const hoje = Date.now();
@@ -193,10 +216,10 @@ const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
   orcamento_itens: ["itens", "orcamento"],
   orcamento_historico: ["orcamento-historico"],
   pcp_planos: ["pedidos-operacionais"],
-  pcp_reprogramacoes: ["reprogramacoes", "pedidos-operacionais"],
+  pcp_reprogramacoes: ["reprogramacoes", "pedidos-operacionais", "pcp-timeline-reprogramacoes"],
   cronograma_etapas: ["conjuntos", "todos-conjuntos"],
-  apontamentos_producao: ["atividades-conjunto", "conjuntos", "todos-conjuntos", "kpi-central"],
-  paralisacoes: ["paralisacoes", "kpi-central"],
+  apontamentos_producao: ["atividades-conjunto", "conjuntos", "todos-conjuntos", "kpi-central", "pcp-timeline-apontamentos"],
+  paralisacoes: ["paralisacoes", "kpi-central", "pcp-timeline-paralisacoes"],
   atividades_nao_previstas: ["atividades-nao-previstas"],
   inspecoes_qualidade: ["inspecoes", "conjuntos", "todos-conjuntos", "kpi-central"],
   nao_conformidades: ["ncs", "kpi-central"],
