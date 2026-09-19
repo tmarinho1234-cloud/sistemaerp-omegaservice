@@ -50,6 +50,13 @@
       "when": 1789691354261,
       "tag": "0006_qualidade_ultima_inspecao",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789829835210,
+      "tag": "0007_reprogramar_entrega_pedido",
+      "breakpoints": true
     }
   ]
 }

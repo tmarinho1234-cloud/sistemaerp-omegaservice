@@ -1402,6 +1402,7 @@ export type Database = {
           data_chegada_materiais: string | null
           data_chegada_materiais_original: string | null
           data_emissao: string
+          data_entrega_reprogramada: string | null
           data_inicio_producao: string | null
           data_sla: string | null
           id: string
@@ -1413,6 +1414,7 @@ export type Database = {
           prazo_aquisicao_dias: number | null
           prazo_dias: number | null
           prazo_entrega: string | null
+          prazo_fabricacao_dias: number | null
           producao_iniciada: boolean
           status: Database["public"]["Enums"]["pedido_status"]
           sub_area_id: string | null
@@ -1427,6 +1429,7 @@ export type Database = {
           data_chegada_materiais?: string | null
           data_chegada_materiais_original?: string | null
           data_emissao?: string
+          data_entrega_reprogramada?: string | null
           data_inicio_producao?: string | null
           data_sla?: string | null
           id?: string
@@ -1438,6 +1441,7 @@ export type Database = {
           prazo_aquisicao_dias?: number | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
+          prazo_fabricacao_dias?: number | null
           producao_iniciada?: boolean
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
@@ -1452,6 +1456,7 @@ export type Database = {
           data_chegada_materiais?: string | null
           data_chegada_materiais_original?: string | null
           data_emissao?: string
+          data_entrega_reprogramada?: string | null
           data_inicio_producao?: string | null
           data_sla?: string | null
           id?: string
@@ -1463,6 +1468,7 @@ export type Database = {
           prazo_aquisicao_dias?: number | null
           prazo_dias?: number | null
           prazo_entrega?: string | null
+          prazo_fabricacao_dias?: number | null
           producao_iniciada?: boolean
           status?: Database["public"]["Enums"]["pedido_status"]
           sub_area_id?: string | null
@@ -1865,6 +1871,15 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       proximo_pomg: { Args: never; Returns: string }
+      reprogramar_entrega_pedido: {
+        Args: {
+          p_motivo: string
+          p_nova_data: string
+          p_pedido_id: string
+          p_prazo_fabricacao_dias?: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:

@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CalendarRange, Play, RefreshCw, X } from "lucide-react";
+import { CalendarClock, CalendarRange, Play, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
+import { PcpTimeline } from "@/components/pcp-timeline";
 import {
   FarolDot,
   MetricCard,
@@ -20,11 +21,15 @@ import {
   PCP_STATUS,
   ProgressBar,
   avancoPrevisto,
+  baseFabricacao,
   calcularFarol,
   dateBr,
   diasRestantes,
+  diffDias,
   moneyBr,
   pcpStatusLabel,
+  prazoOriginal,
+  prazoVigente,
   somarDiasUteis,
   useConjuntos,
   useFeriados,
@@ -63,6 +68,8 @@ function PcpPage() {
   const [reprog, setReprog] = useState({ nova_data: "", motivo: "" });
   const [aquisicaoPedido, setAquisicaoPedido] = useState<PedidoResumo | null>(null);
   const [aquisicao, setAquisicao] = useState({ dias: "", motivo: "" });
+  const [entregaPedido, setEntregaPedido] = useState<PedidoResumo | null>(null);
+  const [entrega, setEntrega] = useState({ dias: "", nova_data: "", motivo: "" });
   const { data: feriados = [] } = useFeriados();
   const datasFeriados = useMemo(() => feriados.map((f) => f.data), [feriados]);
   const novaChegada = somarDiasUteis(aquisicaoPedido?.data_aprovacao, aquisicao.dias ? Number(aquisicao.dias) : null, datasFeriados);
@@ -98,7 +105,7 @@ function PcpPage() {
           const cs = todosConjuntos.filter((c) => c.pedido_id === p.id);
           const previsto = avancoPrevisto(cs);
           const real = cs.length ? cs.reduce((s, c) => s + Number(c.progresso), 0) / cs.length : 0;
-          const restante = diasRestantes(p.data_sla ?? p.prazo_entrega);
+          const restante = diasRestantes(prazoVigente(p));
           return { pedido: p, previsto, real, restante, farol: calcularFarol({ previsto, real, restante, status: p.pcp_status }) };
         }),
     [pedidos, todosConjuntos, contrato, subArea],
@@ -191,6 +198,31 @@ function PcpPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const baseEntrega = entregaPedido ? baseFabricacao(entregaPedido) : null;
+  const impactoEntrega = entregaPedido && entrega.nova_data ? diffDias(prazoVigente(entregaPedido), entrega.nova_data) : null;
+
+  const reprogramarEntrega = useMutation({
+    mutationFn: async () => {
+      const p = entregaPedido;
+      if (!p) return;
+      const { error } = await supabase.rpc("reprogramar_entrega_pedido", {
+        p_pedido_id: p.id,
+        p_nova_data: entrega.nova_data,
+        p_motivo: entrega.motivo,
+        p_prazo_fabricacao_dias: entrega.dias ? Number(entrega.dias) : null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Nova data de entrega registrada");
+      setEntregaPedido(null);
+      setEntrega({ dias: "", nova_data: "", motivo: "" });
+      qc.invalidateQueries({ queryKey: ["pedidos-operacionais"] });
+      qc.invalidateQueries({ queryKey: ["reprogramacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const criticos = linhas.filter((l) => l.farol === "vermelho").length;
   const desvio = linhas.filter((l) => l.farol === "amarelo").length;
   const pesoTotal = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
@@ -264,6 +296,7 @@ function PcpPage() {
                   <TableHead>Chegada materiais / início prev.</TableHead>
                   <TableHead>Início real</TableHead>
                   <TableHead>Entrega</TableHead>
+                  <TableHead>Entrega reprogramada</TableHead>
                   <TableHead>Avanço geral</TableHead>
                   <TableHead>Previsto</TableHead>
                   <TableHead>Real</TableHead>
@@ -301,6 +334,36 @@ function PcpPage() {
                       </TableCell>
                       <TableCell className="text-xs">{p.producao_iniciada ? dateBr(p.data_inicio_producao) : "—"}</TableCell>
                       <TableCell className="text-xs">{dateBr(p.prazo_entrega ?? p.data_sla)}</TableCell>
+                      <TableCell className="text-xs" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <div>
+                            {p.data_entrega_reprogramada ? (
+                              <>
+                                <div className="font-semibold">{dateBr(p.data_entrega_reprogramada)}</div>
+                                <div className="text-[11px] text-muted-foreground">
+                                  {(() => {
+                                    const d = diffDias(prazoOriginal(p), p.data_entrega_reprogramada);
+                                    return d === null ? "—" : d === 0 ? "sem alteração" : `${d > 0 ? "+" : ""}${d} dias vs. original`;
+                                  })()}
+                                </div>
+                              </>
+                            ) : (
+                              "—"
+                            )}
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Reprogramar entrega"
+                            onClick={() => {
+                              setEntregaPedido(p);
+                              setEntrega({ dias: String(p.prazo_fabricacao_dias ?? ""), nova_data: p.data_entrega_reprogramada ?? "", motivo: "" });
+                            }}
+                          >
+                            <CalendarClock className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <ProgressBar value={real} />
                       </TableCell>
@@ -338,7 +401,7 @@ function PcpPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={15} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={16} className="py-10 text-center text-muted-foreground">
                       Nenhuma demanda aprovada chegou ao PCP.
                     </TableCell>
                   </TableRow>
@@ -351,6 +414,7 @@ function PcpPage() {
 
       {pedido && detalhe && (
         <>
+          <PcpTimeline pedido={pedido} />
           <Card>
             <CardHeader className="flex-row items-start justify-between">
               <div>
@@ -382,6 +446,11 @@ function PcpPage() {
                     ? `${dateBr(pedido.data_chegada_materiais)} (original ${dateBr(pedido.data_chegada_materiais_original)})`
                     : dateBr(pedido.data_chegada_materiais)
                 }
+              />
+              <Info label="Prazo de fabricação" value={pedido.prazo_fabricacao_dias != null ? `${pedido.prazo_fabricacao_dias} dias úteis` : "—"} />
+              <Info
+                label="Entrega reprogramada"
+                value={pedido.data_entrega_reprogramada ? `${dateBr(pedido.data_entrega_reprogramada)} (original ${dateBr(prazoOriginal(pedido))})` : "Sem reprogramação"}
               />
             </CardContent>
           </Card>
@@ -464,7 +533,8 @@ function PcpPage() {
               <CardContent className="space-y-2">
                 {reprogramacoes.map((r) => (
                   <div key={r.id} className="flex flex-wrap justify-between gap-2 border-b py-2 text-sm">
-                    <span>
+                    <span className="flex items-center gap-2">
+                      <Badge variant="outline">{r.tipo === "aquisicao" ? "Aquisição" : r.tipo === "entrega_pedido" ? "Entrega da demanda" : "Conjunto"}</Badge>
                       {dateBr(r.data_anterior)} → <strong>{dateBr(r.nova_data)}</strong>
                     </span>
                     <span className="text-muted-foreground">
@@ -527,6 +597,56 @@ function PcpPage() {
             </Button>
             <Button onClick={() => reprogramarAquisicao.mutate()} disabled={!aquisicao.dias || !aquisicao.motivo || reprogramarAquisicao.isPending}>
               Recalcular e registrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(entregaPedido)} onOpenChange={(o) => !o && setEntregaPedido(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reprogramar entrega · {entregaPedido?.pomg_codigo ?? entregaPedido?.numero ?? ""}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Entrega original {dateBr(entregaPedido ? prazoOriginal(entregaPedido) : null)}
+            {entregaPedido?.data_entrega_reprogramada ? ` · reprogramada atual ${dateBr(entregaPedido.data_entrega_reprogramada)}` : ""}
+          </p>
+          <div className="space-y-1.5">
+            <Label>Prazo de fabricação (dias úteis)</Label>
+            <Input
+              type="number"
+              min="0"
+              disabled={!baseEntrega}
+              value={entrega.dias}
+              onChange={(e) => {
+                const dias = e.target.value;
+                const nova = somarDiasUteis(baseEntrega, dias ? Number(dias) : null, datasFeriados);
+                setEntrega((s) => ({ ...s, dias, nova_data: nova ?? s.nova_data }));
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              {baseEntrega
+                ? `Contagem a partir de ${dateBr(baseEntrega)} (${entregaPedido?.producao_iniciada && entregaPedido?.data_inicio_producao ? "início da produção" : "chegada dos materiais"}), ignorando sábados, domingos e feriados cadastrados.`
+                : "Sem data-base para contagem — informe a nova data de entrega manualmente."}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Nova data de entrega</Label>
+            <Input type="date" value={entrega.nova_data} onChange={(e) => setEntrega((s) => ({ ...s, nova_data: e.target.value, dias: "" }))} />
+            <p className="text-xs text-muted-foreground">
+              {impactoEntrega === null ? "Informe a nova data." : impactoEntrega === 0 ? "Sem alteração em relação à entrega em vigor." : `${impactoEntrega > 0 ? "+" : ""}${impactoEntrega} dias em relação à entrega em vigor.`}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Motivo</Label>
+            <Textarea value={entrega.motivo} onChange={(e) => setEntrega((s) => ({ ...s, motivo: e.target.value }))} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEntregaPedido(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => reprogramarEntrega.mutate()} disabled={!entrega.nova_data || !entrega.motivo.trim() || reprogramarEntrega.isPending}>
+              Registrar
             </Button>
           </DialogFooter>
         </DialogContent>
