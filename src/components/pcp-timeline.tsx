@@ -217,6 +217,7 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
   const t0 = ms(inicio) - margem * 86_400_000;
   const t1 = ms(fim) + margem * 86_400_000;
   const pos = (iso: string) => ((ms(iso) - t0) / Math.max(1, t1 - t0)) * 100;
+  const posCartao = (iso: string) => Math.min(90, Math.max(10, pos(iso)));
 
   const meses = useMemo(() => {
     const out: { label: string; left: number }[] = [];
