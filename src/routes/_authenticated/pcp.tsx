@@ -209,7 +209,7 @@ function PcpPage() {
         p_pedido_id: p.id,
         p_nova_data: entrega.nova_data,
         p_motivo: entrega.motivo,
-        p_prazo_fabricacao_dias: entrega.dias ? Number(entrega.dias) : null,
+        p_prazo_fabricacao_dias: entrega.dias ? Number(entrega.dias) : undefined,
       });
       if (error) throw error;
     },
