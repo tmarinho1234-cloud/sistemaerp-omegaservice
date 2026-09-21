@@ -25,6 +25,7 @@ import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticated/pcp.index'
+import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosFeriadosRouteImport } from './routes/_authenticated/cadastros/feriados'
@@ -112,6 +113,12 @@ const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedPcpRoute,
 } as any)
+const AuthenticatedPcpPedidoIdRoute =
+  AuthenticatedPcpPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedPcpRoute,
+  } as any)
 const AuthenticatedCadastrosSubAreasRoute =
   AuthenticatedCadastrosSubAreasRouteImport.update({
     id: '/cadastros/sub-areas',
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/pcp/': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRoutesByTo {
@@ -191,6 +199,7 @@ export interface FileRoutesByTo {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/pcp': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRoutesById {
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/_authenticated/pcp/': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRouteTypes {
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/pcp/$pedidoId'
     | '/pcp/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/pcp/$pedidoId'
     | '/pcp'
   id:
     | '__root__'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/feriados'
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
+    | '/_authenticated/pcp/$pedidoId'
     | '/_authenticated/pcp/'
   fileRoutesById: FileRoutesById
 }
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPcpIndexRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
     }
+    '/_authenticated/pcp/$pedidoId': {
+      id: '/_authenticated/pcp/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/pcp/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedPcpPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedPcpRoute
+    }
     '/_authenticated/cadastros/sub-areas': {
       id: '/_authenticated/cadastros/sub-areas'
       path: '/cadastros/sub-areas'
@@ -459,10 +479,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedPcpRouteChildren {
+  AuthenticatedPcpPedidoIdRoute: typeof AuthenticatedPcpPedidoIdRoute
   AuthenticatedPcpIndexRoute: typeof AuthenticatedPcpIndexRoute
 }
 
 const AuthenticatedPcpRouteChildren: AuthenticatedPcpRouteChildren = {
+  AuthenticatedPcpPedidoIdRoute: AuthenticatedPcpPedidoIdRoute,
   AuthenticatedPcpIndexRoute: AuthenticatedPcpIndexRoute,
 }
 
