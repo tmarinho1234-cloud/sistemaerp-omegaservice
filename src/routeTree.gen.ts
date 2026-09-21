@@ -24,6 +24,8 @@ import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticated/databook'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticated/pcp.index'
+import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosFeriadosRouteImport } from './routes/_authenticated/cadastros/feriados'
@@ -106,6 +108,17 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedPcpRoute,
+} as any)
+const AuthenticatedPcpPedidoIdRoute =
+  AuthenticatedPcpPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedPcpRoute,
+  } as any)
 const AuthenticatedCadastrosSubAreasRoute =
   AuthenticatedCadastrosSubAreasRouteImport.update({
     id: '/cadastros/sub-areas',
@@ -154,7 +167,7 @@ export interface FileRoutesByFullPath {
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/pcp': typeof AuthenticatedPcpRoute
+  '/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -163,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/pcp/': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,7 +191,6 @@ export interface FileRoutesByTo {
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/pcp': typeof AuthenticatedPcpRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -185,6 +199,8 @@ export interface FileRoutesByTo {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/pcp': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,7 +216,7 @@ export interface FileRoutesById {
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRoute
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/_authenticated/pcp': typeof AuthenticatedPcpRoute
+  '/_authenticated/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -209,6 +225,8 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/_authenticated/pcp/': typeof AuthenticatedPcpIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -233,6 +251,8 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/pcp/$pedidoId'
+    | '/pcp/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -246,7 +266,6 @@ export interface FileRouteTypes {
     | '/medicao'
     | '/orcamentos'
     | '/painel'
-    | '/pcp'
     | '/producao'
     | '/qualidade'
     | '/.lovable/oauth/consent'
@@ -255,6 +274,8 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/pcp/$pedidoId'
+    | '/pcp'
   id:
     | '__root__'
     | '/'
@@ -278,6 +299,8 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/feriados'
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
+    | '/_authenticated/pcp/$pedidoId'
+    | '/_authenticated/pcp/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -396,6 +419,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/pcp/': {
+      id: '/_authenticated/pcp/'
+      path: '/'
+      fullPath: '/pcp/'
+      preLoaderRoute: typeof AuthenticatedPcpIndexRouteImport
+      parentRoute: typeof AuthenticatedPcpRoute
+    }
+    '/_authenticated/pcp/$pedidoId': {
+      id: '/_authenticated/pcp/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/pcp/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedPcpPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedPcpRoute
+    }
     '/_authenticated/cadastros/sub-areas': {
       id: '/_authenticated/cadastros/sub-areas'
       path: '/cadastros/sub-areas'
@@ -441,6 +478,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedPcpRouteChildren {
+  AuthenticatedPcpPedidoIdRoute: typeof AuthenticatedPcpPedidoIdRoute
+  AuthenticatedPcpIndexRoute: typeof AuthenticatedPcpIndexRoute
+}
+
+const AuthenticatedPcpRouteChildren: AuthenticatedPcpRouteChildren = {
+  AuthenticatedPcpPedidoIdRoute: AuthenticatedPcpPedidoIdRoute,
+  AuthenticatedPcpIndexRoute: AuthenticatedPcpIndexRoute,
+}
+
+const AuthenticatedPcpRouteWithChildren =
+  AuthenticatedPcpRoute._addFileChildren(AuthenticatedPcpRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDatabookRoute: typeof AuthenticatedDatabookRoute
@@ -449,7 +499,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRoute
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
-  AuthenticatedPcpRoute: typeof AuthenticatedPcpRoute
+  AuthenticatedPcpRoute: typeof AuthenticatedPcpRouteWithChildren
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
@@ -467,7 +517,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRoute,
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
-  AuthenticatedPcpRoute: AuthenticatedPcpRoute,
+  AuthenticatedPcpRoute: AuthenticatedPcpRouteWithChildren,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
