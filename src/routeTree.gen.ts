@@ -24,7 +24,9 @@ import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDatabookRouteImport } from './routes/_authenticated/databook'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthenticatedProducaoIndexRouteImport } from './routes/_authenticated/producao.index'
 import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticated/pcp.index'
+import { Route as AuthenticatedProducaoPedidoIdRouteImport } from './routes/_authenticated/producao.$pedidoId'
 import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
@@ -108,11 +110,23 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedProducaoIndexRoute =
+  AuthenticatedProducaoIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProducaoRoute,
+  } as any)
 const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedPcpRoute,
 } as any)
+const AuthenticatedProducaoPedidoIdRoute =
+  AuthenticatedProducaoPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedProducaoRoute,
+  } as any)
 const AuthenticatedPcpPedidoIdRoute =
   AuthenticatedPcpPedidoIdRouteImport.update({
     id: '/$pedidoId',
@@ -168,7 +182,7 @@ export interface FileRoutesByFullPath {
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/pcp': typeof AuthenticatedPcpRouteWithChildren
-  '/producao': typeof AuthenticatedProducaoRoute
+  '/producao': typeof AuthenticatedProducaoRouteWithChildren
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
@@ -177,7 +191,9 @@ export interface FileRoutesByFullPath {
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/pcp/': typeof AuthenticatedPcpIndexRoute
+  '/producao/': typeof AuthenticatedProducaoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -191,7 +207,6 @@ export interface FileRoutesByTo {
   '/medicao': typeof AuthenticatedMedicaoRoute
   '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/producao': typeof AuthenticatedProducaoRoute
   '/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
@@ -200,7 +215,9 @@ export interface FileRoutesByTo {
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/pcp': typeof AuthenticatedPcpIndexRoute
+  '/producao': typeof AuthenticatedProducaoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -217,7 +234,7 @@ export interface FileRoutesById {
   '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRouteWithChildren
-  '/_authenticated/producao': typeof AuthenticatedProducaoRoute
+  '/_authenticated/producao': typeof AuthenticatedProducaoRouteWithChildren
   '/_authenticated/qualidade': typeof AuthenticatedQualidadeRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
@@ -226,7 +243,9 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/_authenticated/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/_authenticated/pcp/': typeof AuthenticatedPcpIndexRoute
+  '/_authenticated/producao/': typeof AuthenticatedProducaoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,7 +271,9 @@ export interface FileRouteTypes {
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
     | '/pcp/$pedidoId'
+    | '/producao/$pedidoId'
     | '/pcp/'
+    | '/producao/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -266,7 +287,6 @@ export interface FileRouteTypes {
     | '/medicao'
     | '/orcamentos'
     | '/painel'
-    | '/producao'
     | '/qualidade'
     | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
@@ -275,7 +295,9 @@ export interface FileRouteTypes {
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
     | '/pcp/$pedidoId'
+    | '/producao/$pedidoId'
     | '/pcp'
+    | '/producao'
   id:
     | '__root__'
     | '/'
@@ -300,7 +322,9 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
     | '/_authenticated/pcp/$pedidoId'
+    | '/_authenticated/producao/$pedidoId'
     | '/_authenticated/pcp/'
+    | '/_authenticated/producao/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -419,12 +443,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/producao/': {
+      id: '/_authenticated/producao/'
+      path: '/'
+      fullPath: '/producao/'
+      preLoaderRoute: typeof AuthenticatedProducaoIndexRouteImport
+      parentRoute: typeof AuthenticatedProducaoRoute
+    }
     '/_authenticated/pcp/': {
       id: '/_authenticated/pcp/'
       path: '/'
       fullPath: '/pcp/'
       preLoaderRoute: typeof AuthenticatedPcpIndexRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
+    }
+    '/_authenticated/producao/$pedidoId': {
+      id: '/_authenticated/producao/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/producao/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedProducaoPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedProducaoRoute
     }
     '/_authenticated/pcp/$pedidoId': {
       id: '/_authenticated/pcp/$pedidoId'
@@ -491,6 +529,21 @@ const AuthenticatedPcpRouteChildren: AuthenticatedPcpRouteChildren = {
 const AuthenticatedPcpRouteWithChildren =
   AuthenticatedPcpRoute._addFileChildren(AuthenticatedPcpRouteChildren)
 
+interface AuthenticatedProducaoRouteChildren {
+  AuthenticatedProducaoPedidoIdRoute: typeof AuthenticatedProducaoPedidoIdRoute
+  AuthenticatedProducaoIndexRoute: typeof AuthenticatedProducaoIndexRoute
+}
+
+const AuthenticatedProducaoRouteChildren: AuthenticatedProducaoRouteChildren = {
+  AuthenticatedProducaoPedidoIdRoute: AuthenticatedProducaoPedidoIdRoute,
+  AuthenticatedProducaoIndexRoute: AuthenticatedProducaoIndexRoute,
+}
+
+const AuthenticatedProducaoRouteWithChildren =
+  AuthenticatedProducaoRoute._addFileChildren(
+    AuthenticatedProducaoRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDatabookRoute: typeof AuthenticatedDatabookRoute
@@ -500,7 +553,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRouteWithChildren
-  AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
+  AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRouteWithChildren
   AuthenticatedQualidadeRoute: typeof AuthenticatedQualidadeRoute
   AuthenticatedCadastrosContratosRoute: typeof AuthenticatedCadastrosContratosRoute
   AuthenticatedCadastrosEquipamentosRoute: typeof AuthenticatedCadastrosEquipamentosRoute
@@ -518,7 +571,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRouteWithChildren,
-  AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
+  AuthenticatedProducaoRoute: AuthenticatedProducaoRouteWithChildren,
   AuthenticatedQualidadeRoute: AuthenticatedQualidadeRoute,
   AuthenticatedCadastrosContratosRoute: AuthenticatedCadastrosContratosRoute,
   AuthenticatedCadastrosEquipamentosRoute:
