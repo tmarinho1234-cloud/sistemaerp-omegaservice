@@ -26,6 +26,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedProducaoIndexRouteImport } from './routes/_authenticated/producao.index'
 import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticated/pcp.index'
+import { Route as AuthenticatedProducaoPedidoIdRouteImport } from './routes/_authenticated/producao.$pedidoId'
 import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
@@ -120,6 +121,12 @@ const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedPcpRoute,
 } as any)
+const AuthenticatedProducaoPedidoIdRoute =
+  AuthenticatedProducaoPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedProducaoRoute,
+  } as any)
 const AuthenticatedPcpPedidoIdRoute =
   AuthenticatedPcpPedidoIdRouteImport.update({
     id: '/$pedidoId',
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/pcp/': typeof AuthenticatedPcpIndexRoute
   '/producao/': typeof AuthenticatedProducaoIndexRoute
 }
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/pcp': typeof AuthenticatedPcpIndexRoute
   '/producao': typeof AuthenticatedProducaoIndexRoute
 }
@@ -234,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
   '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
+  '/_authenticated/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/_authenticated/pcp/': typeof AuthenticatedPcpIndexRoute
   '/_authenticated/producao/': typeof AuthenticatedProducaoIndexRoute
 }
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
     | '/pcp/$pedidoId'
+    | '/producao/$pedidoId'
     | '/pcp/'
     | '/producao/'
   fileRoutesByTo: FileRoutesByTo
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
     | '/pcp/$pedidoId'
+    | '/producao/$pedidoId'
     | '/pcp'
     | '/producao'
   id:
@@ -310,6 +322,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
     | '/_authenticated/pcp/$pedidoId'
+    | '/_authenticated/producao/$pedidoId'
     | '/_authenticated/pcp/'
     | '/_authenticated/producao/'
   fileRoutesById: FileRoutesById
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPcpIndexRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
     }
+    '/_authenticated/producao/$pedidoId': {
+      id: '/_authenticated/producao/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/producao/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedProducaoPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedProducaoRoute
+    }
     '/_authenticated/pcp/$pedidoId': {
       id: '/_authenticated/pcp/$pedidoId'
       path: '/$pedidoId'
@@ -510,10 +530,12 @@ const AuthenticatedPcpRouteWithChildren =
   AuthenticatedPcpRoute._addFileChildren(AuthenticatedPcpRouteChildren)
 
 interface AuthenticatedProducaoRouteChildren {
+  AuthenticatedProducaoPedidoIdRoute: typeof AuthenticatedProducaoPedidoIdRoute
   AuthenticatedProducaoIndexRoute: typeof AuthenticatedProducaoIndexRoute
 }
 
 const AuthenticatedProducaoRouteChildren: AuthenticatedProducaoRouteChildren = {
+  AuthenticatedProducaoPedidoIdRoute: AuthenticatedProducaoPedidoIdRoute,
   AuthenticatedProducaoIndexRoute: AuthenticatedProducaoIndexRoute,
 }
 
