@@ -48,7 +48,7 @@ export function DemandaLista({
                   const real = doPedido.length ? doPedido.reduce((s, c) => s + Number(c.progresso ?? 0), 0) / doPedido.length : 0;
                   const prazo = prazoVigente(p);
                   const restantes = diasRestantes(prazo);
-                  const farol = calcularFarol(avancoPrevisto(p), real, restantes);
+                  const farol = calcularFarol({ previsto: avancoPrevisto(doPedido), real, restante: restantes, status: p.pcp_status });
                   return (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => onSelect(p)}>
                       <TableCell className="font-mono font-medium">{p.pomg_codigo ?? p.numero}</TableCell>
