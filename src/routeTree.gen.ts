@@ -30,8 +30,12 @@ import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMedicaoIndexRouteImport } from './routes/_authenticated/medicao.index'
 import { Route as AuthenticatedExpedicaoIndexRouteImport } from './routes/_authenticated/expedicao.index'
 import { Route as AuthenticatedDatabookIndexRouteImport } from './routes/_authenticated/databook.index'
+import { Route as AuthenticatedQualidadePedidoIdRouteImport } from './routes/_authenticated/qualidade.$pedidoId'
 import { Route as AuthenticatedProducaoPedidoIdRouteImport } from './routes/_authenticated/producao.$pedidoId'
 import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
+import { Route as AuthenticatedMedicaoPedidoIdRouteImport } from './routes/_authenticated/medicao.$pedidoId'
+import { Route as AuthenticatedExpedicaoPedidoIdRouteImport } from './routes/_authenticated/expedicao.$pedidoId'
+import { Route as AuthenticatedDatabookPedidoIdRouteImport } from './routes/_authenticated/databook.$pedidoId'
 import { Route as AuthenticatedCadastrosSubAreasRouteImport } from './routes/_authenticated/cadastros/sub-areas'
 import { Route as AuthenticatedCadastrosFuncionariosRouteImport } from './routes/_authenticated/cadastros/funcionarios'
 import { Route as AuthenticatedCadastrosFeriadosRouteImport } from './routes/_authenticated/cadastros/feriados'
@@ -149,6 +153,12 @@ const AuthenticatedDatabookIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDatabookRoute,
   } as any)
+const AuthenticatedQualidadePedidoIdRoute =
+  AuthenticatedQualidadePedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedQualidadeRoute,
+  } as any)
 const AuthenticatedProducaoPedidoIdRoute =
   AuthenticatedProducaoPedidoIdRouteImport.update({
     id: '/$pedidoId',
@@ -160,6 +170,24 @@ const AuthenticatedPcpPedidoIdRoute =
     id: '/$pedidoId',
     path: '/$pedidoId',
     getParentRoute: () => AuthenticatedPcpRoute,
+  } as any)
+const AuthenticatedMedicaoPedidoIdRoute =
+  AuthenticatedMedicaoPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedMedicaoRoute,
+  } as any)
+const AuthenticatedExpedicaoPedidoIdRoute =
+  AuthenticatedExpedicaoPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedExpedicaoRoute,
+  } as any)
+const AuthenticatedDatabookPedidoIdRoute =
+  AuthenticatedDatabookPedidoIdRouteImport.update({
+    id: '/$pedidoId',
+    path: '/$pedidoId',
+    getParentRoute: () => AuthenticatedDatabookRoute,
   } as any)
 const AuthenticatedCadastrosSubAreasRoute =
   AuthenticatedCadastrosSubAreasRouteImport.update({
@@ -218,8 +246,12 @@ export interface FileRoutesByFullPath {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
+  '/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
+  '/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
+  '/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
   '/databook/': typeof AuthenticatedDatabookIndexRoute
   '/expedicao/': typeof AuthenticatedExpedicaoIndexRoute
   '/medicao/': typeof AuthenticatedMedicaoIndexRoute
@@ -242,8 +274,12 @@ export interface FileRoutesByTo {
   '/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
+  '/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
+  '/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
+  '/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
   '/databook': typeof AuthenticatedDatabookIndexRoute
   '/expedicao': typeof AuthenticatedExpedicaoIndexRoute
   '/medicao': typeof AuthenticatedMedicaoIndexRoute
@@ -274,8 +310,12 @@ export interface FileRoutesById {
   '/_authenticated/cadastros/feriados': typeof AuthenticatedCadastrosFeriadosRoute
   '/_authenticated/cadastros/funcionarios': typeof AuthenticatedCadastrosFuncionariosRoute
   '/_authenticated/cadastros/sub-areas': typeof AuthenticatedCadastrosSubAreasRoute
+  '/_authenticated/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
+  '/_authenticated/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
+  '/_authenticated/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
   '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/_authenticated/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
+  '/_authenticated/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
   '/_authenticated/databook/': typeof AuthenticatedDatabookIndexRoute
   '/_authenticated/expedicao/': typeof AuthenticatedExpedicaoIndexRoute
   '/_authenticated/medicao/': typeof AuthenticatedMedicaoIndexRoute
@@ -306,8 +346,12 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/databook/$pedidoId'
+    | '/expedicao/$pedidoId'
+    | '/medicao/$pedidoId'
     | '/pcp/$pedidoId'
     | '/producao/$pedidoId'
+    | '/qualidade/$pedidoId'
     | '/databook/'
     | '/expedicao/'
     | '/medicao/'
@@ -330,8 +374,12 @@ export interface FileRouteTypes {
     | '/cadastros/feriados'
     | '/cadastros/funcionarios'
     | '/cadastros/sub-areas'
+    | '/databook/$pedidoId'
+    | '/expedicao/$pedidoId'
+    | '/medicao/$pedidoId'
     | '/pcp/$pedidoId'
     | '/producao/$pedidoId'
+    | '/qualidade/$pedidoId'
     | '/databook'
     | '/expedicao'
     | '/medicao'
@@ -361,8 +409,12 @@ export interface FileRouteTypes {
     | '/_authenticated/cadastros/feriados'
     | '/_authenticated/cadastros/funcionarios'
     | '/_authenticated/cadastros/sub-areas'
+    | '/_authenticated/databook/$pedidoId'
+    | '/_authenticated/expedicao/$pedidoId'
+    | '/_authenticated/medicao/$pedidoId'
     | '/_authenticated/pcp/$pedidoId'
     | '/_authenticated/producao/$pedidoId'
+    | '/_authenticated/qualidade/$pedidoId'
     | '/_authenticated/databook/'
     | '/_authenticated/expedicao/'
     | '/_authenticated/medicao/'
@@ -529,6 +581,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDatabookIndexRouteImport
       parentRoute: typeof AuthenticatedDatabookRoute
     }
+    '/_authenticated/qualidade/$pedidoId': {
+      id: '/_authenticated/qualidade/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/qualidade/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedQualidadePedidoIdRouteImport
+      parentRoute: typeof AuthenticatedQualidadeRoute
+    }
     '/_authenticated/producao/$pedidoId': {
       id: '/_authenticated/producao/$pedidoId'
       path: '/$pedidoId'
@@ -542,6 +601,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/pcp/$pedidoId'
       preLoaderRoute: typeof AuthenticatedPcpPedidoIdRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
+    }
+    '/_authenticated/medicao/$pedidoId': {
+      id: '/_authenticated/medicao/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/medicao/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedMedicaoPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedMedicaoRoute
+    }
+    '/_authenticated/expedicao/$pedidoId': {
+      id: '/_authenticated/expedicao/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/expedicao/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedExpedicaoPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedExpedicaoRoute
+    }
+    '/_authenticated/databook/$pedidoId': {
+      id: '/_authenticated/databook/$pedidoId'
+      path: '/$pedidoId'
+      fullPath: '/databook/$pedidoId'
+      preLoaderRoute: typeof AuthenticatedDatabookPedidoIdRouteImport
+      parentRoute: typeof AuthenticatedDatabookRoute
     }
     '/_authenticated/cadastros/sub-areas': {
       id: '/_authenticated/cadastros/sub-areas'
@@ -589,10 +669,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedDatabookRouteChildren {
+  AuthenticatedDatabookPedidoIdRoute: typeof AuthenticatedDatabookPedidoIdRoute
   AuthenticatedDatabookIndexRoute: typeof AuthenticatedDatabookIndexRoute
 }
 
 const AuthenticatedDatabookRouteChildren: AuthenticatedDatabookRouteChildren = {
+  AuthenticatedDatabookPedidoIdRoute: AuthenticatedDatabookPedidoIdRoute,
   AuthenticatedDatabookIndexRoute: AuthenticatedDatabookIndexRoute,
 }
 
@@ -602,11 +684,13 @@ const AuthenticatedDatabookRouteWithChildren =
   )
 
 interface AuthenticatedExpedicaoRouteChildren {
+  AuthenticatedExpedicaoPedidoIdRoute: typeof AuthenticatedExpedicaoPedidoIdRoute
   AuthenticatedExpedicaoIndexRoute: typeof AuthenticatedExpedicaoIndexRoute
 }
 
 const AuthenticatedExpedicaoRouteChildren: AuthenticatedExpedicaoRouteChildren =
   {
+    AuthenticatedExpedicaoPedidoIdRoute: AuthenticatedExpedicaoPedidoIdRoute,
     AuthenticatedExpedicaoIndexRoute: AuthenticatedExpedicaoIndexRoute,
   }
 
@@ -616,10 +700,12 @@ const AuthenticatedExpedicaoRouteWithChildren =
   )
 
 interface AuthenticatedMedicaoRouteChildren {
+  AuthenticatedMedicaoPedidoIdRoute: typeof AuthenticatedMedicaoPedidoIdRoute
   AuthenticatedMedicaoIndexRoute: typeof AuthenticatedMedicaoIndexRoute
 }
 
 const AuthenticatedMedicaoRouteChildren: AuthenticatedMedicaoRouteChildren = {
+  AuthenticatedMedicaoPedidoIdRoute: AuthenticatedMedicaoPedidoIdRoute,
   AuthenticatedMedicaoIndexRoute: AuthenticatedMedicaoIndexRoute,
 }
 
@@ -655,11 +741,13 @@ const AuthenticatedProducaoRouteWithChildren =
   )
 
 interface AuthenticatedQualidadeRouteChildren {
+  AuthenticatedQualidadePedidoIdRoute: typeof AuthenticatedQualidadePedidoIdRoute
   AuthenticatedQualidadeIndexRoute: typeof AuthenticatedQualidadeIndexRoute
 }
 
 const AuthenticatedQualidadeRouteChildren: AuthenticatedQualidadeRouteChildren =
   {
+    AuthenticatedQualidadePedidoIdRoute: AuthenticatedQualidadePedidoIdRoute,
     AuthenticatedQualidadeIndexRoute: AuthenticatedQualidadeIndexRoute,
   }
 
