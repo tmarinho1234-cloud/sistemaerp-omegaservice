@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,13 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ATIVIDADES, REQUISITOS, atividadeLabel, dateBr, situacaoLabel, somarDiasUteis, useFeriados, useSincronizacaoTempoReal } from "@/components/operations";
 import {
@@ -67,7 +60,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/orcamentos")({
+export const Route = createFileRoute("/_authenticated/orcamentos/")({
   head: () => ({
     meta: [
       { title: "Orçamentos | Omega Service ERP" },
@@ -81,7 +74,7 @@ export const Route = createFileRoute("/_authenticated/orcamentos")({
   component: OrcamentosPage,
 });
 
-type Solicitacao = {
+export type Solicitacao = {
   id: string;
   numero: string;
   pomg_codigo: string | null;
@@ -103,7 +96,7 @@ type Solicitacao = {
   sub_areas?: { nome: string } | null;
 };
 
-const STATUS_LABEL: Record<Solicitacao["status"], string> = {
+export const STATUS_LABEL: Record<Solicitacao["status"], string> = {
   recebida: "Recebida",
   em_analise: "Em Análise",
   orcamento_em_elaboracao: "Orçamento em Elaboração",
@@ -113,7 +106,7 @@ const STATUS_LABEL: Record<Solicitacao["status"], string> = {
   convertida_pedido: "Convertida em Pedido",
 };
 
-const STATUS_VARIANT: Record<
+export const STATUS_VARIANT: Record<
   Solicitacao["status"],
   "default" | "secondary" | "destructive" | "outline"
 > = {
@@ -129,10 +122,10 @@ const STATUS_VARIANT: Record<
 function OrcamentosPage() {
   useSincronizacaoTempoReal();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [creating, setCreating] = useState(false);
-  const [openedId, setOpenedId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Solicitacao | null>(null);
 
   const excluir = useMutation({
@@ -249,6 +242,8 @@ function OrcamentosPage() {
 
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const abrir = (id: string) => navigate({ to: "/orcamentos/$solicitacaoId", params: { solicitacaoId: id } });
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["solicitacoes"],
@@ -371,7 +366,7 @@ function OrcamentosPage() {
                   </TableRow>
                 ) : (
                   filtered.map((r) => (
-                    <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenedId(r.id)}>
+                    <TableRow key={r.id} className="cursor-pointer" onClick={() => abrir(r.id)}>
                       <TableCell className="font-mono text-xs font-semibold">{r.pomg_codigo ?? "—"}</TableCell>
                       
                       <TableCell>{r.contratos?.empresa ?? "—"}</TableCell>
@@ -385,7 +380,7 @@ function OrcamentosPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); setOpenedId(r.id); }}>
+                        <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); abrir(r.id); }}>
                           Abrir
                         </Button>
                         <Button
@@ -413,13 +408,8 @@ function OrcamentosPage() {
         onCreated={(id) => {
           qc.invalidateQueries({ queryKey: ["solicitacoes"] });
           setCreating(false);
-          setOpenedId(id);
+          abrir(id);
         }}
-      />
-
-      <SolicitacaoDrawer
-        id={openedId}
-        onClose={() => setOpenedId(null)}
       />
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
@@ -461,7 +451,7 @@ function KpiCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-function formatDate(d: string | null | undefined) {
+export function formatDate(d: string | null | undefined) {
   if (!d) return "—";
   return new Date(d).toLocaleDateString("pt-BR");
 }
@@ -639,73 +629,6 @@ function NovaSolicitacaoDialog({
   );
 }
 
-/* ---------------- Drawer de detalhes ---------------- */
-
-function SolicitacaoDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
-  const { data: sol } = useQuery({
-    queryKey: ["solicitacao", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("solicitacoes_orcamento")
-        .select("*, contratos(nome, empresa), sub_areas(nome)")
-        .eq("id", id!)
-        .single();
-      if (error) throw error;
-      return data as unknown as Solicitacao;
-    },
-    enabled: !!id,
-  });
-
-  return (
-    <Sheet open={!!id} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
-        {sol && (
-          <>
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-3">
-                <span className="font-mono text-base font-bold">{sol.pomg_codigo ?? sol.numero}</span>
-                <span className="font-mono text-xs text-muted-foreground">{sol.numero}</span>
-                <Badge variant={STATUS_VARIANT[sol.status]}>{STATUS_LABEL[sol.status]}</Badge>
-              </SheetTitle>
-              <SheetDescription>
-                {sol.contratos?.empresa} · {sol.contratos?.nome} {sol.sub_areas?.nome ? `· ${sol.sub_areas.nome}` : ""} · Recebida em {formatDate(sol.data_recebimento)}
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="mt-6">
-              <Tabs defaultValue="solicitacao">
-                <TabsList className="w-full grid grid-cols-5">
-                  <TabsTrigger value="solicitacao">Solicitação</TabsTrigger>
-                  <TabsTrigger value="conjuntos">Conjuntos</TabsTrigger>
-                  <TabsTrigger value="analise">Análise</TabsTrigger>
-                  <TabsTrigger value="proposta">Proposta</TabsTrigger>
-                  <TabsTrigger value="aprovacao">Aprovação</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="solicitacao" className="space-y-4 mt-4">
-                  <SolicitacaoTab sol={sol} />
-                </TabsContent>
-                <TabsContent value="conjuntos" className="mt-4">
-                  <ConjuntosTab sol={sol} />
-                </TabsContent>
-                <TabsContent value="analise" className="mt-4">
-                  <AnaliseTab solicitacaoId={sol.id} />
-                </TabsContent>
-                <TabsContent value="proposta" className="mt-4">
-                  <PropostaTab sol={sol} />
-                </TabsContent>
-                <TabsContent value="aprovacao" className="mt-4">
-                  <AprovacaoTab sol={sol} />
-                </TabsContent>
-              </Tabs>
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
-}
-
 /* ---------------- Tab: Solicitação (dados + anexos) ---------------- */
 
 type Anexo = {
@@ -716,7 +639,7 @@ type Anexo = {
   tipo: string | null;
 };
 
-function SolicitacaoTab({ sol }: { sol: Solicitacao }) {
+export function SolicitacaoTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
 
@@ -865,7 +788,7 @@ type Analise = {
   data_analise: string;
 };
 
-function AnaliseTab({ solicitacaoId }: { solicitacaoId: string }) {
+export function AnaliseTab({ solicitacaoId }: { solicitacaoId: string }) {
   const qc = useQueryClient();
   const { data: analise } = useQuery({
     queryKey: ["analise", solicitacaoId],
@@ -1144,7 +1067,7 @@ const QQP_CATEGORIAS: { value: QqpCategoria; label: string; unidade: string }[] 
 const categoriaLabel = (c: QqpCategoria) =>
   QQP_CATEGORIAS.find((k) => k.value === c)?.label ?? c;
 
-function PropostaTab({ sol }: { sol: Solicitacao }) {
+export function PropostaTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const { data: orc } = useQuery({
     queryKey: ["orcamento", sol.id],
@@ -1761,7 +1684,7 @@ function PropostaAnexos({ orcamentoId, editable }: { orcamentoId: string; editab
 
 /* ---------------- Tab: Aprovação (aprovar / reprovar / reabrir para alteração) ---------------- */
 
-function AprovacaoTab({ sol }: { sol: Solicitacao }) {
+export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [motivoOpen, setMotivoOpen] = useState(false);
   const [motivo, setMotivo] = useState("");
@@ -2175,7 +2098,7 @@ function AprovacaoTab({ sol }: { sol: Solicitacao }) {
 type OrcConjunto = { id: string; codigo: string; descricao: string | null; quantidade: number; peso_kg: number | null; ordem: number };
 type OrcAtividade = { id: string; conjunto_id: string; atividade: string; nome_extra: string | null; ordem: number };
 
-function ConjuntosTab({ sol }: { sol: Solicitacao }) {
+export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [novo, setNovo] = useState(false);
   const [form, setForm] = useState({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
