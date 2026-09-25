@@ -17,7 +17,6 @@ import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pcp'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
@@ -27,6 +26,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedQualidadeIndexRouteImport } from './routes/_authenticated/qualidade.index'
 import { Route as AuthenticatedProducaoIndexRouteImport } from './routes/_authenticated/producao.index'
 import { Route as AuthenticatedPcpIndexRouteImport } from './routes/_authenticated/pcp.index'
+import { Route as AuthenticatedOrcamentosIndexRouteImport } from './routes/_authenticated/orcamentos.index'
 import { Route as AuthenticatedMedicaoIndexRouteImport } from './routes/_authenticated/medicao.index'
 import { Route as AuthenticatedExpedicaoIndexRouteImport } from './routes/_authenticated/expedicao.index'
 import { Route as AuthenticatedDatabookIndexRouteImport } from './routes/_authenticated/databook.index'
@@ -82,11 +82,6 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOrcamentosRoute = AuthenticatedOrcamentosRouteImport.update({
-  id: '/orcamentos',
-  path: '/orcamentos',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMedicaoRoute = AuthenticatedMedicaoRouteImport.update({
   id: '/medicao',
   path: '/medicao',
@@ -135,6 +130,12 @@ const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedPcpRoute,
 } as any)
+const AuthenticatedOrcamentosIndexRoute =
+  AuthenticatedOrcamentosIndexRouteImport.update({
+    id: '/orcamentos/',
+    path: '/orcamentos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMedicaoIndexRoute =
   AuthenticatedMedicaoIndexRouteImport.update({
     id: '/',
@@ -235,7 +236,6 @@ export interface FileRoutesByFullPath {
   '/expedicao': typeof AuthenticatedExpedicaoRouteWithChildren
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/medicao': typeof AuthenticatedMedicaoRouteWithChildren
-  '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/producao': typeof AuthenticatedProducaoRouteWithChildren
@@ -255,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/databook/': typeof AuthenticatedDatabookIndexRoute
   '/expedicao/': typeof AuthenticatedExpedicaoIndexRoute
   '/medicao/': typeof AuthenticatedMedicaoIndexRoute
+  '/orcamentos/': typeof AuthenticatedOrcamentosIndexRoute
   '/pcp/': typeof AuthenticatedPcpIndexRoute
   '/producao/': typeof AuthenticatedProducaoIndexRoute
   '/qualidade/': typeof AuthenticatedQualidadeIndexRoute
@@ -266,7 +267,6 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fluxo': typeof AuthenticatedFluxoRoute
-  '/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/cadastros/contratos': typeof AuthenticatedCadastrosContratosRoute
@@ -283,6 +283,7 @@ export interface FileRoutesByTo {
   '/databook': typeof AuthenticatedDatabookIndexRoute
   '/expedicao': typeof AuthenticatedExpedicaoIndexRoute
   '/medicao': typeof AuthenticatedMedicaoIndexRoute
+  '/orcamentos': typeof AuthenticatedOrcamentosIndexRoute
   '/pcp': typeof AuthenticatedPcpIndexRoute
   '/producao': typeof AuthenticatedProducaoIndexRoute
   '/qualidade': typeof AuthenticatedQualidadeIndexRoute
@@ -299,7 +300,6 @@ export interface FileRoutesById {
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRouteWithChildren
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRouteWithChildren
-  '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/_authenticated/producao': typeof AuthenticatedProducaoRouteWithChildren
@@ -319,6 +319,7 @@ export interface FileRoutesById {
   '/_authenticated/databook/': typeof AuthenticatedDatabookIndexRoute
   '/_authenticated/expedicao/': typeof AuthenticatedExpedicaoIndexRoute
   '/_authenticated/medicao/': typeof AuthenticatedMedicaoIndexRoute
+  '/_authenticated/orcamentos/': typeof AuthenticatedOrcamentosIndexRoute
   '/_authenticated/pcp/': typeof AuthenticatedPcpIndexRoute
   '/_authenticated/producao/': typeof AuthenticatedProducaoIndexRoute
   '/_authenticated/qualidade/': typeof AuthenticatedQualidadeIndexRoute
@@ -335,7 +336,6 @@ export interface FileRouteTypes {
     | '/expedicao'
     | '/fluxo'
     | '/medicao'
-    | '/orcamentos'
     | '/painel'
     | '/pcp'
     | '/producao'
@@ -355,6 +355,7 @@ export interface FileRouteTypes {
     | '/databook/'
     | '/expedicao/'
     | '/medicao/'
+    | '/orcamentos/'
     | '/pcp/'
     | '/producao/'
     | '/qualidade/'
@@ -366,7 +367,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/fluxo'
-    | '/orcamentos'
     | '/painel'
     | '/.lovable/oauth/consent'
     | '/cadastros/contratos'
@@ -383,6 +383,7 @@ export interface FileRouteTypes {
     | '/databook'
     | '/expedicao'
     | '/medicao'
+    | '/orcamentos'
     | '/pcp'
     | '/producao'
     | '/qualidade'
@@ -398,7 +399,6 @@ export interface FileRouteTypes {
     | '/_authenticated/expedicao'
     | '/_authenticated/fluxo'
     | '/_authenticated/medicao'
-    | '/_authenticated/orcamentos'
     | '/_authenticated/painel'
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
@@ -418,6 +418,7 @@ export interface FileRouteTypes {
     | '/_authenticated/databook/'
     | '/_authenticated/expedicao/'
     | '/_authenticated/medicao/'
+    | '/_authenticated/orcamentos/'
     | '/_authenticated/pcp/'
     | '/_authenticated/producao/'
     | '/_authenticated/qualidade/'
@@ -490,13 +491,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/orcamentos': {
-      id: '/_authenticated/orcamentos'
-      path: '/orcamentos'
-      fullPath: '/orcamentos'
-      preLoaderRoute: typeof AuthenticatedOrcamentosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/medicao': {
       id: '/_authenticated/medicao'
       path: '/medicao'
@@ -559,6 +553,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pcp/'
       preLoaderRoute: typeof AuthenticatedPcpIndexRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
+    }
+    '/_authenticated/orcamentos/': {
+      id: '/_authenticated/orcamentos/'
+      path: '/orcamentos'
+      fullPath: '/orcamentos/'
+      preLoaderRoute: typeof AuthenticatedOrcamentosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/medicao/': {
       id: '/_authenticated/medicao/'
@@ -762,7 +763,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRouteWithChildren
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRouteWithChildren
-  AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRouteWithChildren
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRouteWithChildren
@@ -772,6 +772,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosFeriadosRoute: typeof AuthenticatedCadastrosFeriadosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
   AuthenticatedCadastrosSubAreasRoute: typeof AuthenticatedCadastrosSubAreasRoute
+  AuthenticatedOrcamentosIndexRoute: typeof AuthenticatedOrcamentosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -780,7 +781,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRouteWithChildren,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRouteWithChildren,
-  AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRouteWithChildren,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRouteWithChildren,
@@ -792,6 +792,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosFuncionariosRoute:
     AuthenticatedCadastrosFuncionariosRoute,
   AuthenticatedCadastrosSubAreasRoute: AuthenticatedCadastrosSubAreasRoute,
+  AuthenticatedOrcamentosIndexRoute: AuthenticatedOrcamentosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
