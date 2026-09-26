@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertTriangle, CheckCircle2, Flag, Hammer, PackageCheck, RefreshCw, ThumbsUp } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Flag, Hammer, PackageCheck, PauseCircle, RefreshCw, ThumbsUp } from "lucide-react";
 import { dateBr, diffDias, prazoOriginal, prazoVigente, type PedidoResumo } from "@/components/operations";
 
 type Paralisacao = { id: string; inicio: string; fim: string | null; motivo: string; detalhe: string | null; duracao_horas: number | null; conjunto_id: string | null };
 type Apontamento = { id: string; inicio: string; fim: string | null; processo: string; quantidade_executada: number; conjunto_id: string | null };
 type Reprog = { id: string; tipo: string; data_anterior: string | null; nova_data: string; motivo: string; impacto_dias: number };
+type ConjuntoTimeline = { id: string; tag: string; progresso: number };
 
 const MOTIVOS: Record<string, string> = {
   falta_material: "Falta de material",
@@ -85,13 +86,17 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
     queryKey: ["pcp-timeline-conjuntos", pedidoId],
     enabled: Boolean(pedidoId),
     queryFn: async () => {
-      const { data, error } = await supabase.from("pedido_conjuntos").select("id, tag").eq("pedido_id", pedidoId);
+      const { data, error } = await supabase.from("pedido_conjuntos").select("id, tag, progresso").eq("pedido_id", pedidoId);
       if (error) throw error;
-      return data as unknown as { id: string; tag: string }[];
+      return data as unknown as ConjuntoTimeline[];
     },
   });
 
   const tagDe = useMemo(() => new Map(conjuntos.map((c) => [c.id, c.tag])), [conjuntos]);
+  const avancoReal = useMemo(
+    () => (conjuntos.length ? conjuntos.reduce((total, conjunto) => total + Number(conjunto.progresso ?? 0), 0) / conjuntos.length : 0),
+    [conjuntos],
+  );
   const hoje = hojeIso();
 
   const marcos = useMemo<Marco[]>(() => {
@@ -200,6 +205,7 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
           ini: isoLocal(p.inicio),
           fimIso: p.fim ? isoLocal(p.fim) : hoje,
           emAndamento: !p.fim,
+          dias: Math.max(1, Math.ceil(p.duracao_horas != null ? Number(p.duracao_horas) / 24 : Math.abs(diffDias(isoLocal(p.inicio), p.fim ? isoLocal(p.fim) : hoje) ?? 0))),
         })),
     [paralisacoes, hoje],
   );
@@ -217,7 +223,7 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
   const t0 = ms(inicio) - margem * 86_400_000;
   const t1 = ms(fim) + margem * 86_400_000;
   const pos = (iso: string) => ((ms(iso) - t0) / Math.max(1, t1 - t0)) * 100;
-  const posCartao = (iso: string) => Math.min(90, Math.max(10, pos(iso)));
+  const posCartao = (iso: string) => Math.min(92, Math.max(8, pos(iso)));
 
   const meses = useMemo(() => {
     const out: { label: string; left: number }[] = [];
@@ -233,11 +239,28 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t0, t1]);
 
-  const largura = Math.max(760, marcos.length * 130);
+  const largura = Math.max(1080, marcos.length * 150);
+  const fabricacaoInicio = pedido.producao_iniciada && pedido.data_inicio_producao ? isoLocal(pedido.data_inicio_producao) : null;
+  const fabricacaoFim = prazoVigente(pedido)?.slice(0, 10) ?? hoje;
+  const fabricacaoLeft = fabricacaoInicio ? Math.max(0, pos(fabricacaoInicio)) : 0;
+  const fabricacaoRight = fabricacaoInicio ? Math.min(100, Math.max(fabricacaoLeft + 0.8, pos(fabricacaoFim))) : 0;
+  const eventoLanes = useMemo(() => {
+    const finais: number[] = [];
+    return marcos.map((marco) => {
+      const centro = posCartao(marco.data);
+      let lane = finais.findIndex((fimLane) => centro - fimLane >= 15);
+      if (lane < 0) lane = finais.length;
+      finais[lane] = centro;
+      return { marco, lane };
+    });
+    // A escala é recalculada quando as datas alteram t0/t1.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marcos, t0, t1]);
+  const totalLanes = Math.max(1, ...eventoLanes.map((evento) => evento.lane + 1));
 
   return (
     <Card>
-      <CardHeader className="gap-2">
+      <CardHeader className="gap-3 pb-3">
         <CardTitle className="text-base">Linha do tempo · {pedido.pomg_codigo ?? pedido.numero}</CardTitle>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <Legenda tone="primary" icon={ThumbsUp} label="Aprovação / início" />
@@ -247,13 +270,13 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
           <Legenda tone="muted" icon={Flag} label="Entrega" />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 pb-5 sm:px-5">
         {!marcos.length && !faixas.length ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Sem eventos registrados para esta demanda.</p>
         ) : (
           <TooltipProvider>
             <div className="overflow-x-auto pb-2">
-              <div className="relative" style={{ width: largura }}>
+              <div className="relative min-w-full" style={{ width: `max(100%, ${largura}px)` }}>
                 {/* eixo de meses */}
                 <div className="relative h-5">
                   {meses.map((m) => (
@@ -263,47 +286,77 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
                   ))}
                 </div>
 
-                {/* esteira */}
-                <div
-                  className="relative h-16 rounded-md border border-border bg-foreground/85"
-                  style={{ backgroundImage: "repeating-linear-gradient(90deg, hsl(var(--background) / 0.18) 0 2px, transparent 2px 22px)" }}
-                >
-                  {faixas.map((f) => {
-                    const left = pos(f.ini);
-                    const right = pos(f.fimIso);
-                    return (
-                      <Tooltip key={f.id}>
-                        <TooltipTrigger asChild>
-                          <div
-                            aria-label={`Paralisação ${motivoLabel(f.motivo)} de ${dateBr(f.ini)} a ${f.emAndamento ? "em andamento" : dateBr(f.fimIso)}`}
-                            className="absolute top-1/2 h-6 -translate-y-1/2 rounded bg-destructive/80 ring-1 ring-destructive"
-                            style={{ left: `${left}%`, width: `${Math.max(0.8, right - left)}%` }}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="text-xs">
-                            <div className="font-semibold">Paralisação · {motivoLabel(f.motivo)}</div>
-                            <div>
-                              {dateBr(f.ini)} → {f.emAndamento ? "em andamento" : dateBr(f.fimIso)}
-                            </div>
-                            {f.duracao_horas != null && <div>{Number(f.duracao_horas).toFixed(1)} h</div>}
-                            {f.detalhe && <div className="text-muted-foreground">{f.detalhe}</div>}
-                            {f.conjunto_id && tagDe.get(f.conjunto_id) && <div className="text-muted-foreground">{tagDe.get(f.conjunto_id)}</div>}
+                {/* período e avanço da fabricação */}
+                <div className="relative h-20 overflow-hidden rounded-md border bg-muted/35">
+                  <div className="absolute inset-x-0 top-0 h-7 border-b bg-muted/60" />
+                  {fabricacaoInicio ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="absolute top-3 h-10 rounded-sm border border-success/40 bg-success/10"
+                          style={{ left: `${fabricacaoLeft}%`, width: `${Math.max(1.2, fabricacaoRight - fabricacaoLeft)}%` }}
+                          aria-label={`Avanço da fabricação: ${avancoReal.toFixed(0)}%`}
+                        >
+                          <div className="absolute inset-y-0 left-0 rounded-sm bg-success/25" style={{ width: `${Math.min(100, Math.max(0, avancoReal))}%` }} />
+                          <div className="absolute inset-x-2 top-1/2 flex -translate-y-1/2 items-center justify-between gap-3 whitespace-nowrap text-xs font-semibold text-success">
+                            <span>Avanço da fabricação</span>
+                            <span>{avancoReal.toFixed(0)}%</span>
                           </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-
-                  {/* hoje */}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="text-xs">
+                          <div className="font-semibold">Avanço físico real: {avancoReal.toFixed(0)}%</div>
+                          <div>{dateBr(fabricacaoInicio)} → {dateBr(fabricacaoFim)}</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <span className="absolute left-3 top-10 text-xs text-muted-foreground">Fabricação ainda não iniciada</span>
+                  )}
                   <div className="absolute inset-y-0 w-px bg-primary" style={{ left: `${pos(hoje)}%` }}>
-                    <span className="absolute -top-1 left-1 whitespace-nowrap text-[10px] font-semibold text-primary">Hoje</span>
+                    <span className="absolute left-1 top-1 whitespace-nowrap text-[10px] font-semibold text-primary">Hoje</span>
                   </div>
                 </div>
 
+                {/* períodos de paralisação */}
+                {faixas.length > 0 && (
+                  <div className="relative mt-2 h-12 rounded-md border border-destructive/20 bg-destructive/5">
+                    <div className="absolute left-2 top-1 flex items-center gap-1 text-[10px] font-semibold uppercase text-destructive">
+                      <PauseCircle className="h-3 w-3" /> Paralisações
+                    </div>
+                    {faixas.map((f) => {
+                      const left = pos(f.ini);
+                      const right = pos(f.fimIso);
+                      return (
+                        <Tooltip key={f.id}>
+                          <TooltipTrigger asChild>
+                            <div
+                              aria-label={`Paralisação ${motivoLabel(f.motivo)}, ${f.dias} ${f.dias === 1 ? "dia" : "dias"}, de ${dateBr(f.ini)} a ${f.emAndamento ? "em andamento" : dateBr(f.fimIso)}`}
+                              className="absolute bottom-1.5 flex h-6 items-center overflow-hidden rounded-sm border border-destructive bg-destructive/85 px-2 text-[10px] font-semibold text-destructive-foreground shadow-sm"
+                              style={{ left: `${left}%`, width: `${Math.max(1.2, right - left)}%` }}
+                            >
+                              <span className="truncate">{motivoLabel(f.motivo)} · {f.dias} {f.dias === 1 ? "dia" : "dias"}</span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="max-w-64 text-xs">
+                              <div className="font-semibold">Paralisação · {motivoLabel(f.motivo)}</div>
+                              <div>{dateBr(f.ini)} → {f.emAndamento ? "em andamento" : dateBr(f.fimIso)}</div>
+                              <div>{f.dias} {f.dias === 1 ? "dia" : "dias"} de paralisação</div>
+                              {f.detalhe && <div className="text-muted-foreground">{f.detalhe}</div>}
+                              {f.conjunto_id && tagDe.get(f.conjunto_id) && <div className="text-muted-foreground">Conjunto {tagDe.get(f.conjunto_id)}</div>}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {/* marcos */}
-                <div className="relative mt-3 h-28">
-                  {marcos.map((m, i) => {
+                <div className="relative mt-3" style={{ height: `${totalLanes * 62 + 8}px` }}>
+                  {eventoLanes.map(({ marco: m, lane }) => {
                     const tone = TONE[m.tone];
                     const Icon = m.icon;
                     return (
@@ -311,8 +364,8 @@ export function PcpTimeline({ pedido }: { pedido: PedidoResumo }) {
                         <TooltipTrigger asChild>
                           <div
                             aria-label={`${m.titulo} em ${dateBr(m.data)}`}
-                            className={`absolute w-36 -translate-x-1/2 rounded-md border bg-card p-2 shadow-sm ${tone.border}`}
-                            style={{ left: `${posCartao(m.data)}%`, top: i % 2 === 0 ? 0 : 52 }}
+                            className={`absolute w-40 -translate-x-1/2 rounded-md border bg-card p-2 shadow-sm transition-shadow hover:shadow-md ${tone.border}`}
+                            style={{ left: `${posCartao(m.data)}%`, top: lane * 62 }}
                           >
                             <div className={`flex items-center gap-1.5 text-[11px] font-semibold ${tone.text}`}>
                               <Icon className="h-3.5 w-3.5" />
