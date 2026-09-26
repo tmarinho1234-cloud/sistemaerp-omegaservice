@@ -17,6 +17,7 @@ import { Route as AuthenticatedQualidadeRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedPcpRouteImport } from './routes/_authenticated/pcp'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as AuthenticatedOrcamentosRouteImport } from './routes/_authenticated/orcamentos'
 import { Route as AuthenticatedMedicaoRouteImport } from './routes/_authenticated/medicao'
 import { Route as AuthenticatedFluxoRouteImport } from './routes/_authenticated/fluxo'
 import { Route as AuthenticatedExpedicaoRouteImport } from './routes/_authenticated/expedicao'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedDatabookIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedQualidadePedidoIdRouteImport } from './routes/_authenticated/qualidade.$pedidoId'
 import { Route as AuthenticatedProducaoPedidoIdRouteImport } from './routes/_authenticated/producao.$pedidoId'
 import { Route as AuthenticatedPcpPedidoIdRouteImport } from './routes/_authenticated/pcp.$pedidoId'
+import { Route as AuthenticatedOrcamentosSolicitacaoIdRouteImport } from './routes/_authenticated/orcamentos.$solicitacaoId'
 import { Route as AuthenticatedMedicaoPedidoIdRouteImport } from './routes/_authenticated/medicao.$pedidoId'
 import { Route as AuthenticatedExpedicaoPedidoIdRouteImport } from './routes/_authenticated/expedicao.$pedidoId'
 import { Route as AuthenticatedDatabookPedidoIdRouteImport } from './routes/_authenticated/databook.$pedidoId'
@@ -80,6 +82,11 @@ const AuthenticatedPcpRoute = AuthenticatedPcpRouteImport.update({
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrcamentosRoute = AuthenticatedOrcamentosRouteImport.update({
+  id: '/orcamentos',
+  path: '/orcamentos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMedicaoRoute = AuthenticatedMedicaoRouteImport.update({
@@ -132,9 +139,9 @@ const AuthenticatedPcpIndexRoute = AuthenticatedPcpIndexRouteImport.update({
 } as any)
 const AuthenticatedOrcamentosIndexRoute =
   AuthenticatedOrcamentosIndexRouteImport.update({
-    id: '/orcamentos/',
-    path: '/orcamentos/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedOrcamentosRoute,
   } as any)
 const AuthenticatedMedicaoIndexRoute =
   AuthenticatedMedicaoIndexRouteImport.update({
@@ -171,6 +178,12 @@ const AuthenticatedPcpPedidoIdRoute =
     id: '/$pedidoId',
     path: '/$pedidoId',
     getParentRoute: () => AuthenticatedPcpRoute,
+  } as any)
+const AuthenticatedOrcamentosSolicitacaoIdRoute =
+  AuthenticatedOrcamentosSolicitacaoIdRouteImport.update({
+    id: '/$solicitacaoId',
+    path: '/$solicitacaoId',
+    getParentRoute: () => AuthenticatedOrcamentosRoute,
   } as any)
 const AuthenticatedMedicaoPedidoIdRoute =
   AuthenticatedMedicaoPedidoIdRouteImport.update({
@@ -236,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/expedicao': typeof AuthenticatedExpedicaoRouteWithChildren
   '/fluxo': typeof AuthenticatedFluxoRoute
   '/medicao': typeof AuthenticatedMedicaoRouteWithChildren
+  '/orcamentos': typeof AuthenticatedOrcamentosRouteWithChildren
   '/painel': typeof AuthenticatedPainelRoute
   '/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/producao': typeof AuthenticatedProducaoRouteWithChildren
@@ -249,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
   '/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
   '/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
+  '/orcamentos/$solicitacaoId': typeof AuthenticatedOrcamentosSolicitacaoIdRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
@@ -277,6 +292,7 @@ export interface FileRoutesByTo {
   '/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
   '/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
   '/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
+  '/orcamentos/$solicitacaoId': typeof AuthenticatedOrcamentosSolicitacaoIdRoute
   '/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
@@ -300,6 +316,7 @@ export interface FileRoutesById {
   '/_authenticated/expedicao': typeof AuthenticatedExpedicaoRouteWithChildren
   '/_authenticated/fluxo': typeof AuthenticatedFluxoRoute
   '/_authenticated/medicao': typeof AuthenticatedMedicaoRouteWithChildren
+  '/_authenticated/orcamentos': typeof AuthenticatedOrcamentosRouteWithChildren
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/_authenticated/pcp': typeof AuthenticatedPcpRouteWithChildren
   '/_authenticated/producao': typeof AuthenticatedProducaoRouteWithChildren
@@ -313,6 +330,7 @@ export interface FileRoutesById {
   '/_authenticated/databook/$pedidoId': typeof AuthenticatedDatabookPedidoIdRoute
   '/_authenticated/expedicao/$pedidoId': typeof AuthenticatedExpedicaoPedidoIdRoute
   '/_authenticated/medicao/$pedidoId': typeof AuthenticatedMedicaoPedidoIdRoute
+  '/_authenticated/orcamentos/$solicitacaoId': typeof AuthenticatedOrcamentosSolicitacaoIdRoute
   '/_authenticated/pcp/$pedidoId': typeof AuthenticatedPcpPedidoIdRoute
   '/_authenticated/producao/$pedidoId': typeof AuthenticatedProducaoPedidoIdRoute
   '/_authenticated/qualidade/$pedidoId': typeof AuthenticatedQualidadePedidoIdRoute
@@ -336,6 +354,7 @@ export interface FileRouteTypes {
     | '/expedicao'
     | '/fluxo'
     | '/medicao'
+    | '/orcamentos'
     | '/painel'
     | '/pcp'
     | '/producao'
@@ -349,6 +368,7 @@ export interface FileRouteTypes {
     | '/databook/$pedidoId'
     | '/expedicao/$pedidoId'
     | '/medicao/$pedidoId'
+    | '/orcamentos/$solicitacaoId'
     | '/pcp/$pedidoId'
     | '/producao/$pedidoId'
     | '/qualidade/$pedidoId'
@@ -377,6 +397,7 @@ export interface FileRouteTypes {
     | '/databook/$pedidoId'
     | '/expedicao/$pedidoId'
     | '/medicao/$pedidoId'
+    | '/orcamentos/$solicitacaoId'
     | '/pcp/$pedidoId'
     | '/producao/$pedidoId'
     | '/qualidade/$pedidoId'
@@ -399,6 +420,7 @@ export interface FileRouteTypes {
     | '/_authenticated/expedicao'
     | '/_authenticated/fluxo'
     | '/_authenticated/medicao'
+    | '/_authenticated/orcamentos'
     | '/_authenticated/painel'
     | '/_authenticated/pcp'
     | '/_authenticated/producao'
@@ -412,6 +434,7 @@ export interface FileRouteTypes {
     | '/_authenticated/databook/$pedidoId'
     | '/_authenticated/expedicao/$pedidoId'
     | '/_authenticated/medicao/$pedidoId'
+    | '/_authenticated/orcamentos/$solicitacaoId'
     | '/_authenticated/pcp/$pedidoId'
     | '/_authenticated/producao/$pedidoId'
     | '/_authenticated/qualidade/$pedidoId'
@@ -491,6 +514,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orcamentos': {
+      id: '/_authenticated/orcamentos'
+      path: '/orcamentos'
+      fullPath: '/orcamentos'
+      preLoaderRoute: typeof AuthenticatedOrcamentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/medicao': {
       id: '/_authenticated/medicao'
       path: '/medicao'
@@ -556,10 +586,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/orcamentos/': {
       id: '/_authenticated/orcamentos/'
-      path: '/orcamentos'
+      path: '/'
       fullPath: '/orcamentos/'
       preLoaderRoute: typeof AuthenticatedOrcamentosIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedOrcamentosRoute
     }
     '/_authenticated/medicao/': {
       id: '/_authenticated/medicao/'
@@ -602,6 +632,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pcp/$pedidoId'
       preLoaderRoute: typeof AuthenticatedPcpPedidoIdRouteImport
       parentRoute: typeof AuthenticatedPcpRoute
+    }
+    '/_authenticated/orcamentos/$solicitacaoId': {
+      id: '/_authenticated/orcamentos/$solicitacaoId'
+      path: '/$solicitacaoId'
+      fullPath: '/orcamentos/$solicitacaoId'
+      preLoaderRoute: typeof AuthenticatedOrcamentosSolicitacaoIdRouteImport
+      parentRoute: typeof AuthenticatedOrcamentosRoute
     }
     '/_authenticated/medicao/$pedidoId': {
       id: '/_authenticated/medicao/$pedidoId'
@@ -713,6 +750,23 @@ const AuthenticatedMedicaoRouteChildren: AuthenticatedMedicaoRouteChildren = {
 const AuthenticatedMedicaoRouteWithChildren =
   AuthenticatedMedicaoRoute._addFileChildren(AuthenticatedMedicaoRouteChildren)
 
+interface AuthenticatedOrcamentosRouteChildren {
+  AuthenticatedOrcamentosSolicitacaoIdRoute: typeof AuthenticatedOrcamentosSolicitacaoIdRoute
+  AuthenticatedOrcamentosIndexRoute: typeof AuthenticatedOrcamentosIndexRoute
+}
+
+const AuthenticatedOrcamentosRouteChildren: AuthenticatedOrcamentosRouteChildren =
+  {
+    AuthenticatedOrcamentosSolicitacaoIdRoute:
+      AuthenticatedOrcamentosSolicitacaoIdRoute,
+    AuthenticatedOrcamentosIndexRoute: AuthenticatedOrcamentosIndexRoute,
+  }
+
+const AuthenticatedOrcamentosRouteWithChildren =
+  AuthenticatedOrcamentosRoute._addFileChildren(
+    AuthenticatedOrcamentosRouteChildren,
+  )
+
 interface AuthenticatedPcpRouteChildren {
   AuthenticatedPcpPedidoIdRoute: typeof AuthenticatedPcpPedidoIdRoute
   AuthenticatedPcpIndexRoute: typeof AuthenticatedPcpIndexRoute
@@ -763,6 +817,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExpedicaoRoute: typeof AuthenticatedExpedicaoRouteWithChildren
   AuthenticatedFluxoRoute: typeof AuthenticatedFluxoRoute
   AuthenticatedMedicaoRoute: typeof AuthenticatedMedicaoRouteWithChildren
+  AuthenticatedOrcamentosRoute: typeof AuthenticatedOrcamentosRouteWithChildren
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedPcpRoute: typeof AuthenticatedPcpRouteWithChildren
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRouteWithChildren
@@ -772,7 +827,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCadastrosFeriadosRoute: typeof AuthenticatedCadastrosFeriadosRoute
   AuthenticatedCadastrosFuncionariosRoute: typeof AuthenticatedCadastrosFuncionariosRoute
   AuthenticatedCadastrosSubAreasRoute: typeof AuthenticatedCadastrosSubAreasRoute
-  AuthenticatedOrcamentosIndexRoute: typeof AuthenticatedOrcamentosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -781,6 +835,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExpedicaoRoute: AuthenticatedExpedicaoRouteWithChildren,
   AuthenticatedFluxoRoute: AuthenticatedFluxoRoute,
   AuthenticatedMedicaoRoute: AuthenticatedMedicaoRouteWithChildren,
+  AuthenticatedOrcamentosRoute: AuthenticatedOrcamentosRouteWithChildren,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedPcpRoute: AuthenticatedPcpRouteWithChildren,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRouteWithChildren,
@@ -792,7 +847,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCadastrosFuncionariosRoute:
     AuthenticatedCadastrosFuncionariosRoute,
   AuthenticatedCadastrosSubAreasRoute: AuthenticatedCadastrosSubAreasRoute,
-  AuthenticatedOrcamentosIndexRoute: AuthenticatedOrcamentosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
