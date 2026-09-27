@@ -205,7 +205,7 @@ export function FarolDot({ farol }: { farol: Farol }) {
 /** Tabelas observadas e quais consultas cada mudança atualiza. */
 const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
   pedidos: ["pedidos-operacionais", "kpi-central", "pedido-por-orcamento"],
-  pedido_conjuntos: ["todos-conjuntos", "conjuntos", "kpi-central"],
+  pedido_conjuntos: ["todos-conjuntos", "conjuntos", "kpi-central", "pcp-timeline-conjuntos"],
   pedido_conjunto_atividades: ["atividades-conjunto", "todos-conjuntos", "conjuntos", "kpi-central"],
   solicitacoes_orcamento: ["solicitacoes", "solicitacao"],
   analises_tecnicas: ["analise", "solicitacoes", "solicitacao"],
