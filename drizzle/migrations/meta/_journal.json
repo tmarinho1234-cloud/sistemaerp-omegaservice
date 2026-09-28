@@ -57,6 +57,13 @@
       "when": 1789829835210,
       "tag": "0007_reprogramar_entrega_pedido",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790557052995,
+      "tag": "0008_add_conjunto_cor",
+      "breakpoints": true
     }
   ]
 }

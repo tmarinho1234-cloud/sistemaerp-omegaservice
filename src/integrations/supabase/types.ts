@@ -864,6 +864,7 @@ export type Database = {
       orcamento_conjuntos: {
         Row: {
           codigo: string
+          cor: string | null
           created_at: string
           descricao: string
           id: string
@@ -875,6 +876,7 @@ export type Database = {
         }
         Insert: {
           codigo: string
+          cor?: string | null
           created_at?: string
           descricao?: string
           id?: string
@@ -886,6 +888,7 @@ export type Database = {
         }
         Update: {
           codigo?: string
+          cor?: string | null
           created_at?: string
           descricao?: string
           id?: string
@@ -1318,6 +1321,7 @@ export type Database = {
       pedido_conjuntos: {
         Row: {
           codigo: string
+          cor: string | null
           created_at: string
           descricao: string
           fim_previsto: string | null
@@ -1338,6 +1342,7 @@ export type Database = {
         }
         Insert: {
           codigo: string
+          cor?: string | null
           created_at?: string
           descricao: string
           fim_previsto?: string | null
@@ -1358,6 +1363,7 @@ export type Database = {
         }
         Update: {
           codigo?: string
+          cor?: string | null
           created_at?: string
           descricao?: string
           fim_previsto?: string | null
