@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { PcpTimeline } from "@/components/pcp-timeline";
 import { DetailEmpty, DetailShell, Info } from "@/components/detail-page";
 import {
+  CorConjunto,
   FarolDot,
   ProgressBar,
   avancoPrevisto,
@@ -202,7 +203,7 @@ function PcpDetalhePage() {
     <DetailShell
       modulo="PCP"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.empresa ?? "—"} · ${pedido.contratos?.nome ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"}`}
+      subtitle={`${pedido.contratos?.numero ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"}`}
       badges={
         <>
           <Badge variant="outline">{pcpStatusLabel(pedido.pcp_status)}</Badge>
@@ -293,6 +294,7 @@ function PcpDetalhePage() {
                 <TableRow>
                   <TableHead>TAG</TableHead>
                   <TableHead>Conjunto</TableHead>
+                  <TableHead>Cor</TableHead>
                   <TableHead>Qtd.</TableHead>
                   <TableHead>Fabricado</TableHead>
                   <TableHead>Peso</TableHead>
@@ -313,6 +315,7 @@ function PcpDetalhePage() {
                         <div>{c.codigo}</div>
                         <div className="text-xs text-muted-foreground">{c.descricao}</div>
                       </TableCell>
+                      <TableCell className="text-xs"><CorConjunto cor={c.cor} /></TableCell>
                       <TableCell>{c.quantidade}</TableCell>
                       <TableCell className="text-xs">
                         {c.quantidade_fabricada} de {c.quantidade}
@@ -342,7 +345,7 @@ function PcpDetalhePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                       Nenhum conjunto nesta demanda. Crie os conjuntos no módulo de Orçamentos.
                     </TableCell>
                   </TableRow>

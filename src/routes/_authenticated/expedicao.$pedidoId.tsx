@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { DetailEmpty, DetailShell } from "@/components/detail-page";
-import { MetricCard, ProgressBar, dateBr, moneyBr, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
+import { CorConjunto, MetricCard, ProgressBar, dateBr, moneyBr, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/expedicao/$pedidoId")({
   head: () => ({
@@ -192,7 +192,7 @@ function ExpedicaoDetalhePage() {
     <DetailShell
       modulo="Expedição"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.nome ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · SLA ${dateBr(pedido.data_sla ?? pedido.prazo_entrega)}`}
+      subtitle={`${pedido.contratos?.numero ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · SLA ${dateBr(pedido.data_sla ?? pedido.prazo_entrega)}`}
       badges={<Badge variant="outline">{totais.tipo}</Badge>}
       onBack={voltar}
       onPrev={anterior ? () => navigate({ to: "/expedicao/$pedidoId", params: { pedidoId: anterior.id } }) : undefined}
@@ -222,6 +222,7 @@ function ExpedicaoDetalhePage() {
                 <TableRow>
                   <TableHead>TAG</TableHead>
                   <TableHead>Conjunto</TableHead>
+                  <TableHead>Cor</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Entregue</TableHead>
                   <TableHead>Restante</TableHead>
@@ -244,6 +245,7 @@ function ExpedicaoDetalhePage() {
                           <div>{c.codigo}</div>
                           <div className="text-xs text-muted-foreground">{c.descricao}</div>
                         </TableCell>
+                        <TableCell className="text-xs"><CorConjunto cor={c.cor} /></TableCell>
                         <TableCell>{c.quantidade}</TableCell>
                         <TableCell>{entregue}</TableCell>
                         <TableCell>{restante}</TableCell>
@@ -257,7 +259,7 @@ function ExpedicaoDetalhePage() {
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                       Nenhum conjunto nesta demanda.
                     </TableCell>
                   </TableRow>

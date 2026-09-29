@@ -167,7 +167,7 @@ function MedicaoDetalhePage() {
     <DetailShell
       modulo="Medição"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.nome ?? "—"} · proposta ${pedido.orcamentos?.numero ?? "—"} · valor do pedido ${moneyBr(Number(pedido.valor_total))}`}
+      subtitle={`${pedido.contratos?.numero ?? "—"} · proposta ${pedido.orcamentos?.numero ?? "—"} · valor do pedido ${moneyBr(Number(pedido.valor_total))}`}
       onBack={voltar}
       onPrev={anterior ? () => navigate({ to: "/medicao/$pedidoId", params: { pedidoId: anterior.id } }) : undefined}
       onNext={proximo ? () => navigate({ to: "/medicao/$pedidoId", params: { pedidoId: proximo.id } }) : undefined}

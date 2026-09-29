@@ -92,7 +92,7 @@ function PainelPage() {
                   linhas.map(({ pedido: p, real, restante, conjuntos: cs, fabricadas, totalQtd, farol }) => (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate({ to: "/pcp" })}>
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
-                      <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{p.contratos?.numero ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">{cs.length}</TableCell>
                       <TableCell className="text-xs">

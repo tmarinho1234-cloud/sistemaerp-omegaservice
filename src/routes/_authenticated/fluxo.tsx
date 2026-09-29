@@ -185,7 +185,7 @@ function FluxoPage() {
                       </Badge>
                     </div>
                     <p className="truncate text-xs text-muted-foreground">
-                      {l.pedido.contratos?.nome ?? "—"} · {l.pedido.sub_areas?.nome ?? "—"} · {l.conjuntos} conjunto(s) · {l.pesoTotal.toLocaleString("pt-BR")} kg ·{" "}
+                      {l.pedido.contratos?.numero ?? "—"} · {l.pedido.sub_areas?.nome ?? "—"} · {l.conjuntos} conjunto(s) · {l.pesoTotal.toLocaleString("pt-BR")} kg ·{" "}
                       {moneyBr(l.pedido.valor_total)}
                     </p>
                   </div>

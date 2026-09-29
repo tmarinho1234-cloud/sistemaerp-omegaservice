@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DetailEmpty, DetailShell } from "@/components/detail-page";
-import { MetricCard, ProgressBar, dateBr, requisitoLabel, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
+import { CorConjunto, MetricCard, ProgressBar, dateBr, requisitoLabel, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/qualidade/$pedidoId")({
   head: () => ({
@@ -150,7 +150,7 @@ function QualidadeDetalhePage() {
     <DetailShell
       modulo="Qualidade"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.nome ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · requisitos: ${
+      subtitle={`${pedido.contratos?.numero ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · requisitos: ${
         requisitos.length ? requisitos.map((r) => requisitoLabel(r.tipo, r.nome_ensaio)).join(", ") : "nenhum definido na análise técnica"
       }`}
       onBack={voltar}
@@ -181,6 +181,7 @@ function QualidadeDetalhePage() {
                 <TableRow>
                   <TableHead>TAG</TableHead>
                   <TableHead>Conjunto</TableHead>
+                  <TableHead>Cor</TableHead>
                   <TableHead>Avanço</TableHead>
                   {tiposDaDemanda.map((t) => (
                     <TableHead key={t.value + t.label}>{t.label}</TableHead>
@@ -199,6 +200,7 @@ function QualidadeDetalhePage() {
                         <div>{c.codigo}</div>
                         <div className="text-xs text-muted-foreground">{c.descricao}</div>
                       </TableCell>
+                      <TableCell className="text-xs"><CorConjunto cor={c.cor} /></TableCell>
                       <TableCell>
                         <ProgressBar value={c.progresso} />
                       </TableCell>
@@ -215,7 +217,7 @@ function QualidadeDetalhePage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4 + tiposDaDemanda.length} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={5 + tiposDaDemanda.length} className="py-10 text-center text-muted-foreground">
                       Nenhum conjunto nesta demanda.
                     </TableCell>
                   </TableRow>

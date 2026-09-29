@@ -41,7 +41,7 @@ function OrcamentoDetalhePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("solicitacoes_orcamento")
-        .select("*, contratos(nome, empresa), sub_areas(nome)")
+        .select("*, contratos(numero), sub_areas(nome)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as Solicitacao[];
@@ -53,7 +53,7 @@ function OrcamentoDetalhePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("solicitacoes_orcamento")
-        .select("*, contratos(nome, empresa), sub_areas(nome)")
+        .select("*, contratos(numero), sub_areas(nome)")
         .eq("id", solicitacaoId)
         .maybeSingle();
       if (error) throw error;
@@ -76,7 +76,7 @@ function OrcamentoDetalhePage() {
       modulo="Orçamentos"
       title={sol.pomg_codigo ?? sol.numero}
       badges={<Badge variant={STATUS_VARIANT[sol.status]}>{STATUS_LABEL[sol.status]}</Badge>}
-      subtitle={`${sol.contratos?.empresa ?? "—"} · ${sol.contratos?.nome ?? "—"}${sol.sub_areas?.nome ? ` · ${sol.sub_areas.nome}` : ""} · recebida em ${formatDate(sol.data_recebimento)}`}
+      subtitle={`${sol.contratos?.numero ?? "—"}${sol.sub_areas?.nome ? ` · ${sol.sub_areas.nome}` : ""} · recebida em ${formatDate(sol.data_recebimento)}`}
       onBack={voltar}
       onPrev={anterior ? () => navigate({ to: "/orcamentos/$solicitacaoId", params: { solicitacaoId: anterior.id } }) : undefined}
       onNext={proximo ? () => navigate({ to: "/orcamentos/$solicitacaoId", params: { solicitacaoId: proximo.id } }) : undefined}

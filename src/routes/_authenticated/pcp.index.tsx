@@ -53,7 +53,7 @@ function PcpListaPage() {
 
   const contratos = useMemo(() => {
     const map = new Map<string, string>();
-    pedidos.forEach((p) => p.contrato_id && map.set(p.contrato_id, `${p.contratos?.empresa ?? ""} · ${p.contratos?.nome ?? ""}`));
+    pedidos.forEach((p) => p.contrato_id && map.set(p.contrato_id, p.contratos?.numero ?? "Sem número"));
     return [...map.entries()];
   }, [pedidos]);
   const subAreas = useMemo(() => {
@@ -190,7 +190,7 @@ function PcpListaPage() {
                   linhas.map(({ pedido: p, previsto, real, restante, farol }) => (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate({ to: "/pcp/$pedidoId", params: { pedidoId: p.id } })}>
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
-                      <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{p.contratos?.numero ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">{dateBr(p.data_aprovacao)}</TableCell>
                       <TableCell className="text-xs">{p.prazo_aquisicao_dias ? `${p.prazo_aquisicao_dias} dias úteis` : "sem aquisição"}</TableCell>

@@ -92,7 +92,7 @@ export type Solicitacao = {
     | "aprovada"
     | "reprovada"
     | "convertida_pedido";
-  contratos?: { nome: string; empresa: string } | null;
+  contratos?: { numero: string | null } | null;
   sub_areas?: { nome: string } | null;
 };
 
@@ -250,7 +250,7 @@ function OrcamentosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("solicitacoes_orcamento")
-        .select("*, contratos(nome, empresa), sub_areas(nome)")
+        .select("*, contratos(numero), sub_areas(nome)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as Solicitacao[];
@@ -266,8 +266,7 @@ function OrcamentosPage() {
           r.numero.toLowerCase().includes(s) ||
           (r.pomg_codigo ?? "").toLowerCase().includes(s) ||
           r.escopo.toLowerCase().includes(s) ||
-          r.contratos?.empresa.toLowerCase().includes(s) ||
-          r.contratos?.nome.toLowerCase().includes(s);
+          (r.contratos?.numero ?? "").toLowerCase().includes(s);
         const matchesStatus =
           statusFilter === "todos" || r.status === statusFilter;
         return matchesSearch && matchesStatus;
@@ -315,7 +314,7 @@ function OrcamentosPage() {
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Buscar por número, cliente ou escopo..."
+                placeholder="Buscar por POMG, contrato ou escopo..."
                 className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -341,8 +340,6 @@ function OrcamentosPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>POMG</TableHead>
-                  
-                  <TableHead>Empresa</TableHead>
                   <TableHead>Contrato</TableHead>
                   <TableHead>Sub-área</TableHead>
                   <TableHead>Recebida</TableHead>
@@ -354,13 +351,13 @@ function OrcamentosPage() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       Carregando...
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       Nenhuma solicitação encontrada.
                     </TableCell>
                   </TableRow>
@@ -368,9 +365,7 @@ function OrcamentosPage() {
                   filtered.map((r) => (
                     <TableRow key={r.id} className="cursor-pointer" onClick={() => abrir(r.id)}>
                       <TableCell className="font-mono text-xs font-semibold">{r.pomg_codigo ?? "—"}</TableCell>
-                      
-                      <TableCell>{r.contratos?.empresa ?? "—"}</TableCell>
-                      <TableCell>{r.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell>{r.contratos?.numero ?? "—"}</TableCell>
                       <TableCell>{r.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell>{formatDate(r.data_recebimento)}</TableCell>
                       <TableCell>{formatDate(r.prazo_cliente)}</TableCell>
@@ -478,9 +473,9 @@ function NovaSolicitacaoDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contratos")
-        .select("id, nome, empresa")
+        .select("id, numero")
         .eq("ativo", true)
-        .order("empresa");
+        .order("numero");
       if (error) throw error;
       return data;
     },
@@ -566,7 +561,7 @@ function NovaSolicitacaoDialog({
               <SelectContent>
                 {contratos.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.empresa} — {c.nome}
+                    {c.numero ?? "Sem número"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1823,7 +1818,7 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
 
       // Copia os conjuntos e atividades definidos no orçamento
       const { data: ocs } = await supabase.from("orcamento_conjuntos").select("*").eq("orcamento_id", orc.id).order("ordem");
-      for (const oc of (ocs ?? []) as unknown as { id: string; codigo: string; descricao: string | null; quantidade: number; peso_kg: number | null }[]) {
+      for (const oc of (ocs ?? []) as unknown as { id: string; codigo: string; descricao: string | null; cor: string | null; quantidade: number; peso_kg: number | null }[]) {
         const { data: pc, error: pce } = await supabase
           .from("pedido_conjuntos")
           .insert({
@@ -1832,6 +1827,7 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
             codigo: oc.codigo,
             tag: oc.codigo,
             descricao: oc.descricao ?? oc.codigo,
+            cor: oc.cor,
             quantidade: Number(oc.quantidade),
             peso_kg: oc.peso_kg,
             inicio_previsto: new Date().toISOString().slice(0, 10),
@@ -2095,13 +2091,14 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
 
 /* ---------------- Tab: Conjuntos do orçamento ---------------- */
 
-type OrcConjunto = { id: string; codigo: string; descricao: string | null; quantidade: number; peso_kg: number | null; ordem: number };
+type OrcConjunto = { id: string; codigo: string; descricao: string | null; cor: string | null; quantidade: number; peso_kg: number | null; ordem: number };
 type OrcAtividade = { id: string; conjunto_id: string; atividade: string; nome_extra: string | null; ordem: number };
 
 export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
   const qc = useQueryClient();
   const [novo, setNovo] = useState(false);
-  const [form, setForm] = useState({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
+  const [editando, setEditando] = useState<OrcConjunto | null>(null);
+  const [form, setForm] = useState({ codigo: "", descricao: "", cor: "", quantidade: "1", peso_kg: "" });
   const [selecionadas, setSelecionadas] = useState<string[]>([...ATIVIDADES]);
   const [extra, setExtra] = useState("");
 
@@ -2153,7 +2150,7 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
       }
       const { data, error } = await supabase
         .from("orcamento_conjuntos")
-        .insert({ orcamento_id: orcamentoId, codigo: form.codigo.trim(), descricao: form.descricao || form.codigo.trim(), quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) * Number(form.quantidade || 1) : null, ordem: conjuntos.length })
+        .insert({ orcamento_id: orcamentoId, codigo: form.codigo.trim(), descricao: form.descricao || form.codigo.trim(), cor: form.cor.trim() || null, quantidade: Number(form.quantidade || 1), peso_kg: form.peso_kg ? Number(form.peso_kg) * Number(form.quantidade || 1) : null, ordem: conjuntos.length })
         .select("id")
         .single();
       if (error) throw error;
@@ -2166,13 +2163,28 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
     onSuccess: () => {
       toast.success("Conjunto criado");
       setNovo(false);
-      setForm({ codigo: "", descricao: "", quantidade: "1", peso_kg: "" });
+      setForm({ codigo: "", descricao: "", cor: "", quantidade: "1", peso_kg: "" });
       setSelecionadas([...ATIVIDADES]);
       setExtra("");
       qc.invalidateQueries({ queryKey: ["orcamento", sol.id] });
       qc.invalidateQueries({ queryKey: ["orcamento-conjuntos"] });
       qc.invalidateQueries({ queryKey: ["orcamento-conjunto-atividades"] });
       qc.invalidateQueries({ queryKey: ["solicitacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const salvarEdicao = useMutation({
+    mutationFn: async () => {
+      if (!editando) return;
+      const { error } = await supabase.from("orcamento_conjuntos").update({ cor: form.cor.trim() || null }).eq("id", editando.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Cor do conjunto atualizada");
+      setEditando(null);
+      setForm({ codigo: "", descricao: "", cor: "", quantidade: "1", peso_kg: "" });
+      qc.invalidateQueries({ queryKey: ["orcamento-conjuntos"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -2209,6 +2221,7 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
             <TableRow>
               <TableHead>Código</TableHead>
               <TableHead>Descrição</TableHead>
+              <TableHead>Cor</TableHead>
               <TableHead>Qtd.</TableHead>
               <TableHead>Peso unit.</TableHead>
               <TableHead>Peso total</TableHead>
@@ -2222,6 +2235,7 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
                 <TableRow key={c.id}>
                   <TableCell className="font-mono text-xs font-medium">{c.codigo}</TableCell>
                   <TableCell className="text-xs">{c.descricao ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{c.cor ?? "—"}</TableCell>
                   <TableCell>{c.quantidade}</TableCell>
                   <TableCell>{c.peso_kg ? `${(Number(c.peso_kg) / Number(c.quantidade || 1)).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg` : "—"}</TableCell>
                   <TableCell>{c.peso_kg ? `${Number(c.peso_kg).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg` : "—"}</TableCell>
@@ -2238,16 +2252,17 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
                   </TableCell>
                   <TableCell>
                     {editavel && (
-                      <Button size="sm" variant="ghost" onClick={() => remover.mutate(c.id)}>
-                        Remover
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => { setEditando(c); setForm({ codigo: c.codigo, descricao: c.descricao ?? "", cor: c.cor ?? "", quantidade: String(c.quantidade), peso_kg: c.peso_kg ? String(Number(c.peso_kg) / Number(c.quantidade || 1)) : "" }); }}>Editar</Button>
+                        <Button size="sm" variant="ghost" onClick={() => remover.mutate(c.id)}>Remover</Button>
+                      </div>
                     )}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   Nenhum conjunto cadastrado nesta proposta.
                 </TableCell>
               </TableRow>
@@ -2274,6 +2289,10 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
             <div className="col-span-2 space-y-2">
               <Label>Descrição</Label>
               <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
+            </div>
+            <div className="col-span-2 space-y-2">
+              <Label>Cor</Label>
+              <Input value={form.cor} onChange={(e) => setForm({ ...form, cor: e.target.value })} placeholder="Ex.: Cinza Munsell N6.5 ou Azul RAL 5010" />
             </div>
             <div className="space-y-2">
               <Label>Peso unit. (kg)</Label>
@@ -2308,6 +2327,23 @@ export function ConjuntosTab({ sol }: { sol: Solicitacao }) {
             <Button onClick={() => criar.mutate()} disabled={!form.codigo || criar.isPending}>
               Criar conjunto
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(editando)} onOpenChange={(open) => !open && setEditando(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar conjunto · {editando?.codigo}</DialogTitle>
+            <DialogDescription>Atualize a cor especificada para o conjunto.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>Cor</Label>
+            <Input value={form.cor} onChange={(e) => setForm({ ...form, cor: e.target.value })} placeholder="Ex.: Cinza Munsell N6.5 ou Azul RAL 5010" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditando(null)}>Cancelar</Button>
+            <Button onClick={() => salvarEdicao.mutate()} disabled={salvarEdicao.isPending}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2374,6 +2410,7 @@ async function sincronizarPedido(params: {
     descricao: string | null;
     quantidade: number;
     peso_kg: number | null;
+    cor: string | null;
   }[];
 
   const { data: pcsRaw } = await supabase
@@ -2393,6 +2430,7 @@ async function sincronizarPedido(params: {
           orcamento_conjunto_id: oc.id,
           codigo: oc.codigo,
           descricao: oc.descricao ?? oc.codigo,
+          cor: oc.cor,
           quantidade: Number(oc.quantidade),
           peso_kg: oc.peso_kg,
           ...(entrega ? { fim_previsto: entrega } : {}),
@@ -2409,6 +2447,7 @@ async function sincronizarPedido(params: {
           codigo: oc.codigo,
           tag: oc.codigo,
           descricao: oc.descricao ?? oc.codigo,
+          cor: oc.cor,
           quantidade: Number(oc.quantidade),
           peso_kg: oc.peso_kg,
           inicio_previsto: new Date().toISOString().slice(0, 10),

@@ -138,7 +138,7 @@ function DatabookDetalhePage() {
     <DetailShell
       modulo="Databook"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.nome ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · proposta ${pedido.orcamentos?.numero ?? "—"}`}
+      subtitle={`${pedido.contratos?.numero ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · proposta ${pedido.orcamentos?.numero ?? "—"}`}
       onBack={voltar}
       onPrev={anterior ? () => navigate({ to: "/databook/$pedidoId", params: { pedidoId: anterior.id } }) : undefined}
       onNext={proximo ? () => navigate({ to: "/databook/$pedidoId", params: { pedidoId: proximo.id } }) : undefined}
