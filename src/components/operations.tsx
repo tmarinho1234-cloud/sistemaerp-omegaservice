@@ -27,7 +27,7 @@ export type PedidoResumo = {
   contrato_id: string | null;
   sub_area_id: string | null;
   orcamento_id: string | null;
-  contratos?: { nome: string; empresa: string } | null;
+  contratos?: { numero: string | null } | null;
   sub_areas?: { nome: string } | null;
   orcamentos?: { numero: string } | null;
 };
@@ -38,6 +38,7 @@ export type ConjuntoResumo = {
   codigo: string;
   tag: string;
   descricao: string;
+  cor: string | null;
   quantidade: number;
   quantidade_fabricada: number;
   peso_kg: number | null;
@@ -257,7 +258,7 @@ export function usePedidos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pedidos")
-        .select("*, contratos(nome, empresa), sub_areas(nome), orcamentos(numero)")
+        .select("*, contratos(numero), sub_areas(nome), orcamentos(numero)")
         .neq("status", "cancelado")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -320,7 +321,29 @@ export function ModuleHeader({ title, description, icon: Icon, action }: { title
   );
 }
 
-export const pedidoLabel = (p: PedidoResumo) => `${p.pomg_codigo ?? p.numero} · ${p.contratos?.empresa ?? "Sem empresa"} · ${p.sub_areas?.nome ?? "Sem sub-área"}`;
+export const pedidoLabel = (p: PedidoResumo) => `${p.pomg_codigo ?? p.numero} · ${p.contratos?.numero ?? "Sem contrato"} · ${p.sub_areas?.nome ?? "Sem sub-área"}`;
+
+export function corConjuntoClasse(cor: string) {
+  const valor = cor.toLocaleLowerCase("pt-BR");
+  if (valor.includes("amarelo") || valor.includes("yellow")) return "bg-conjunto-amarelo";
+  if (valor.includes("azul") || valor.includes("ral 5010") || valor.includes("blue")) return "bg-conjunto-azul";
+  if (valor.includes("vermelho") || valor.includes("red")) return "bg-conjunto-vermelho";
+  if (valor.includes("verde") || valor.includes("green")) return "bg-conjunto-verde";
+  if (valor.includes("preto") || valor.includes("black")) return "bg-conjunto-preto";
+  if (valor.includes("branco") || valor.includes("white")) return "bg-conjunto-branco";
+  if (valor.includes("cinza") || valor.includes("munsell") || valor.includes("grey") || valor.includes("gray")) return "bg-conjunto-cinza";
+  return "bg-conjunto-neutro";
+}
+
+export function CorConjunto({ cor, amostra = false }: { cor?: string | null; amostra?: boolean }) {
+  if (!cor) return <span className="text-muted-foreground">—</span>;
+  return (
+    <span className="inline-flex items-center gap-2">
+      {amostra && <span aria-hidden="true" className={`h-3.5 w-3.5 shrink-0 rounded-full border ${corConjuntoClasse(cor)}`} />}
+      <span>{cor}</span>
+    </span>
+  );
+}
 
 export function PedidoSelect({ pedidos, value, onChange, label = "Demanda (POMG)" }: { pedidos: PedidoResumo[]; value: string; onChange: (value: string) => void; label?: string }) {
   return (

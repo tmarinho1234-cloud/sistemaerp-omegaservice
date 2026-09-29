@@ -52,7 +52,7 @@ export function DemandaLista({
                   return (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => onSelect(p)}>
                       <TableCell className="font-mono font-medium">{p.pomg_codigo ?? p.numero}</TableCell>
-                      <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{p.contratos?.numero ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell>{doPedido.length}</TableCell>
                       <TableCell className="text-xs">{peso ? `${peso.toFixed(0)} kg` : "—"}</TableCell>

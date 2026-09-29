@@ -78,7 +78,7 @@ function ProducaoListaPage() {
                   linhas.map(({ pedido: p, real, restante, pesoFab, pesoTotal, farol }) => (
                     <TableRow key={p.id} className="cursor-pointer" onClick={() => navigate({ to: "/producao/$pedidoId", params: { pedidoId: p.id } })}>
                       <TableCell className="font-mono text-xs font-semibold">{p.pomg_codigo ?? p.numero}</TableCell>
-                      <TableCell className="text-xs">{p.contratos?.nome ?? "—"}</TableCell>
+                      <TableCell className="text-xs">{p.contratos?.numero ?? "—"}</TableCell>
                       <TableCell className="text-xs">{p.sub_areas?.nome ?? "—"}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs">
                         <span className="font-medium">{pesoFab.toFixed(0)} kg</span>
