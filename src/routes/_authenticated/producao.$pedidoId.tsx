@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { DetailEmpty, DetailShell } from "@/components/detail-page";
 import {
   ATIVIDADE_EXTRA,
+  CorConjunto,
   MetricCard,
   ProgressBar,
   atividadeLabel,
@@ -239,7 +240,7 @@ function ProducaoDetalhePage() {
     <DetailShell
       modulo="Produção"
       title={pedido.pomg_codigo ?? pedido.numero}
-      subtitle={`${pedido.contratos?.nome ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · proposta ${pedido.orcamentos?.numero ?? "—"} · SLA ${dateBr(pedido.data_sla ?? pedido.prazo_entrega)}`}
+      subtitle={`${pedido.contratos?.numero ?? "—"} · ${pedido.sub_areas?.nome ?? "Sem subárea"} · proposta ${pedido.orcamentos?.numero ?? "—"} · SLA ${dateBr(pedido.data_sla ?? pedido.prazo_entrega)}`}
       onBack={voltar}
       onPrev={anterior ? () => navigate({ to: "/producao/$pedidoId", params: { pedidoId: anterior.id } }) : undefined}
       onNext={proximo ? () => navigate({ to: "/producao/$pedidoId", params: { pedidoId: proximo.id } }) : undefined}
@@ -284,6 +285,7 @@ function ProducaoDetalhePage() {
                   <p className="text-xs text-muted-foreground">
                     {c.descricao} · total {c.quantidade} · fabricado {Number(c.quantidade_fabricada ?? 0)} · restante {restante} · peso {c.peso_kg ? `${c.peso_kg} kg` : "—"}
                   </p>
+                  {c.cor && <p className="mt-1 text-xs"><CorConjunto cor={c.cor} amostra /></p>}
                 </div>
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="space-y-1.5">
