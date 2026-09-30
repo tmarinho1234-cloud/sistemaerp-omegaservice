@@ -1685,11 +1685,11 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
   const [motivo, setMotivo] = useState("");
   const [alterarOpen, setAlterarOpen] = useState(false);
   const [motivoAlteracao, setMotivoAlteracao] = useState("");
-  const [prazoEntrega, setPrazoEntrega] = useState("");
   const [prazoDias, setPrazoDias] = useState("");
-  const [dataSla, setDataSla] = useState("");
   const [dataAprovacao, setDataAprovacao] = useState(new Date().toISOString().slice(0, 10));
   const { data: feriados = [] } = useFeriados();
+  // Data SLA = Data de Aprovação + Prazo em dias úteis (somente leitura)
+  const dataSla = dataAprovacao && Number(prazoDias) > 0 ? (somarDiasUteis(dataAprovacao, Number(prazoDias), feriados.map((f) => f.data)) ?? "") : "";
 
   const { data: analise } = useQuery({
     queryKey: ["analise-aquisicao", sol.id],
@@ -1762,7 +1762,7 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
       if (error) throw error;
       await supabase.from("solicitacoes_orcamento").update({ status: "aprovada" }).eq("id", sol.id);
 
-      const entrega = prazoEntrega || dataSla;
+      const entrega = dataSla;
       const chegada = somarDiasUteis(dataAprovacao, prazoAquisicao, feriados.map((f) => f.data));
 
       // Já existe pedido (reaprovação após alteração): apenas atualiza os dados
@@ -1945,29 +1945,26 @@ export function AprovacaoTab({ sol }: { sol: Solicitacao }) {
 
           {orc.status === "enviado" && (
             <>
-              <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="grid grid-cols-3 gap-3 pt-2">
                 <div className="space-y-2">
                   <Label>Data de aprovação</Label>
                   <Input type="date" value={dataAprovacao} onChange={(e) => setDataAprovacao(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Prazo (dias)</Label>
+                  <Label>Prazo (dias úteis)</Label>
                   <Input type="number" min="1" value={prazoDias} onChange={(e) => setPrazoDias(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Data SLA</Label>
-                  <Input type="date" value={dataSla} onChange={(e) => setDataSla(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Prazo de entrega (opcional)</Label>
-                  <Input type="date" value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} />
+                  <Input value={dataSla ? dateBr(dataSla) : "—"} readOnly disabled aria-readonly="true" />
+                  <p className="text-xs text-muted-foreground">Calculada: aprovação + prazo em dias úteis (sem sábados, domingos e feriados).</p>
                 </div>
               </div>
               <div className="rounded-md border bg-muted/40 p-3 text-sm">
                 <div className="font-medium">Aquisição de materiais</div>
                 {prazoAquisicao ? (
                   <p className="text-muted-foreground">
-                    Prazo de {prazoAquisicao} dias úteis (definido na Análise Técnica) · chegada dos materiais / início da fabricação previsto para{" "}
+                    Prazo de {prazoAquisicao} dias úteis (definido na Análise Técnica), já contemplado dentro do Prazo total · chegada dos materiais / início da fabricação previsto para{" "}
                     <strong>{dateBr(chegadaPrevista)}</strong>
                   </p>
                 ) : (
