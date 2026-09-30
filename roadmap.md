@@ -11,3 +11,4 @@
 - [x] Criar solicitação e proposta de teste até virar Pedido
 - [x] Validar PCP, Produção, Qualidade, Expedição e Medição com o Pedido de teste
 - [x] Confirmar os registros e bloqueios de cada etapa
+- [ ] Adicionar cor aos conjuntos e exibir somente o número do contrato nas listagens
