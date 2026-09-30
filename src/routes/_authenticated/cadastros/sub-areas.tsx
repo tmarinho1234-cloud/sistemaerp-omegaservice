@@ -31,7 +31,7 @@ type SubArea = {
   codigo: string | null;
   descricao: string | null;
   ativo: boolean;
-  contratos?: { nome: string; empresa: string } | null;
+  contratos?: { numero: string | null } | null;
 };
 
 export const Route = createFileRoute("/_authenticated/cadastros/sub-areas")({
@@ -48,9 +48,9 @@ function SubAreasPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contratos")
-        .select("id, nome, empresa")
+        .select("id, numero")
         .eq("ativo", true)
-        .order("empresa");
+        .order("numero");
       if (error) throw error;
       return data;
     },
@@ -61,7 +61,7 @@ function SubAreasPage() {
     queryFn: async () => {
       let q = supabase
         .from("sub_areas")
-        .select("*, contratos(nome, empresa)")
+        .select("*, contratos(numero)")
         .order("nome");
       if (contratoFilter !== "todos") q = q.eq("contrato_id", contratoFilter);
       const { data, error } = await q;
@@ -119,7 +119,7 @@ function SubAreasPage() {
             <SelectItem value="todos">Todos os contratos</SelectItem>
             {contratos.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.empresa} — {c.nome}
+                {c.numero ?? "Sem número"}
               </SelectItem>
             ))}
           </SelectContent>
@@ -135,8 +135,7 @@ function SubAreasPage() {
           {
             key: "contrato",
             header: "Contrato",
-            render: (r) =>
-              r.contratos ? `${r.contratos.empresa} — ${r.contratos.nome}` : "—",
+            render: (r) => r.contratos?.numero ?? "—",
           },
           { key: "nome", header: "Sub-área" },
           { key: "codigo", header: "Código" },
@@ -195,7 +194,7 @@ function SubAreasPage() {
                   <SelectContent>
                     {contratos.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
-                        {c.empresa} — {c.nome}
+                        {c.numero ?? "Sem número"}
                       </SelectItem>
                     ))}
                   </SelectContent>

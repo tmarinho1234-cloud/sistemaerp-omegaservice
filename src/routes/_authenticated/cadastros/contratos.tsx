@@ -95,9 +95,7 @@ function ContratosPage() {
         rows={rows}
         loading={isLoading}
         columns={[
-          { key: "empresa", header: "Empresa" },
-          { key: "nome", header: "Contrato" },
-          { key: "numero", header: "Número" },
+          { key: "numero", header: "Contrato" },
           { key: "data_inicio", header: "Início" },
           { key: "data_fim", header: "Fim" },
           {
