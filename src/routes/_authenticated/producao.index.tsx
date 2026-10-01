@@ -1,17 +1,21 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Factory } from "lucide-react";
 import {
   FarolDot,
+  MetricCard,
   ModuleHeader,
   ProgressBar,
   avancoPrevisto,
   calcularFarol,
   dateBr,
   diasRestantes,
+  hoursBetween,
   usePedidos,
   useSincronizacaoTempoReal,
   useTodosConjuntos,
@@ -38,6 +42,28 @@ function ProducaoListaPage() {
   const { data: todosConjuntos = [] } = useTodosConjuntos();
   const pedidos = useMemo(() => todosPedidos.filter((p) => p.producao_iniciada), [todosPedidos]);
 
+  const { data: paralisacoes = [] } = useQuery({
+    queryKey: ["paralisacoes"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("paralisacoes").select("inicio, fim, duracao_horas");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totais = useMemo(() => {
+    const pesoFabricado = todosConjuntos.reduce((s, c) => s + Number(c.peso_fabricado_kg ?? 0), 0);
+    const pesoAFabricar = todosConjuntos.reduce(
+      (s, c) => s + Math.max(0, Number(c.peso_kg ?? 0) - Number(c.peso_fabricado_kg ?? 0)),
+      0,
+    );
+    const horasParadas = paralisacoes.reduce(
+      (s, p) => s + (p.duracao_horas !== null ? Number(p.duracao_horas) : hoursBetween(p.inicio, p.fim)),
+      0,
+    );
+    return { pesoAFabricar, pesoFabricado, pesoTotal: pesoAFabricar + pesoFabricado, horasParadas };
+  }, [todosConjuntos, paralisacoes]);
+
   const linhas = useMemo(
     () =>
       pedidos.map((p) => {
@@ -54,6 +80,12 @@ function ProducaoListaPage() {
   return (
     <div className="space-y-6">
       <ModuleHeader title="Produção" description="Atividades por conjunto, quantidades fabricadas, paralisações e atividades não previstas." icon={Factory} />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <MetricCard label="A fabricar" value={`${totais.pesoAFabricar.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} tone={totais.pesoAFabricar ? "warning" : "success"} />
+        <MetricCard label="Fabricado" value={`${totais.pesoFabricado.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} tone="success" />
+        <MetricCard label="Peso total" value={`${totais.pesoTotal.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} />
+        <MetricCard label="Horas paradas" value={`${totais.horasParadas.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h`} tone={totais.horasParadas ? "danger" : "default"} />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Demandas em produção</CardTitle>

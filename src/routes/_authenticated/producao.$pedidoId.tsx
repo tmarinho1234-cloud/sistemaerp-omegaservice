@@ -107,8 +107,9 @@ function ProducaoDetalhePage() {
     const fabricada = conjuntos.reduce((s, c) => s + Number(c.quantidade_fabricada ?? 0), 0);
     const peso = conjuntos.reduce((s, c) => s + Number(c.peso_kg ?? 0), 0);
     const pesoFab = conjuntos.reduce((s, c) => s + Number(c.peso_fabricado_kg ?? 0), 0);
+    const pesoRestante = conjuntos.reduce((s, c) => s + Math.max(0, Number(c.peso_kg ?? 0) - Number(c.peso_fabricado_kg ?? 0)), 0);
     const horasParadas = paralisacoes.reduce((s, p) => s + (p.duracao_horas !== null ? Number(p.duracao_horas) : hoursBetween(p.inicio, p.fim)), 0);
-    return { total, fabricada, restante: total - fabricada, peso, pesoFab, horasParadas };
+    return { total, fabricada, restante: total - fabricada, peso, pesoFab, pesoRestante, horasParadas };
   }, [conjuntos, paralisacoes]);
 
   const salvarAtividade = useMutation({
@@ -262,10 +263,10 @@ function ProducaoDetalhePage() {
       }
     >
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <MetricCard label="A fabricar" value={totais.total} detail={`${totais.peso.toFixed(0)} kg previstos`} />
-        <MetricCard label="Já fabricado" value={totais.fabricada} detail={`${totais.pesoFab.toFixed(0)} kg`} tone="success" />
-        <MetricCard label="Restante" value={totais.restante} tone={totais.restante ? "warning" : "success"} />
-        <MetricCard label="Horas paradas" value={totais.horasParadas.toFixed(1)} tone={totais.horasParadas ? "danger" : "default"} />
+        <MetricCard label="A fabricar" value={`${totais.pesoRestante.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} detail={`${totais.restante.toLocaleString("pt-BR")} conjuntos restantes`} tone={totais.pesoRestante ? "warning" : "success"} />
+        <MetricCard label="Fabricado" value={`${totais.pesoFab.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} detail={`${totais.fabricada.toLocaleString("pt-BR")} conjuntos fabricados`} tone="success" />
+        <MetricCard label="Peso total" value={`${totais.peso.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`} detail={`${totais.total.toLocaleString("pt-BR")} conjuntos no total`} />
+        <MetricCard label="Horas paradas" value={`${totais.horasParadas.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h`} tone={totais.horasParadas ? "danger" : "default"} />
       </div>
 
       {conjuntos.length ? (
