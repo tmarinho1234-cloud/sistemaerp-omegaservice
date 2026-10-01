@@ -12,3 +12,4 @@
 - [x] Validar PCP, Produção, Qualidade, Expedição e Medição com o Pedido de teste
 - [x] Confirmar os registros e bloqueios de cada etapa
 - [x] Adicionar cor aos conjuntos e exibir somente o número do contrato nas listagens
+- [x] Adicionar totalizadores gerais de produção e destacar peso no detalhe da OF
