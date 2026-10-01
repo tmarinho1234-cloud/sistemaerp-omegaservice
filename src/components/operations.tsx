@@ -229,7 +229,7 @@ const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
   romaneio_notas: ["romaneio-notas"],
   medicoes: ["medicoes", "kpi-central"],
   notas_fiscais: ["notas", "kpi-central"],
-  databook_relatorios: ["databook"],
+  databook_relatorios: ["databook", "databook-indicadores"],
   contratos: ["contratos-select", "pedidos-operacionais", "kpi-central"],
   sub_areas: ["sub-areas", "sub-areas-select", "pedidos-operacionais"],
   feriados: ["feriados"],
