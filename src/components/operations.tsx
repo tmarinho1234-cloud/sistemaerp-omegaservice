@@ -49,6 +49,7 @@ export type ConjuntoResumo = {
   status: string;
   progresso: number;
   liberado_qualidade: boolean;
+  quantidade_liberada?: number;
 };
 
 export type Atividade = {

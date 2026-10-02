@@ -224,7 +224,9 @@ function ExpedicaoDetalhePage() {
                   <TableHead>Conjunto</TableHead>
                   <TableHead>Cor</TableHead>
                   <TableHead>Total</TableHead>
+                  <TableHead>Liberado Qualidade</TableHead>
                   <TableHead>Entregue</TableHead>
+                  <TableHead>Disponível p/ expedir</TableHead>
                   <TableHead>Restante</TableHead>
                   <TableHead>Peso</TableHead>
                   <TableHead>Entrega</TableHead>
@@ -247,19 +249,21 @@ function ExpedicaoDetalhePage() {
                         </TableCell>
                         <TableCell className="text-xs"><CorConjunto cor={c.cor} /></TableCell>
                         <TableCell>{c.quantidade}</TableCell>
+                        <TableCell>{Number(c.quantidade_liberada ?? 0)}</TableCell>
                         <TableCell>{entregue}</TableCell>
+                        <TableCell className="font-medium">{Math.max(0, Number(c.quantidade_liberada ?? 0) - entregue)}</TableCell>
                         <TableCell>{restante}</TableCell>
                         <TableCell>{c.peso_kg ? `${c.peso_kg} kg` : "—"}</TableCell>
                         <TableCell className="min-w-32">
                           <ProgressBar value={(entregue / Math.max(1, Number(c.quantidade))) * 100} />
                         </TableCell>
-                        <TableCell>{c.liberado_qualidade ? <Badge>Liberado</Badge> : <Badge variant="outline">Bloqueado</Badge>}</TableCell>
+                        <TableCell>{Number(c.quantidade_liberada ?? 0) >= Number(c.quantidade) && Number(c.quantidade) > 0 ? <Badge>Liberado</Badge> : c.liberado_qualidade ? <Badge variant="secondary">Parcial</Badge> : <Badge variant="outline">Bloqueado</Badge>}</TableCell>
                       </TableRow>
                     );
                   })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
                       Nenhum conjunto nesta demanda.
                     </TableCell>
                   </TableRow>
@@ -404,10 +408,10 @@ function ExpedicaoDetalhePage() {
               </SelectTrigger>
               <SelectContent>
                 {conjuntos
-                  .filter((c) => c.liberado_qualidade)
+                  .filter((c) => Number(c.quantidade_liberada ?? 0) - (expedidoPorConjunto.get(c.id) ?? 0) > 0)
                   .map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.tag} · {pedido.pomg_codigo ?? pedido.numero} · saldo {Number(c.quantidade) - (expedidoPorConjunto.get(c.id) ?? 0)}
+                      {c.tag} · {pedido.pomg_codigo ?? pedido.numero} · liberado p/ expedir {Number(c.quantidade_liberada ?? 0) - (expedidoPorConjunto.get(c.id) ?? 0)}
                     </SelectItem>
                   ))}
               </SelectContent>

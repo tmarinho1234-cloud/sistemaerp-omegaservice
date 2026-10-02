@@ -64,6 +64,13 @@
       "when": 1790557052995,
       "tag": "0008_add_conjunto_cor",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790906773015,
+      "tag": "0009_qualidade_quantidades",
+      "breakpoints": true
     }
   ]
 }

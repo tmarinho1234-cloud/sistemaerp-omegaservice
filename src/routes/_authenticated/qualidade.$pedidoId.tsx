@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/qualidade/$pedidoId")({
 
 const TIPO_POR_REQUISITO: Record<string, string> = { dimensional: "dimensional", solda: "soldagem", pintura: "pintura", outro: "final" };
 
-type Inspecao = { id: string; conjunto_id: string; tipo: string; resultado: string; data_inspecao: string; observacoes: string | null };
+type Inspecao = { id: string; conjunto_id: string; tipo: string; resultado: string; data_inspecao: string; observacoes: string | null; quantidade_inspecionada: number; quantidade_aprovada: number; quantidade_reprovada: number };
 type NC = { id: string; conjunto_id: string; inspecao_id: string; descricao: string; acao_corretiva: string | null; exige_retrabalho: boolean; status: string };
 type Requisito = { id: string; tipo: string; nome_ensaio: string | null };
 
@@ -49,7 +49,7 @@ function QualidadeDetalhePage() {
   const { data: conjuntos = [] } = useConjuntos(pedidoId);
 
   const [inspOpen, setInspOpen] = useState(false);
-  const [form, setForm] = useState({ conjunto_id: "", tipo: "dimensional", resultado: "aprovado", data: new Date().toISOString().slice(0, 10), observacoes: "", nc: "" });
+  const [form, setForm] = useState({ conjunto_id: "", tipo: "dimensional", inspecionada: "", reprovada: "0", data: new Date().toISOString().slice(0, 10), observacoes: "", nc: "" });
 
   const { data: requisitos = [] } = useQuery({
     queryKey: ["requisitos-demanda", pedidoId],
@@ -92,21 +92,33 @@ function QualidadeDetalhePage() {
     return tipos;
   }, [requisitos]);
 
+  const jaInspecionado = (conjuntoId: string, tipo: string) =>
+    inspecoes.filter((i) => i.conjunto_id === conjuntoId && i.tipo === tipo).reduce((s, i) => s + Number(i.quantidade_inspecionada || 0), 0);
+  const conjSel = conjuntos.find((c) => c.id === form.conjunto_id);
+  const prontaSel = Number(conjSel?.quantidade_fabricada ?? 0);
+  const disponivel = conjSel ? Math.max(0, prontaSel - jaInspecionado(conjSel.id, form.tipo)) : 0;
+  const qInsp = Number(form.inspecionada || 0);
+  const qRep = Number(form.reprovada || 0);
+  const qApr = Math.max(0, qInsp - qRep);
+
   const registrar = useMutation({
     mutationFn: async () => {
       if (!form.conjunto_id) throw new Error("Selecione o conjunto");
+      if (qInsp <= 0) throw new Error("Informe a quantidade inspecionada");
+      if (qInsp > disponivel) throw new Error(`Quantidade acima do saldo disponível (${disponivel})`);
+      if (qRep < 0 || qRep > qInsp) throw new Error("Quantidade reprovada inválida");
       const { data, error } = await supabase
         .from("inspecoes_qualidade")
-        .insert({ pedido_id: pedidoId, conjunto_id: form.conjunto_id, tipo: form.tipo, resultado: form.resultado, data_inspecao: form.data, observacoes: form.observacoes || null })
+        .insert({ pedido_id: pedidoId, conjunto_id: form.conjunto_id, tipo: form.tipo, resultado: qRep > 0 ? "reprovado" : "aprovado", quantidade_inspecionada: qInsp, quantidade_aprovada: qInsp - qRep, quantidade_reprovada: qRep, data_inspecao: form.data, observacoes: form.observacoes || null })
         .select("id")
         .single();
       if (error) throw error;
-      if (form.resultado === "reprovado") {
+      if (qRep > 0) {
         const nc = await supabase.from("nao_conformidades").insert({
           inspecao_id: data.id,
           pedido_id: pedidoId,
           conjunto_id: form.conjunto_id,
-          descricao: form.nc || form.observacoes || "Reprovação registrada na inspeção",
+          descricao: `${form.nc || form.observacoes || "Reprovação registrada na inspeção"} (${qRep} un reprovadas)`,
           exige_retrabalho: true,
         });
         if (nc.error) throw nc.error;
@@ -115,7 +127,7 @@ function QualidadeDetalhePage() {
     onSuccess: () => {
       toast.success("Inspeção registrada");
       setInspOpen(false);
-      setForm({ conjunto_id: "", tipo: "dimensional", resultado: "aprovado", data: new Date().toISOString().slice(0, 10), observacoes: "", nc: "" });
+      setForm({ conjunto_id: "", tipo: "dimensional", inspecionada: "", reprovada: "0", data: new Date().toISOString().slice(0, 10), observacoes: "", nc: "" });
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -183,6 +195,8 @@ function QualidadeDetalhePage() {
                   <TableHead>Conjunto</TableHead>
                   <TableHead>Cor</TableHead>
                   <TableHead>Avanço</TableHead>
+                  <TableHead className="text-right">Pronta</TableHead>
+                  <TableHead className="text-right">Liberada</TableHead>
                   {tiposDaDemanda.map((t) => (
                     <TableHead key={t.value + t.label}>{t.label}</TableHead>
                   ))}
@@ -204,20 +218,25 @@ function QualidadeDetalhePage() {
                       <TableCell>
                         <ProgressBar value={c.progresso} />
                       </TableCell>
+                      <TableCell className="text-right">{Number(c.quantidade_fabricada)} / {Number(c.quantidade)}</TableCell>
+                      <TableCell className="text-right font-medium">{Number(c.quantidade_liberada ?? 0)}</TableCell>
                       {tiposDaDemanda.map((t) => {
                         const r = resultadoDe(c.id, t.value);
+                        const ja = jaInspecionado(c.id, t.value);
+                        const saldo = Math.max(0, Number(c.quantidade_fabricada) - ja);
                         return (
                           <TableCell key={t.value + t.label}>
                             <Badge variant={r === "aprovado" ? "default" : r === "reprovado" ? "destructive" : "outline"}>{r ? r : "pendente"}</Badge>
+                            <div className="mt-1 text-xs text-muted-foreground">insp. {ja} · saldo {saldo}</div>
                           </TableCell>
                         );
                       })}
-                      <TableCell>{c.liberado_qualidade ? <Badge>Liberado</Badge> : <Badge variant="outline">Aguardando</Badge>}</TableCell>
+                      <TableCell>{Number(c.quantidade_liberada ?? 0) >= Number(c.quantidade) && Number(c.quantidade) > 0 ? <Badge>Liberado</Badge> : c.liberado_qualidade ? <Badge variant="secondary">Parcial</Badge> : <Badge variant="outline">Aguardando</Badge>}</TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5 + tiposDaDemanda.length} className="py-10 text-center text-muted-foreground">
+                    <TableCell colSpan={7 + tiposDaDemanda.length} className="py-10 text-center text-muted-foreground">
                       Nenhum conjunto nesta demanda.
                     </TableCell>
                   </TableRow>
@@ -244,7 +263,7 @@ function QualidadeDetalhePage() {
                         <span className="font-mono">{c ? `${c.tag} · ${pedido.pomg_codigo ?? pedido.numero}` : "—"}</span> · {i.tipo}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {dateBr(i.data_inspecao)} {i.observacoes ? `· ${i.observacoes}` : ""}
+                        {dateBr(i.data_inspecao)} · insp. {Number(i.quantidade_inspecionada)} · aprov. {Number(i.quantidade_aprovada)} · reprov. {Number(i.quantidade_reprovada)} {i.observacoes ? `· ${i.observacoes}` : ""}
                       </div>
                     </div>
                     <Badge variant={i.resultado === "aprovado" ? "default" : i.resultado === "reprovado" ? "destructive" : "outline"}>{i.resultado}</Badge>
@@ -323,27 +342,37 @@ function QualidadeDetalhePage() {
               </SelectContent>
             </Select>
           </Field>
+          <div className="grid grid-cols-2 gap-3 rounded-md border bg-muted/40 p-3 text-sm">
+            <div>Pronta na Produção: <b>{conjSel ? prontaSel : "—"}</b></div>
+            <div>Disponível para inspeção: <b>{conjSel ? disponivel : "—"}</b></div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Qtd. inspecionada">
+              <Input type="number" min="0" max={disponivel} value={form.inspecionada} onChange={(e) => setForm({ ...form, inspecionada: e.target.value })} />
+            </Field>
+            <Field label="Qtd. reprovada">
+              <Input type="number" min="0" max={qInsp} value={form.reprovada} onChange={(e) => setForm({ ...form, reprovada: e.target.value })} />
+            </Field>
+            <Field label="Qtd. aprovada">
+              <Input value={qApr} readOnly disabled />
+            </Field>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Resultado">
-              <Select value={form.resultado} onValueChange={(v) => setForm({ ...form, resultado: v })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aprovado">Aprovado</SelectItem>
-                  <SelectItem value="reprovado">Reprovado</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="pt-2">
+                {qInsp > 0 ? <Badge variant={qRep > 0 ? "destructive" : "default"}>{qRep > 0 ? "Reprovado" : "Aprovado"}</Badge> : <span className="text-sm text-muted-foreground">—</span>}
+              </div>
             </Field>
             <Field label="Data">
               <Input type="date" value={form.data} onChange={(e) => setForm({ ...form, data: e.target.value })} />
             </Field>
           </div>
+          {conjSel && qInsp > disponivel && <p className="text-sm text-destructive">Quantidade acima do saldo disponível ({disponivel}).</p>}
+          {qRep > qInsp && <p className="text-sm text-destructive">Reprovada não pode superar a inspecionada.</p>}
           <Field label="Observações">
             <Textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} />
           </Field>
-          {form.resultado === "reprovado" && (
+          {qRep > 0 && (
             <Field label="Descrição da não conformidade">
               <Textarea value={form.nc} onChange={(e) => setForm({ ...form, nc: e.target.value })} />
             </Field>
@@ -352,7 +381,7 @@ function QualidadeDetalhePage() {
             <Button variant="outline" onClick={() => setInspOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => registrar.mutate()} disabled={!form.conjunto_id || registrar.isPending}>
+            <Button onClick={() => registrar.mutate()} disabled={!form.conjunto_id || qInsp <= 0 || qInsp > disponivel || qRep < 0 || qRep > qInsp || registrar.isPending}>
               Registrar
             </Button>
           </DialogFooter>
