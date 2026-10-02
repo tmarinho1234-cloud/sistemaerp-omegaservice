@@ -543,6 +543,9 @@ export type Database = {
           inspetor_id: string | null
           observacoes: string | null
           pedido_id: string
+          quantidade_aprovada: number
+          quantidade_inspecionada: number
+          quantidade_reprovada: number
           reinspecao_de: string | null
           resultado: string
           tipo: string
@@ -556,6 +559,9 @@ export type Database = {
           inspetor_id?: string | null
           observacoes?: string | null
           pedido_id: string
+          quantidade_aprovada?: number
+          quantidade_inspecionada?: number
+          quantidade_reprovada?: number
           reinspecao_de?: string | null
           resultado?: string
           tipo: string
@@ -569,6 +575,9 @@ export type Database = {
           inspetor_id?: string | null
           observacoes?: string | null
           pedido_id?: string
+          quantidade_aprovada?: number
+          quantidade_inspecionada?: number
+          quantidade_reprovada?: number
           reinspecao_de?: string | null
           resultado?: string
           tipo?: string
@@ -1336,6 +1345,7 @@ export type Database = {
           progresso: number
           quantidade: number
           quantidade_fabricada: number
+          quantidade_liberada: number
           status: string
           tag: string
           updated_at: string
@@ -1357,6 +1367,7 @@ export type Database = {
           progresso?: number
           quantidade?: number
           quantidade_fabricada?: number
+          quantidade_liberada?: number
           status?: string
           tag: string
           updated_at?: string
@@ -1378,6 +1389,7 @@ export type Database = {
           progresso?: number
           quantidade?: number
           quantidade_fabricada?: number
+          quantidade_liberada?: number
           status?: string
           tag?: string
           updated_at?: string
