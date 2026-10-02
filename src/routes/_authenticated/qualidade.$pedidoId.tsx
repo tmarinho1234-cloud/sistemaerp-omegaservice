@@ -222,12 +222,18 @@ function QualidadeDetalhePage() {
                       <TableCell className="text-right font-medium">{Number(c.quantidade_liberada ?? 0)}</TableCell>
                       {tiposDaDemanda.map((t) => {
                         const r = resultadoDe(c.id, t.value);
-                        const ja = jaInspecionado(c.id, t.value);
-                        const saldo = Math.max(0, Number(c.quantidade_fabricada) - ja);
+                        const doTipo = inspecoes.filter((i) => i.conjunto_id === c.id && i.tipo === t.value);
+                        const apr = doTipo.reduce((s, i) => s + Number(i.quantidade_aprovada || 0), 0);
+                        const rep = doTipo.reduce((s, i) => s + Number(i.quantidade_reprovada || 0), 0);
                         return (
                           <TableCell key={t.value + t.label}>
-                            <Badge variant={r === "aprovado" ? "default" : r === "reprovado" ? "destructive" : "outline"}>{r ? r : "pendente"}</Badge>
-                            <div className="mt-1 text-xs text-muted-foreground">insp. {ja} · saldo {saldo}</div>
+                            {r ? (
+                              <Badge variant={r === "aprovado" ? "default" : "destructive"}>
+                                {r === "aprovado" ? "Aprovado" : "Reprovado"} · {apr}/{rep}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">Pendente</Badge>
+                            )}
                           </TableCell>
                         );
                       })}
