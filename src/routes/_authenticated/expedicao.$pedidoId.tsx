@@ -404,10 +404,10 @@ function ExpedicaoDetalhePage() {
               </SelectTrigger>
               <SelectContent>
                 {conjuntos
-                  .filter((c) => c.liberado_qualidade)
+                  .filter((c) => Number(c.quantidade_liberada ?? 0) - (expedidoPorConjunto.get(c.id) ?? 0) > 0)
                   .map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.tag} · {pedido.pomg_codigo ?? pedido.numero} · saldo {Number(c.quantidade) - (expedidoPorConjunto.get(c.id) ?? 0)}
+                      {c.tag} · {pedido.pomg_codigo ?? pedido.numero} · liberado p/ expedir {Number(c.quantidade_liberada ?? 0) - (expedidoPorConjunto.get(c.id) ?? 0)}
                     </SelectItem>
                   ))}
               </SelectContent>
