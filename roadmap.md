@@ -13,3 +13,5 @@
 - [x] Confirmar os registros e bloqueios de cada etapa
 - [x] Adicionar cor aos conjuntos e exibir somente o número do contrato nas listagens
 - [x] Adicionar totalizadores gerais de produção e destacar peso no detalhe da OF
+- [ ] Separar quantidades aprovadas, reprovadas e pendentes por conjunto na Qualidade
+- [ ] Reabrir para inspeção somente a quantidade da NC encerrada, preservando o histórico
