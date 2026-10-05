@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus } from "lucide-react";
+import { CheckCircle2, Clock3, Plus, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { DetailEmpty, DetailShell } from "@/components/detail-page";
 import { CorConjunto, MetricCard, ProgressBar, dateBr, requisitoLabel, useConjuntos, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
@@ -92,8 +92,14 @@ function QualidadeDetalhePage() {
     return tipos;
   }, [requisitos]);
 
+  const ncsEncerradas = useMemo(() => new Set(ncs.filter((n) => n.status === "encerrada").map((n) => n.inspecao_id)), [ncs]);
   const jaInspecionado = (conjuntoId: string, tipo: string) =>
-    inspecoes.filter((i) => i.conjunto_id === conjuntoId && i.tipo === tipo).reduce((s, i) => s + Number(i.quantidade_inspecionada || 0), 0);
+    inspecoes
+      .filter((i) => i.conjunto_id === conjuntoId && i.tipo === tipo)
+      .reduce(
+        (s, i) => s + Number(i.quantidade_aprovada || 0) + (ncsEncerradas.has(i.id) ? 0 : Number(i.quantidade_reprovada || 0)),
+        0,
+      );
   const conjSel = conjuntos.find((c) => c.id === form.conjunto_id);
   const prontaSel = Number(conjSel?.quantidade_fabricada ?? 0);
   const disponivel = conjSel ? Math.max(0, prontaSel - jaInspecionado(conjSel.id, form.tipo)) : 0;
@@ -135,12 +141,16 @@ function QualidadeDetalhePage() {
 
   const encerrarNC = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("nao_conformidades").update({ status: "encerrada" }).eq("id", id);
+      const nc = ncs.find((item) => item.id === id);
+      if (!nc) throw new Error("Não conformidade não encontrada");
+      const { error } = await supabase.from("nao_conformidades").update({ status: "encerrada" }).eq("id", id).eq("conjunto_id", nc.conjunto_id);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Não conformidade encerrada");
       qc.invalidateQueries({ queryKey: ["ncs", pedidoId] });
+      qc.invalidateQueries({ queryKey: ["inspecoes", pedidoId] });
+      qc.invalidateQueries({ queryKey: ["conjuntos", pedidoId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -148,9 +158,6 @@ function QualidadeDetalhePage() {
   const liberados = conjuntos.filter((c) => c.liberado_qualidade).length;
   const reprovacoes = inspecoes.filter((i) => i.resultado === "reprovado").length;
   const ncsAbertas = ncs.filter((n) => n.status !== "encerrada").length;
-
-  /** Sempre considera a última inspeção registrada de cada tipo. */
-  const resultadoDe = (conjuntoId: string, tipo: string) => inspecoes.find((i) => i.conjunto_id === conjuntoId && i.tipo === tipo)?.resultado;
 
   const voltar = () => navigate({ to: "/qualidade" });
 
@@ -221,19 +228,28 @@ function QualidadeDetalhePage() {
                       <TableCell className="text-right">{Number(c.quantidade_fabricada)} / {Number(c.quantidade)}</TableCell>
                       <TableCell className="text-right font-medium">{Number(c.quantidade_liberada ?? 0)}</TableCell>
                       {tiposDaDemanda.map((t) => {
-                        const r = resultadoDe(c.id, t.value);
                         const doTipo = inspecoes.filter((i) => i.conjunto_id === c.id && i.tipo === t.value);
                         const apr = doTipo.reduce((s, i) => s + Number(i.quantidade_aprovada || 0), 0);
-                        const rep = doTipo.reduce((s, i) => s + Number(i.quantidade_reprovada || 0), 0);
+                        const rep = doTipo.reduce((s, i) => s + (ncsEncerradas.has(i.id) ? 0 : Number(i.quantidade_reprovada || 0)), 0);
+                        const pend = doTipo.reduce((s, i) => s + (ncsEncerradas.has(i.id) ? Number(i.quantidade_reprovada || 0) : 0), 0);
                         return (
                           <TableCell key={t.value + t.label}>
-                            {r ? (
-                              <Badge variant={r === "aprovado" ? "default" : "destructive"}>
-                                {r === "aprovado" ? "Aprovado" : "Reprovado"} · {apr}/{rep}
+                            <div className="flex min-w-32 flex-col items-start gap-1.5">
+                              <Badge className="gap-1.5" variant={apr > 0 ? "default" : "outline"}>
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Aprovado · {apr}
                               </Badge>
-                            ) : (
-                              <Badge variant="outline">Pendente</Badge>
-                            )}
+                              <Badge className="gap-1.5" variant={rep > 0 ? "destructive" : "outline"}>
+                                <XCircle className="h-3.5 w-3.5" />
+                                Reprovado · {rep}
+                              </Badge>
+                              {pend > 0 && (
+                                <Badge className="gap-1.5" variant="secondary">
+                                  <Clock3 className="h-3.5 w-3.5" />
+                                  Pendente · {pend}
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
                         );
                       })}
@@ -262,6 +278,7 @@ function QualidadeDetalhePage() {
             {inspecoes.length ? (
               inspecoes.map((i) => {
                 const c = conjuntos.find((x) => x.id === i.conjunto_id);
+                const reprovacaoPendente = i.quantidade_reprovada > 0 && ncsEncerradas.has(i.id);
                 return (
                   <div key={i.id} className="flex flex-wrap items-center justify-between gap-2 border-b py-2 text-sm">
                     <div>
@@ -272,7 +289,10 @@ function QualidadeDetalhePage() {
                         {dateBr(i.data_inspecao)} · insp. {Number(i.quantidade_inspecionada)} · aprov. {Number(i.quantidade_aprovada)} · reprov. {Number(i.quantidade_reprovada)} {i.observacoes ? `· ${i.observacoes}` : ""}
                       </div>
                     </div>
-                    <Badge variant={i.resultado === "aprovado" ? "default" : i.resultado === "reprovado" ? "destructive" : "outline"}>{i.resultado}</Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={i.resultado === "aprovado" ? "default" : i.resultado === "reprovado" ? "destructive" : "outline"}>{i.resultado}</Badge>
+                      {reprovacaoPendente && <Badge variant="secondary">{Number(i.quantidade_reprovada)} pendente</Badge>}
+                    </div>
                   </div>
                 );
               })

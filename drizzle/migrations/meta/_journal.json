@@ -71,6 +71,13 @@
       "when": 1790906773015,
       "tag": "0009_qualidade_quantidades",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791197621157,
+      "tag": "0010_qualidade_reinspecao_apos_nc",
+      "breakpoints": true
     }
   ]
 }

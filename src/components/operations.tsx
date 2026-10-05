@@ -224,7 +224,7 @@ const TABELAS_SINCRONIZADAS: Record<string, string[]> = {
   paralisacoes: ["paralisacoes", "kpi-central", "pcp-timeline-paralisacoes"],
   atividades_nao_previstas: ["atividades-nao-previstas"],
   inspecoes_qualidade: ["inspecoes", "conjuntos", "todos-conjuntos", "kpi-central"],
-  nao_conformidades: ["ncs", "kpi-central"],
+  nao_conformidades: ["ncs", "inspecoes", "conjuntos", "todos-conjuntos", "kpi-central"],
   romaneios: ["romaneios", "kpi-central"],
   romaneio_itens: ["romaneio-itens", "conjuntos", "todos-conjuntos", "kpi-central"],
   romaneio_notas: ["romaneio-notas"],
