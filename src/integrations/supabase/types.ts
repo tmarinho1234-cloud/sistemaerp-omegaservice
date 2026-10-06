@@ -219,6 +219,7 @@ export type Database = {
       }
       contrato_linhas_preco: {
         Row: {
+          classificacao: string | null
           codigo: string
           contrato_id: string
           created_at: string
@@ -230,6 +231,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          classificacao?: string | null
           codigo: string
           contrato_id: string
           created_at?: string
@@ -241,6 +243,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          classificacao?: string | null
           codigo?: string
           contrato_id?: string
           created_at?: string
@@ -603,6 +606,51 @@ export type Database = {
             columns: ["reinspecao_de"]
             isOneToOne: false
             referencedRelation: "inspecoes_qualidade"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicao_itens: {
+        Row: {
+          created_at: string
+          id: string
+          medicao_id: string
+          orcamento_item_id: string
+          percentual: number
+          quantidade: number
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medicao_id: string
+          orcamento_item_id: string
+          percentual?: number
+          quantidade?: number
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medicao_id?: string
+          orcamento_item_id?: string
+          percentual?: number
+          quantidade?: number
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicao_itens_medicao_id_fkey"
+            columns: ["medicao_id"]
+            isOneToOne: false
+            referencedRelation: "medicoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medicao_itens_orcamento_item_id_fkey"
+            columns: ["orcamento_item_id"]
+            isOneToOne: false
+            referencedRelation: "orcamento_itens"
             referencedColumns: ["id"]
           },
         ]
@@ -971,9 +1019,12 @@ export type Database = {
       orcamento_itens: {
         Row: {
           categoria: Database["public"]["Enums"]["qqp_categoria"]
+          classificacao: string | null
+          contrato_linha_id: string | null
           created_at: string
           descricao: string
           id: string
+          item_qqp: string | null
           orcamento_id: string
           ordem: number
           peso_kg: number | null
@@ -984,9 +1035,12 @@ export type Database = {
         }
         Insert: {
           categoria?: Database["public"]["Enums"]["qqp_categoria"]
+          classificacao?: string | null
+          contrato_linha_id?: string | null
           created_at?: string
           descricao: string
           id?: string
+          item_qqp?: string | null
           orcamento_id: string
           ordem?: number
           peso_kg?: number | null
@@ -997,9 +1051,12 @@ export type Database = {
         }
         Update: {
           categoria?: Database["public"]["Enums"]["qqp_categoria"]
+          classificacao?: string | null
+          contrato_linha_id?: string | null
           created_at?: string
           descricao?: string
           id?: string
+          item_qqp?: string | null
           orcamento_id?: string
           ordem?: number
           peso_kg?: number | null
@@ -1009,6 +1066,13 @@ export type Database = {
           unidade?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orcamento_itens_contrato_linha_id_fkey"
+            columns: ["contrato_linha_id"]
+            isOneToOne: false
+            referencedRelation: "contrato_linhas_preco"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orcamento_itens_orcamento_id_fkey"
             columns: ["orcamento_id"]
