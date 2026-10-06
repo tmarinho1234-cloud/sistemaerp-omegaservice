@@ -78,6 +78,13 @@
       "when": 1791197621157,
       "tag": "0010_qualidade_reinspecao_apos_nc",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791286687944,
+      "tag": "0011_qqp_linhas_classificacao",
+      "breakpoints": true
     }
   ]
 }
