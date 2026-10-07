@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ContratoLinhasQqp } from "@/components/contrato-linhas-qqp";
 
 type Contrato = {
   id: string;
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/cadastros/contratos")({
 function ContratosPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Partial<Contrato> | null>(null);
+  const [qqp, setQqp] = useState<Contrato | null>(null);
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["contratos"],
@@ -99,6 +101,15 @@ function ContratosPage() {
           { key: "data_inicio", header: "Início" },
           { key: "data_fim", header: "Fim" },
           {
+            key: "id",
+            header: "QQP",
+            render: (r) => (
+              <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setQqp(r); }}>
+                Linhas QQP
+              </Button>
+            ),
+          },
+          {
             key: "ativo",
             header: "Status",
             render: (r) => (
@@ -114,6 +125,8 @@ function ContratosPage() {
           await deleteMut.mutateAsync(r.id);
         }}
       />
+
+      <ContratoLinhasQqp contrato={qqp} onClose={() => setQqp(null)} />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg">
