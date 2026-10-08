@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Derive pending quality quantities from closed nonconformities instead of mutating inspection history, so audits remain intact.
+- QQP lines live in `contrato_linhas_preco` (unique contrato_id+codigo); budget items copy item_qqp/classificacao and keep `contrato_linha_id`, and measurements bill per budget item via `medicao_itens` (saldo enforced by trigger) — so each QQP line is traceable from contract to billing.
