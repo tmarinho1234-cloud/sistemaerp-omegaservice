@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Banknote, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { DetailEmpty, DetailShell } from "@/components/detail-page";
+import { NovaMedicaoQqpDialog, QqpSaldoCard, useLinhasMedicao } from "@/components/medicao-qqp";
 import { MetricCard, dateBr, moneyBr, usePedidos, useSincronizacaoTempoReal } from "@/components/operations";
 
 export const Route = createFileRoute("/_authenticated/medicao/$pedidoId")({
@@ -44,6 +45,8 @@ function MedicaoDetalhePage() {
   const proximo = indice >= 0 && indice < pedidos.length - 1 ? pedidos[indice + 1] : undefined;
 
   const [novaMedicao, setNovaMedicao] = useState(false);
+  const [novaQqp, setNovaQqp] = useState(false);
+  const linhasQqp = useLinhasMedicao(pedidoId, pedido?.orcamento_id);
   const [novaNota, setNovaNota] = useState(false);
   const [mf, setMf] = useState({ numero: "", inicio: "", fim: "", valor: "", observacoes: "" });
   const [nf, setNf] = useState({ medicao_id: "", numero: "", emissao: new Date().toISOString().slice(0, 10), vencimento: "", valor: "" });
@@ -101,7 +104,10 @@ function MedicaoDetalhePage() {
       const { error } = await supabase.from("medicoes").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["medicoes", pedidoId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["medicoes", pedidoId] });
+      qc.invalidateQueries({ queryKey: ["medicao-itens", pedidoId] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -177,7 +183,7 @@ function MedicaoDetalhePage() {
             <Banknote className="mr-2 h-4 w-4" />
             Nota fiscal
           </Button>
-          <Button size="sm" onClick={() => setNovaMedicao(true)}>
+          <Button size="sm" onClick={() => (linhasQqp.length ? setNovaQqp(true) : setNovaMedicao(true))}>
             <Plus className="mr-2 h-4 w-4" />
             Medição
           </Button>
@@ -190,6 +196,8 @@ function MedicaoDetalhePage() {
         <MetricCard label="Recebido" value={moneyBr(recebido)} tone="success" />
         <MetricCard label="Vencido" value={moneyBr(vencido)} tone={vencido ? "danger" : "default"} />
       </div>
+
+      {linhasQqp.length > 0 && <QqpSaldoCard linhas={linhasQqp} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -268,6 +276,8 @@ function MedicaoDetalhePage() {
           </Button>
         </CardContent>
       </Card>
+
+      <NovaMedicaoQqpDialog open={novaQqp} onOpenChange={setNovaQqp} pedidoId={pedidoId} linhas={linhasQqp} />
 
       <Dialog open={novaMedicao} onOpenChange={setNovaMedicao}>
         <DialogContent>
